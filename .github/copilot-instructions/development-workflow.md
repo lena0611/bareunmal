@@ -1,8 +1,10 @@
 # Development Workflow
 
+일반 개발 워크플로 원칙입니다. 활성 스택이 정의하는 구체적인 계층 이름(store/composable 등)이나 폴더 구조는 해당 스택 instructions를 따릅니다.
+
 ## Development Workflow Rules
-1. 항상 로직을 먼저 core에 구현합니다.
-2. 그 다음 adapter(Pinia 또는 composable)로 연결합니다.
+1. 항상 도메인/응용 로직을 먼저 프레임워크-비종속 계층(core)에 구현합니다.
+2. 그 다음 활성 스택의 어댑터 계층으로 연결합니다.
 3. 마지막으로 UI에서 사용합니다.
 
 ## Goal

@@ -57,11 +57,20 @@ function readActiveScaffoldRoot() {
 
 const activeScaffoldRoot = readActiveScaffoldRoot()
 
+// 런타임에만 생성되는 마커/산출물 경로. 문서가 참조해도 실제 파일 부재를 broken으로 보지 않습니다.
+const dynamicArtifactPaths = new Set([
+  '.github/.stack-applied.json',
+])
+
 function toPosix(p) {
   return p.split(path.sep).join('/')
 }
 
 function exists(rel) {
+  if (dynamicArtifactPaths.has(rel)) {
+    return true
+  }
+
   if (fs.existsSync(path.join(repoRoot, rel))) {
     return true
   }

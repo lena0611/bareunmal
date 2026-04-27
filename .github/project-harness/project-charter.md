@@ -25,7 +25,7 @@
 
 ## 5. 제약
 - 제품/비즈니스 제약: `TBD`
-- 기술 제약: 현재는 Vue 3 + Pinia + Vite + TypeScript, core 중심 구조를 유지
+- 기술 제약: `TBD` (활성 스택은 `.github/policy-harness/profile.json`의 `activeStack`을 따릅니다. 기본 원칙: 도메인 로직은 프레임워크-비종속 계층에 두고, UI/상태관리는 어댑터 계층으로 분리)
 - 일정/리소스 제약: `TBD`
 
 ## 6. 첫 도메인 정의가 들어오면 바로 채워야 할 항목
