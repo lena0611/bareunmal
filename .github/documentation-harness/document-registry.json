@@ -7,9 +7,6 @@
       "children": [
         ".github/copilot-instructions/coding-conventions.md",
         ".github/copilot-instructions/project-setup.md",
-        ".github/copilot-instructions/architecture.md",
-        ".github/copilot-instructions/state-management.md",
-        ".github/copilot-instructions/feature-sliced-design.md",
         ".github/copilot-instructions/development-workflow.md"
       ]
     },
@@ -32,7 +29,9 @@
       "children": [
         ".github/project-harness/config-contract.md",
         ".github/project-harness/project-charter.md",
-        ".github/project-harness/scope-contract.md"
+        ".github/project-harness/scope-contract.md",
+        ".github/project-harness/portability-guide.md",
+        ".github/project-harness/bootstrap.md"
       ]
     },
     {
@@ -45,6 +44,7 @@
         ".github/policy-harness/automation-coverage.md",
         ".github/policy-harness/waiver-guidelines.md",
         ".github/policy-harness/policy-registry.json",
+        ".github/policy-harness/profile.json",
         ".github/policy-harness/waivers.json"
       ]
     },
@@ -66,6 +66,21 @@
         ".github/style-harness/style-rules.md",
         ".github/style-harness/validation-rules.md",
         ".github/style-harness/style-evolution.md"
+      ]
+    },
+    {
+      "id": "stacks",
+      "index": ".github/stacks/README.md",
+      "children": []
+    },
+    {
+      "id": "stack-vue3-fsd",
+      "index": ".github/stacks/vue3-fsd/manifest.json",
+      "children": [
+        ".github/stacks/vue3-fsd/policies.json",
+        ".github/stacks/vue3-fsd/instructions/architecture.md",
+        ".github/stacks/vue3-fsd/instructions/state-management.md",
+        ".github/stacks/vue3-fsd/instructions/feature-sliced-design.md"
       ]
     }
   ]

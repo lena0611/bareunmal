@@ -22,15 +22,19 @@
 npm run policy:impact
 npm run policy:check
 npm run policy:guard
+npm run policy:guard:strict
+npm run docs:check
 ```
 
 ## 구성 요소
 - `policy-registry.json`: 정책 문서와 코드 영역의 연결 정보
+- `profile.json`: 프레임워크 특화 검사 프로파일 (`vue-fsd` 또는 `none`)
 - `enforcement-ladder.md`: 강제 강도와 예외 허용 범위 기준
 - `automation-coverage.md`: 자동 검증/수동 검토 범위
 - `waivers.json`: 승인된 예외 기록
-- `scripts/policy-harness.mjs`: 영향 분석 및 위반 검사
-- `.github/workflows/policy-guard.yml`: 푸시/PR 시 자동 실행
+- `scripts/policy-harness.mjs`: 영향 분석 및 위반 검사 (`--strict`로 SYNC GAP을 실패로 취급)
+- `scripts/doc-link-check.mjs`: 문서 레지스트리 일관성과 마크다운 링크/코드 경로 참조 검증
+- `.github/workflows/policy-guard.yml`: 푸시/PR 시 자동 실행 (CI는 `--strict`)
 
 ## 운영 원칙
 - 정책 변경은 문서 수정으로 끝내지 않습니다. 영향을 받는 코드 영역을 반드시 다시 봅니다.

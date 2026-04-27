@@ -11,8 +11,10 @@
 6. [결정 로그](./decision-log.md)
 7. [개발자 입력 큐](./developer-input-queue.md)
 8. [프로젝트 하네스](../project-harness/README.md)
-9. [정책 하네스](../policy-harness/README.md)
-10. [문서 하네스](../documentation-harness/README.md)
+9. [프로젝트 시작 인터뷰 (Bootstrap)](../project-harness/bootstrap.md)
+10. [정책 하네스](../policy-harness/README.md)
+11. [문서 하네스](../documentation-harness/README.md)
+12. [스택 프리셋 목록](../stacks/README.md)
 
 ## 목적
 - 새 세션에서 짧은 시간 안에 현재 프로젝트 상태를 파악합니다.

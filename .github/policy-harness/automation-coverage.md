@@ -5,13 +5,24 @@
 ## 자동 검증 가능
 | Rule | 설명 | 현재 상태 |
 | --- | --- | --- |
-| `core-purity` | core에서 Vue/Pinia/browser API 사용 금지 | 자동 검사 |
-| `adapter-ui-boundary` | adapter에서 UI 계층 의존 금지 | 자동 검사 |
-| `store-placement` | store 위치 제약 | 자동 검사 |
-| `composable-placement` | composable 위치 제약 | 자동 검사 |
-| `feature-structure` | feature 하위 구조 제약 | 자동 검사 |
-| `shared-boundary` | shared의 feature/UI 의존 금지 | 자동 검사 |
-| `no-dumping-folders` | `common`, `utils` dumping folder 금지 | 자동 검사 |
+| `core-purity` | core에서 Vue/Pinia/browser API 사용 금지 | 자동 검사 (vue-fsd 프로파일) |
+| `adapter-ui-boundary` | adapter에서 UI 계층 의존 금지 | 자동 검사 (vue-fsd 프로파일) |
+| `store-placement` | store 위치 제약 | 자동 검사 (vue-fsd 프로파일) |
+| `composable-placement` | composable 위치 제약 | 자동 검사 (vue-fsd 프로파일) |
+| `feature-structure` | feature 하위 구조 제약 | 자동 검사 (vue-fsd 프로파일) |
+| `shared-boundary` | shared의 feature/UI 의존 금지 | 자동 검사 (vue-fsd 프로파일) |
+| `no-dumping-folders` | `common`, `utils` dumping folder 금지 | 자동 검사 (vue-fsd 프로파일) |
+| `doc-registry-consistency` | `document-registry.json`과 실제 .md 파일 집합 일치 | 자동 검사 (`docs:check`) |
+| `doc-link-integrity` | `.github/**/*.md` 안의 상대 링크 유효성 | 자동 검사 (`docs:check`) |
+| `doc-code-path-integrity` | 문서가 인용한 `src/...`, `scripts/...`, `.github/...` 경로 존재 (활성 스택의 scaffold 내부도 관대 검사) | 자동 검사 (`docs:check`) |
+| `policy-source-sync-gap` | 정책 매핑의 한쪽만 변경되어 동기화 갭 발생 | 자동 검사 (`policy:impact`, CI에서 `--strict`로 차단) |
+| `stack-isolation` | 한 스택 폴더가 다른 스택 폴더를 참조하지 않음 | 자동 검사 (`docs:check`) |
+
+## 프로파일
+- 프레임워크 특화 규칙은 `.github/policy-harness/profile.json`의 `activeStack` 값으로 선택됩니다.
+- 접근 이름: 해당 스택 `manifest.json`의 `checksKey`가 `scripts/policy-harness.mjs`의 분기 식별자로 쓰입니다.
+- 현재 값: `activeStack=vue3-fsd` → `checksKey=vue-fsd`. `"none"`으로 두면 프레임워크 자동 검사가 전부 비활성화됩니다.
+- 스택 미적용 상태(`.github/.stack-applied.json` 없음)에서도 일반 인프라 검사(doc-link, SYNC GAP)는 항상 동작합니다. lint/test/build는 자동으로 건너뛰어집니다.
 
 ## 아직 수동 검토 필요
 | 항목 | 이유 |

@@ -7,9 +7,63 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const repoRoot = path.resolve(__dirname, '..')
 const registryPath = path.join(repoRoot, '.github', 'policy-harness', 'policy-registry.json')
+const profilePath = path.join(repoRoot, '.github', 'policy-harness', 'profile.json')
 
 const args = process.argv.slice(2)
 const mode = args[0] ?? 'guard'
+const strictMode = args.includes('--strict')
+
+function readProfile() {
+  if (!fs.existsSync(profilePath)) {
+    return { activeStack: 'none' }
+  }
+
+  try {
+    return JSON.parse(fs.readFileSync(profilePath, 'utf8'))
+  } catch {
+    return { activeStack: 'none' }
+  }
+}
+
+function readActiveStack() {
+  const profile = readProfile()
+  const stackId = profile.activeStack ?? 'none'
+
+  if (stackId === 'none') {
+    return { id: 'none', manifest: null, policies: [], checksKey: null }
+  }
+
+  const stackDir = path.join(repoRoot, '.github', 'stacks', stackId)
+  const manifestPath = path.join(stackDir, 'manifest.json')
+
+  if (!fs.existsSync(manifestPath)) {
+    console.warn(`activeStack='${stackId}' 의 manifest를 찾을 수 없습니다: ${manifestPath}`)
+    return { id: stackId, manifest: null, policies: [], checksKey: null }
+  }
+
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
+  const policiesFile = manifest.policiesFile
+    ? path.join(repoRoot, manifest.policiesFile)
+    : path.join(stackDir, 'policies.json')
+
+  let policies = []
+
+  if (fs.existsSync(policiesFile)) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(policiesFile, 'utf8'))
+      policies = parsed.policies ?? []
+    } catch {
+      console.warn(`스택 정책 파일 파싱 실패: ${policiesFile}`)
+    }
+  }
+
+  return {
+    id: stackId,
+    manifest,
+    policies,
+    checksKey: manifest.checksKey ?? null,
+  }
+}
 
 function getArgValue(flag) {
   const index = args.indexOf(flag)
@@ -75,7 +129,13 @@ function readText(relativePath) {
 }
 
 function readRegistry() {
-  return JSON.parse(fs.readFileSync(registryPath, 'utf8'))
+  const base = JSON.parse(fs.readFileSync(registryPath, 'utf8'))
+  const stack = readActiveStack()
+
+  return {
+    ...base,
+    policies: [...(base.policies ?? []), ...stack.policies],
+  }
 }
 
 function runGit(argsToRun) {
@@ -191,8 +251,20 @@ function getImports(relativePath) {
 }
 
 function collectViolations() {
-  const trackedFiles = getAllTrackedFiles()
+  const stack = readActiveStack()
   const violations = []
+  const checksKey = stack.checksKey
+
+  if (!checksKey) {
+    return violations
+  }
+
+  if (checksKey !== 'vue-fsd') {
+    console.warn(`Unknown checksKey: ${checksKey}. Skipping framework-specific checks.`)
+    return violations
+  }
+
+  const trackedFiles = getAllTrackedFiles()
   const sourceFiles = trackedFiles.filter((filePath) => filePath.startsWith('src/'))
 
   const coreFiles = sourceFiles.filter((filePath) => filePath.startsWith('src/core/'))
@@ -367,6 +439,7 @@ function runImpact() {
 
   const policyTriggered = []
   const codeTriggered = []
+  const syncGaps = []
 
   for (const policy of registry.policies) {
     const documentChanged = changedFiles.some((filePath) => matchesAnyGlob(filePath, policy.documents))
@@ -384,6 +457,16 @@ function runImpact() {
       codeTriggered.push({
         title: policy.title,
         documents: policy.documents,
+      })
+    }
+
+    if (documentChanged !== sourceChanged) {
+      syncGaps.push({
+        id: policy.id,
+        title: policy.title,
+        side: documentChanged ? 'document-only' : 'source-only',
+        documents: policy.documents,
+        ownedAreas: policy.ownedAreas,
       })
     }
   }
@@ -412,6 +495,27 @@ function runImpact() {
 
   if (policyTriggered.length === 0 && codeTriggered.length === 0) {
     console.log('등록된 정책-코드 매핑에 걸리는 변경은 없습니다.')
+  }
+
+  if (syncGaps.length > 0) {
+    console.log('')
+    console.log('SYNC GAP detected (한쪽만 변경되어 정책-코드 동기화가 무너질 수 있음):')
+
+    for (const gap of syncGaps) {
+      const sideLabel = gap.side === 'document-only' ? '문서만 변경됨' : '소스만 변경됨'
+      console.log(`- [${gap.id}] ${gap.title} — ${sideLabel}`)
+      console.log('  documents:')
+      console.log(formatFileList(gap.documents))
+      console.log('  ownedAreas:')
+      console.log(formatFileList(gap.ownedAreas))
+    }
+
+    console.log('')
+    console.log('해결: 반대편을 함께 갱신하거나, 의도적이라면 waiver/decision-log에 기록하세요.')
+
+    if (strictMode) {
+      process.exitCode = 1
+    }
   }
 }
 

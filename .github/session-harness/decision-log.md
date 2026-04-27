@@ -39,3 +39,12 @@
 ## 2026-04-22 - 사전준비 운영 세트 확장
 - 저장소 관리형 로컬 git hook, 테스트 기반, 협업 템플릿, 설정 계약을 추가했습니다.
 - commit/push 이전 검증과 협업 입력 품질을 도메인 정의 전 단계에서 미리 고정했습니다.
+
+## 2026-04-27 - 일반화 하네스와 스택 프리셋 분리
+- 저장소를 일반 하네스(프레임워크 독립 인프라)와 스택 프리셋(프레임워크+디자인패턴 꾸러미)으로 분리했습니다.
+- `vue3-fsd` 스택 자산을 `.github/stacks/vue3-fsd/scaffold/`로 이동해 root가 스택-독립적이 되게 했습니다.
+- `apply-stack.mjs`를 source adapter 패턴(`local` 구현, `tiged` 스텅)으로 설계해 향후 외부 저장소로 분리가 저비용으로 가능하도록 했습니다 (B안 + A-1 호환).
+- `npm run stack:apply` / `stack:reset` / `stack:status` 명령과 `.github/.stack-applied.json` 마커를 도입했습니다.
+- `guard.mjs`는 스택 미적용 시 lint/test/build를 자동 스킵하고 일반 검사만 실행합니다.
+- `doc-link-check.mjs`는 scaffold 폴더를 orphan/링크 검사에서 제외하고, 코드 경로 참조는 활성 스택의 scaffold 내부도 허용하도록 해서 미적용 상태에서도 문서 참조가 유효하게 했습니다.
+- A-1 마이그레이션 트리거 조건: 스택 수 ≥ 2 또는 외부 공유 필요 시.

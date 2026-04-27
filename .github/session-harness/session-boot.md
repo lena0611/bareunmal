@@ -14,13 +14,15 @@
 5. `developer-input-queue.md`
 6. `../project-harness/README.md`
 7. `../project-harness/project-charter.md`
-8. `../policy-harness/README.md`
-9. `../policy-harness/sync-protocol.md`
-10. `../policy-harness/enforcement-ladder.md`
-11. `../policy-harness/automation-coverage.md`
-12. `../documentation-harness/README.md`
-13. `../documentation-harness/indexing-rules.md`
-14. `../style-harness/style-evolution.md`
+8. `../project-harness/bootstrap.md`
+9. `../policy-harness/README.md`
+10. `../policy-harness/sync-protocol.md`
+11. `../policy-harness/enforcement-ladder.md`
+12. `../policy-harness/automation-coverage.md`
+13. `../documentation-harness/README.md`
+14. `../documentation-harness/indexing-rules.md`
+15. `../style-harness/style-evolution.md`
+16. `../stacks/README.md` (활성 스택 메타 확인용)
 
 ## 3. 작업 시작 전 체크
 - 현재 기본 구조가 여전히 `core -> adapters -> UI` 흐름을 따르는지 확인합니다.
@@ -45,6 +47,7 @@ npm run guard
 - 둘이 충돌하면 `active-context.md`에 충돌 사실을 기록하고 최신 코드 기준으로 다시 정리합니다.
 - 정책 문서나 `src/`를 건드리는 작업이면 `policy:guard`를 시작 전과 종료 전 모두 실행 대상으로 취급합니다.
 - 프로젝트 목적이 `TBD`인 상태라면 새 기능 설계 전에 `project-charter.md` 재계획 여부를 먼저 판단합니다.
+- 사용자가 "새 프로젝트 시작" 의사를 보이면 `../project-harness/bootstrap.md`의 인터뷰 절차(프로젝트 개요 + 스택 선택)를 먼저 수행합니다.
 - 개발자 입력이 필요한 항목은 묻지 않고 넘기지 말고, 최소한 `지금 답변 / 이번 세션 유보 / 나중에 다시 묻기` 중 하나로 상태를 남깁니다.
 - 문서가 길어질 조짐이 있으면 한 문서에 계속 누적하지 말고 `documentation-harness` 기준으로 분리합니다.
 - 반복해서 놓치는 작업은 운영 문서에만 두지 말고 trigger 또는 hook으로 승격할지 검토합니다.

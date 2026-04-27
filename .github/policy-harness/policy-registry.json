@@ -1,59 +1,6 @@
 {
-  "version": 1,
+  "version": 2,
   "policies": [
-    {
-      "id": "architecture-core",
-      "title": "Core isolation and dependency direction",
-      "documents": [
-        ".github/copilot-instructions/architecture.md",
-        ".github/copilot-instructions/development-workflow.md"
-      ],
-      "ownedAreas": [
-        "src/core/**",
-        "src/adapters/**",
-        "src/pages/**",
-        "src/widgets/**",
-        "src/features/**"
-      ],
-      "checks": [
-        "core-purity",
-        "adapter-ui-boundary"
-      ]
-    },
-    {
-      "id": "state-management",
-      "title": "Pinia and composable adapter rules",
-      "documents": [
-        ".github/copilot-instructions/state-management.md"
-      ],
-      "ownedAreas": [
-        "src/adapters/vue/stores/**",
-        "src/adapters/vue/composables/**"
-      ],
-      "checks": [
-        "store-placement",
-        "composable-placement",
-        "adapter-ui-boundary"
-      ]
-    },
-    {
-      "id": "feature-sliced-design",
-      "title": "Feature boundaries and shared purity",
-      "documents": [
-        ".github/copilot-instructions/feature-sliced-design.md",
-        ".github/copilot-instructions/architecture.md"
-      ],
-      "ownedAreas": [
-        "src/features/**",
-        "src/shared/**",
-        "src/entities/**"
-      ],
-      "checks": [
-        "feature-structure",
-        "shared-boundary",
-        "no-dumping-folders"
-      ]
-    },
     {
       "id": "policy-harness",
       "title": "Policy synchronization harness",
@@ -65,7 +12,35 @@
         ".github/policy-harness/**",
         ".github/session-harness/**",
         "scripts/policy-harness.mjs",
+        "scripts/doc-link-check.mjs",
+        "scripts/apply-stack.mjs",
+        "scripts/guard.mjs",
         ".github/workflows/policy-guard.yml"
+      ],
+      "checks": []
+    },
+    {
+      "id": "documentation-harness",
+      "title": "Documentation registry and link integrity",
+      "documents": [
+        ".github/documentation-harness/**"
+      ],
+      "ownedAreas": [
+        ".github/documentation-harness/**",
+        "scripts/doc-link-check.mjs"
+      ],
+      "checks": []
+    },
+    {
+      "id": "stack-preset",
+      "title": "Stack preset bundle integrity",
+      "documents": [
+        ".github/stacks/**"
+      ],
+      "ownedAreas": [
+        ".github/stacks/**",
+        ".github/policy-harness/profile.json",
+        "scripts/apply-stack.mjs"
       ],
       "checks": []
     }

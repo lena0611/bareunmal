@@ -8,9 +8,12 @@
 - 새 세션에서 도메인 의사결정을 다시 추론하지 않도록 합니다.
 
 ## 읽기 순서
-1. [프로젝트 헌장](./project-charter.md)
-2. [범위 계약](./scope-contract.md)
-3. [설정 계약](./config-contract.md)
+1. [프로젝트 시작 인터뷰 (Bootstrap)](./bootstrap.md)
+2. [프로젝트 헌장](./project-charter.md)
+3. [범위 계약](./scope-contract.md)
+4. [설정 계약](./config-contract.md)
+5. [이식 가이드](./portability-guide.md)
+6. [스택 프리셋 목록](../stacks/README.md)
 
 ## 운영 원칙
 - 아직 비어 있는 항목은 빈 채로 두지 말고 `TBD`와 필요한 입력을 함께 적습니다.
