@@ -25,8 +25,11 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Apply active stack (scaffold + package.json merge)
+        run: node scripts/apply-stack.mjs
+
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Run policy guard
         env:

@@ -48,3 +48,12 @@
 - `guard.mjs`는 스택 미적용 시 lint/test/build를 자동 스킵하고 일반 검사만 실행합니다.
 - `doc-link-check.mjs`는 scaffold 폴더를 orphan/링크 검사에서 제외하고, 코드 경로 참조는 활성 스택의 scaffold 내부도 허용하도록 해서 미적용 상태에서도 문서 참조가 유효하게 했습니다.
 - A-1 마이그레이션 트리거 조건: 스택 수 ≥ 2 또는 외부 공유 필요 시.
+
+## 2026-04-27 - tiged 어댑터 실구현 + 시드 검증 통한 결함 수정
+- `apply-stack.mjs`의 `adapterTiged()`를 실제 구현했습니다 (`npx -y tiged --force <ref> <tmp>` → subdir 분리 → 파일 복사 + packageMerge 처리). 어댑터 반환 형태를 `{ copied, packageMergeData }` 객체로 통일했습니다.
+- 외부 빈 디렉토리에 저장소를 풀어 시드 사용자 시나리오를 e2e 검증하던 중 두 가지 치명적 결함 발견:
+  - `.github/.stack-applied.json` 마커가 tracked 상태였음 → 시드 사용자가 dev 머신의 적용 상태를 그대로 받음.
+  - `package.json`이 머지된 상태(vue/pinia/vite 의존성 포함)로 tracked → root가 슬림이 아님.
+- 두 결함 모두 수정: marker는 `.gitignore`로, root `package.json`/`package-lock.json`은 항상 슬림 상태(stack:reset 후)로만 커밋합니다.
+- CI 워크플로(`policy-guard.yml`)에 `node scripts/apply-stack.mjs` 단계와 `npm install` 호출을 추가해, 슬림 root에서도 CI가 머지된 의존성으로 검증하도록 했습니다.
+- `.gitignore`에 `.harness-backup/`도 미리 추가해 향후 흡수/백업 기능 도입을 위한 자리만 비워뒀습니다.
