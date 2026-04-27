@@ -1,0 +1,60 @@
+{
+  "stackId": "vue3-fsd",
+  "appliedAt": "2026-04-27T02:24:16.286Z",
+  "source": {
+    "type": "local",
+    "path": ".github/stacks/vue3-fsd/scaffold",
+    "packageMerge": ".github/stacks/vue3-fsd/scaffold/package.merge.json",
+    "futureMigration": {
+      "type": "tiged",
+      "ref": "lena0611/stack-vue3-fsd",
+      "note": "스택을 별도 저장소로 분리할 때 source.type을 'tiged'로 바꾸고 ref를 활성화하면 됩니다. 일반 인프라/apply-stack 어댑터는 그대로 동작합니다."
+    }
+  },
+  "copiedFiles": [
+    ".env.example",
+    ".github/workflows/deploy-pages.yml",
+    "eslint.config.mjs",
+    "index.html",
+    "src/adapters/vue/composables/useScaffoldStatus.ts",
+    "src/adapters/vue/stores/scaffoldStatus.store.ts",
+    "src/app/App.vue",
+    "src/app/styles.css",
+    "src/core/application/get-scaffold-status.test.ts",
+    "src/core/application/get-scaffold-status.ts",
+    "src/core/domain/scaffold-status.ts",
+    "src/entities/.gitkeep",
+    "src/features/scaffold-status/api/index.ts",
+    "src/features/scaffold-status/model/index.ts",
+    "src/features/scaffold-status/ui/ScaffoldStatusCard.vue",
+    "src/main.ts",
+    "src/pages/home/ui/HomePage.vue",
+    "src/shared/.gitkeep",
+    "src/vite-env.d.ts",
+    "src/widgets/main-layout/ui/MainLayout.vue",
+    "tsconfig.app.json",
+    "tsconfig.json",
+    "tsconfig.node.json",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ],
+  "packageJsonBackup": {
+    "name": "bareunmal",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+      "guard": "node scripts/guard.mjs",
+      "hooks:install": "node scripts/install-hooks.mjs",
+      "policy:check": "node scripts/policy-harness.mjs check",
+      "policy:impact": "node scripts/policy-harness.mjs impact",
+      "policy:guard": "node scripts/policy-harness.mjs guard",
+      "policy:guard:strict": "node scripts/policy-harness.mjs guard --strict",
+      "docs:check": "node scripts/doc-link-check.mjs",
+      "docs:check:strict": "node scripts/doc-link-check.mjs --strict",
+      "stack:apply": "node scripts/apply-stack.mjs",
+      "stack:reset": "node scripts/apply-stack.mjs --reset",
+      "stack:status": "node scripts/apply-stack.mjs --status"
+    }
+  }
+}
