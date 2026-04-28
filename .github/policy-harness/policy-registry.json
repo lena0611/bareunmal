@@ -1,0 +1,48 @@
+{
+  "version": 2,
+  "policies": [
+    {
+      "id": "policy-harness",
+      "title": "Policy synchronization harness",
+      "documents": [
+        ".github/policy-harness/**",
+        ".github/session-harness/**"
+      ],
+      "ownedAreas": [
+        ".github/policy-harness/**",
+        ".github/session-harness/**",
+        "scripts/policy-harness.mjs",
+        "scripts/doc-link-check.mjs",
+        "scripts/apply-stack.mjs",
+        "scripts/guard.mjs",
+        ".github/workflows/policy-guard.yml"
+      ],
+      "checks": []
+    },
+    {
+      "id": "documentation-harness",
+      "title": "Documentation registry and link integrity",
+      "documents": [
+        ".github/documentation-harness/**"
+      ],
+      "ownedAreas": [
+        ".github/documentation-harness/**",
+        "scripts/doc-link-check.mjs"
+      ],
+      "checks": []
+    },
+    {
+      "id": "stack-preset",
+      "title": "Stack preset bundle integrity",
+      "documents": [
+        ".github/stacks/**"
+      ],
+      "ownedAreas": [
+        ".github/stacks/**",
+        ".github/policy-harness/profile.json",
+        "scripts/apply-stack.mjs"
+      ],
+      "checks": []
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "harness-seed",
+  "version": "0.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0 || >=22.13.0"
+  },
+  "bin": {
+    "harness-seed": "./scripts/init.mjs"
+  },
+  "files": [
+    ".github",
+    "scripts",
+    ".githooks",
+    ".nvmrc",
+    "README.md"
+  ],
+  "scripts": {
+    "node:check": "node scripts/check-node-version.mjs",
+    "guard": "npm run node:check --silent && node scripts/guard.mjs",
+    "hooks:install": "npm run node:check --silent && node scripts/install-hooks.mjs",
+    "policy:check": "npm run node:check --silent && node scripts/policy-harness.mjs check",
+    "policy:impact": "npm run node:check --silent && node scripts/policy-harness.mjs impact",
+    "policy:guard": "npm run node:check --silent && node scripts/policy-harness.mjs guard",
+    "policy:guard:strict": "npm run node:check --silent && node scripts/policy-harness.mjs guard --strict",
+    "docs:check": "npm run node:check --silent && node scripts/doc-link-check.mjs",
+    "docs:check:strict": "npm run node:check --silent && node scripts/doc-link-check.mjs --strict",
+    "stack:apply": "npm run node:check --silent && node scripts/apply-stack.mjs",
+    "stack:reset": "npm run node:check --silent && node scripts/apply-stack.mjs --reset",
+    "stack:status": "npm run node:check --silent && node scripts/apply-stack.mjs --status"
+  }
+}
