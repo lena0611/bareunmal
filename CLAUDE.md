@@ -8,10 +8,14 @@
 3. `.harness/session/project-memory.md`
 4. `.harness/session/active-context.md`
 5. `.harness/project/project-charter.md`
-6. `.harness/project/bootstrap.md`
-7. `.harness/policy/README.md`
-8. `.harness/documentation/README.md`
-9. `.harness/stacks/README.md`
+6. `.harness/project/local-methodology.md`
+7. `.harness/project/domain-rules.md`
+8. `.harness/project/architecture-rules.md`
+9. `.harness/project/workflow-rules.md`
+10. `.harness/project/bootstrap.md`
+11. `.harness/policy/README.md`
+12. `.harness/documentation/README.md`
+13. `.harness/stacks/README.md`
 
 ## 기준
 - 하네스 본체는 `.harness/`에 있습니다.

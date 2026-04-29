@@ -8,6 +8,7 @@
  *  - 기존 항목이 있으면 .harness-backup/<timestamp>/ 아래에 먼저 백업한다.
  */
 
+import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import {
   chmodSync,
@@ -36,6 +37,7 @@ const __dirname = dirname(__filename);
 const BUNDLED_SOURCE_ROOT = pathResolve(__dirname, '..');
 const TARGET = process.cwd();
 const MIN_NODE_MESSAGE = 'harness-seed requires Node.js >=20.19.0 or >=22.13.0.';
+const MANIFEST_PATH = '.harness/install-manifest.json';
 
 const INSTALL_ITEMS = [
   '.harness',
@@ -48,6 +50,7 @@ const INSTALL_ITEMS = [
   'scripts/install-hooks.mjs',
   'scripts/policy-harness.mjs',
   'scripts/doc-link-check.mjs',
+  'scripts/absorb-project.mjs',
   'scripts/check-node-version.mjs',
   'scripts/check-seed-mode.mjs',
   '.githooks',
@@ -62,6 +65,10 @@ const PROJECT_OWNED_PATHS = new Set([
   '.harness/project/project-charter.md',
   '.harness/project/scope-contract.md',
   '.harness/project/config-contract.md',
+  '.harness/project/local-methodology.md',
+  '.harness/project/domain-rules.md',
+  '.harness/project/architecture-rules.md',
+  '.harness/project/workflow-rules.md',
   '.harness/session/active-context.md',
   '.harness/session/decision-log.md',
   '.harness/session/developer-input-queue.md',
@@ -246,7 +253,43 @@ function collectInstallFiles(sourceRoot) {
 
 function isProjectOwned(relPath) {
   const rel = toPosix(relPath);
+  if (rel === MANIFEST_PATH) return false;
   return PROJECT_OWNED_PATHS.has(rel) || PROJECT_OWNED_PREFIXES.some((prefix) => rel.startsWith(prefix));
+}
+
+function isManagedByManifest(manifest, relPath) {
+  return Boolean(manifest?.managedFiles?.[toPosix(relPath)]);
+}
+
+function hasHarnessLikeFiles(target) {
+  return [
+    '.harness',
+    '.claude',
+    '.github/copilot-instructions.md',
+    'CLAUDE.md',
+    'AGENTS.md',
+  ].some((rel) => existsSync(join(target, rel)));
+}
+
+function detectBridgeCandidates(target, skippedFiles) {
+  const candidates = []
+
+  for (const rel of ['CLAUDE.md', 'AGENTS.md', '.github/copilot-instructions.md']) {
+    if (!skippedFiles.includes(rel) || !existsSync(join(target, rel))) {
+      continue
+    }
+
+    const content = readFileSync(join(target, rel), 'utf8')
+    if (!content.includes('.harness/project/local-methodology.md')) {
+      candidates.push(rel)
+    }
+  }
+
+  return candidates
+}
+
+function sha256(absPath) {
+  return createHash('sha256').update(readFileSync(absPath)).digest('hex');
 }
 
 function isoStamp() {
@@ -275,16 +318,18 @@ function backupExisting(target, files, dryRun) {
   return { dir, count: existing.length };
 }
 
-function installFiles(sourceRoot, target, files, opts) {
+function installFiles(sourceRoot, target, files, opts, manifest) {
   const stats = { added: 0, updated: 0, skipped: 0 };
   const skippedFiles = [];
+  const copiedFiles = [];
 
   for (const rel of files) {
     const src = join(sourceRoot, rel);
     const dest = join(target, rel);
     const exists = existsSync(dest);
     const projectOwned = isProjectOwned(rel);
-    const shouldCopy = !exists || opts.force || !projectOwned;
+    const managed = isManagedByManifest(manifest, rel);
+    const shouldCopy = !exists || opts.force || (!projectOwned && managed);
 
     if (opts.dryRun) {
       console.log(`[dry-run] ${!exists ? 'add' : shouldCopy ? 'update' : 'preserve'} ${rel}`);
@@ -295,15 +340,54 @@ function installFiles(sourceRoot, target, files, opts) {
 
     if (!exists) {
       stats.added++;
+      copiedFiles.push(rel);
     } else if (shouldCopy) {
       stats.updated++;
+      copiedFiles.push(rel);
     } else {
       stats.skipped++;
       skippedFiles.push(rel);
     }
   }
 
-  return { ...stats, skippedFiles };
+  return { ...stats, skippedFiles, copiedFiles };
+}
+
+function buildInstallManifest(sourceRoot, target, files, copiedFiles, opts) {
+  const seedPkg = readJson(join(sourceRoot, 'package.json'), {})
+  const managedFiles = {}
+  const projectOwnedFiles = files.filter((rel) => isProjectOwned(rel)).sort()
+
+  for (const rel of copiedFiles) {
+    const abs = join(target, rel)
+    if (!existsSync(abs) || !statSync(abs).isFile()) {
+      continue
+    }
+
+    managedFiles[rel] = {
+      sha256: sha256(abs),
+    }
+  }
+
+  return {
+    tool: 'harness-seed',
+    version: seedPkg.version ?? '0.0.0',
+    installedAt: new Date().toISOString(),
+    source: opts.fromGit ? `${opts.fromGit}#${opts.ref}` : 'bundled',
+    manifestVersion: 1,
+    managedFiles,
+    projectOwnedFiles: projectOwnedFiles.sort(),
+  }
+}
+
+function writeInstallManifest(sourceRoot, target, files, copiedFiles, opts) {
+  if (opts.dryRun) return null
+
+  const manifest = buildInstallManifest(sourceRoot, target, files, copiedFiles, opts)
+  const manifestAbs = join(target, MANIFEST_PATH)
+  mkdirSync(dirname(manifestAbs), { recursive: true })
+  writeFileSync(manifestAbs, `${JSON.stringify(manifest, null, 2)}\n`)
+  return manifest
 }
 
 function readJson(absPath, fallback) {
@@ -358,6 +442,7 @@ function mergeGitignore(target, opts) {
     '.package-json.hash',
     '.vite.pid',
     '.harness/.stack-applied.json',
+    '.harness/session/absorb-report.md',
     '.harness-backup/',
     'CLAUDE.local.md',
     '.claude/settings.local.json',
@@ -443,6 +528,15 @@ function main() {
     console.log('');
 
     const files = collectInstallFiles(sourceRoot);
+    const existingManifest = readJson(join(TARGET, MANIFEST_PATH), null);
+    const recognizedManifest = existingManifest?.tool === 'harness-seed' ? existingManifest : null;
+    const externalHarnessMode = !recognizedManifest && hasHarnessLikeFiles(TARGET);
+
+    if (externalHarnessMode) {
+      console.log('기존 하네스가 있지만 harness-seed install manifest는 없습니다.');
+      console.log('전용 하네스일 수 있어 기존 파일은 기본적으로 보존합니다. 덮어쓰려면 --force를 사용하세요.');
+      console.log('');
+    }
 
     if (!opts.noBackup) {
       const backup = backupExisting(TARGET, files, opts.dryRun);
@@ -454,10 +548,11 @@ function main() {
       console.log('');
     }
 
-    const installed = installFiles(sourceRoot, TARGET, files, opts);
+    const installed = installFiles(sourceRoot, TARGET, files, opts, recognizedManifest);
     const pkg = mergePackageJson(sourceRoot, TARGET, opts);
     const gitignoreAdded = mergeGitignore(TARGET, opts);
     ensureExecutable(TARGET, opts);
+    const writtenManifest = writeInstallManifest(sourceRoot, TARGET, files, installed.copiedFiles, opts);
 
     console.log('');
     console.log(`files: ${installed.added}개 추가, ${installed.updated}개 갱신, ${installed.skipped}개 보존`);
@@ -466,6 +561,7 @@ function main() {
         (pkg.skipped.length ? `, 기존 scripts 보존 ${pkg.skipped.length}개 (${pkg.skipped.join(', ')})` : ''),
     );
     console.log(`.gitignore: harness entry ${gitignoreAdded}개 추가`);
+    console.log(`install manifest: ${opts.dryRun ? 'dry-run' : `${Object.keys(writtenManifest.managedFiles).length}개 managed file 기록`}`);
 
     if (installed.skippedFiles.length > 0) {
       console.log('');
@@ -477,6 +573,17 @@ function main() {
         console.log(`  ... 외 ${installed.skippedFiles.length - 15}건`);
       }
       console.log('모두 덮어쓰려면 --force를 사용하세요.');
+    }
+
+    const bridgeCandidates = detectBridgeCandidates(TARGET, installed.skippedFiles);
+    if (bridgeCandidates.length > 0) {
+      console.log('');
+      console.log('브리지 섹션 추가 후보:');
+      for (const rel of bridgeCandidates) {
+        console.log(`  - ${rel}`);
+      }
+      console.log('기존 개인/전용 룰을 보존했기 때문에, 위 파일에 .harness 읽기 순서를 연결할지 검토하세요.');
+      console.log('자세한 후보 템플릿은 npm run absorb:report 결과를 확인하세요.');
     }
 
     console.log(`

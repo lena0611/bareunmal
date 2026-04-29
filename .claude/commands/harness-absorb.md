@@ -10,7 +10,8 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 ## 0. 사전 점검
 1. `CLAUDE.md`를 읽고 지정된 순서의 `.harness/` 문서를 확인합니다.
 2. `npm run policy:impact`를 실행해 현재 변경 영향 범위를 봅니다.
-3. `.harness/project/project-charter.md`가 비어 있으면 `.harness/project/bootstrap.md`의 인터뷰 절차를 먼저 수행합니다.
+3. `npm run absorb:report`를 실행해 `.harness/session/absorb-report.md`를 생성합니다.
+4. `.harness/project/project-charter.md`가 비어 있으면 `.harness/project/bootstrap.md`의 인터뷰 절차를 먼저 수행합니다.
 
 ## 1. 프로젝트 구조 조사
 다음을 병렬로 확인합니다.
@@ -29,9 +30,14 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 - 대표 테스트 파일
 
 ## 3. 하네스 반영
-분석 결과를 다음 파일에 반영합니다.
+먼저 `.harness/session/absorb-report.md`의 자동 감지 결과를 검토합니다. 이후 분석 결과를 다음 파일에 반영합니다.
+- `Bridge Section Candidates`: 기존 개인/전용 룰 파일이 하네스시드 읽기 순서와 연결되어야 하는지 검토
 - `.harness/project/project-charter.md`: 목적, 사용자, 목표, 비목표, 제약
 - `.harness/project/scope-contract.md`: 범위와 금지 범위
+- `.harness/project/local-methodology.md`: 프로젝트 고유 개발방법론의 진입점
+- `.harness/project/domain-rules.md`: 업무 용어, 불변식, 도메인 제약
+- `.harness/project/architecture-rules.md`: 모듈 경계, 의존 방향, 데이터 흐름
+- `.harness/project/workflow-rules.md`: 개발, 리뷰, 릴리스, 장애 대응 흐름
 - `.harness/policy/profile.json`: active stack 또는 `none`
 - `.harness/session/active-context.md`: 현재 작업 맥락
 - `.harness/session/decision-log.md`: 선택한 구조와 이유

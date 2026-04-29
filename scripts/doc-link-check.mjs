@@ -66,9 +66,12 @@ const dynamicArtifactPaths = new Set([
   '.github/.stack-applied.json',
   '.claude/settings.local.json',
   'CLAUDE.local.md',
+  '.harness/session/absorb-report.md',
+  '.harness/install-manifest.json',
   // npx init 진입점은 사용자 프로젝트에 복사하지 않는다. 시드 결정 로그의
   // 역사적 참조는 사용자 프로젝트에서도 broken reference로 취급하지 않는다.
   'scripts/init.mjs',
+  'scripts/test-init.mjs',
 ])
 
 function toPosix(p) {
@@ -165,6 +168,10 @@ function findOrphans(registered) {
 
   for (const file of all) {
     if (registered.has(file)) {
+      continue
+    }
+
+    if (dynamicArtifactPaths.has(file)) {
       continue
     }
 

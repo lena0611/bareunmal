@@ -49,6 +49,10 @@
         ".harness/project/config-contract.md",
         ".harness/project/project-charter.md",
         ".harness/project/scope-contract.md",
+        ".harness/project/local-methodology.md",
+        ".harness/project/domain-rules.md",
+        ".harness/project/architecture-rules.md",
+        ".harness/project/workflow-rules.md",
         ".harness/project/portability-guide.md",
         ".harness/project/bootstrap.md"
       ]

@@ -12,6 +12,7 @@ dist/
 
 # 동적 산출물 / 백업
 .harness/.stack-applied.json
+.harness/session/absorb-report.md
 .harness-backup/
 
 # 시드 모드 안전장치

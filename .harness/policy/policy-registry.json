@@ -13,6 +13,8 @@
         ".harness/session/**",
         "scripts/policy-harness.mjs",
         "scripts/doc-link-check.mjs",
+        "scripts/test-init.mjs",
+        "scripts/absorb-project.mjs",
         "scripts/apply-stack.mjs",
         "scripts/guard.mjs",
         ".github/workflows/policy-guard.yml"

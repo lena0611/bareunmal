@@ -6,7 +6,7 @@
 - `.harness/policy/**`가 바뀔 때
 - `src/**`가 바뀔 때
 - 구조, 상태 관리, feature 경계에 영향을 줄 수 있는 리팩터링을 할 때
-- `scripts/init.mjs` 또는 문서 검사 스크립트가 바뀔 때
+- `scripts/init.mjs`, `scripts/test-init.mjs`, `scripts/absorb-project.mjs` 또는 문서 검사 스크립트가 바뀔 때
 
 ## 기본 실행 순서
 1. `npm run policy:impact`
@@ -39,5 +39,9 @@
 - `.harness/`는 단일 진실 출처입니다. `.claude/`와 `.github/`는 플랫폼 어댑터로만 둡니다.
 - 새 어댑터 문서를 추가하면 `document-registry.json`과 `scripts/doc-link-check.mjs`의 탐색 범위를 함께 확인합니다.
 - `init`은 하네스 소유 파일을 갱신하고 프로젝트 소유 파일을 보존해야 합니다.
-- 프로젝트 소유 파일 예시는 `.harness/project/project-charter.md`, `.harness/session/active-context.md`, `.harness/policy/profile.json`, `.harness/policy/waivers.json`, `.claude/settings.local.json`입니다.
+- `init`은 `.harness/install-manifest.json`으로 하네스시드가 관리하는 파일을 식별해야 합니다.
+- manifest가 없는 기존 `.harness/`, `.claude/`, `CLAUDE.md`는 전용 하네스일 수 있으므로 기본 보존하고 `--force`일 때만 덮어씁니다.
+- 프로젝트 소유 파일 예시는 `.harness/project/project-charter.md`, `.harness/project/local-methodology.md`, `.harness/project/domain-rules.md`, `.harness/project/architecture-rules.md`, `.harness/project/workflow-rules.md`, `.harness/session/active-context.md`, `.harness/policy/profile.json`, `.harness/policy/waivers.json`, `.claude/settings.local.json`입니다.
 - 설치/업데이트 UX가 바뀌면 README의 init 사용법과 보존 정책 설명도 함께 갱신합니다.
+- `scripts/absorb-project.mjs`는 자동 감지 리포트까지만 생성하고, 프로젝트 정책 문서를 직접 덮어쓰지 않습니다.
+- `.harness/session/absorb-report.md`는 런타임 산출물이므로 레지스트리 필수 문서로 보지 않습니다.
