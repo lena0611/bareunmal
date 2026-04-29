@@ -12,16 +12,18 @@
 2. [프로젝트 헌장](./project-charter.md)
 3. [범위 계약](./scope-contract.md)
 4. [로컬 개발방법론](./local-methodology.md)
-5. [도메인 규칙](./domain-rules.md)
-6. [아키텍처 규칙](./architecture-rules.md)
-7. [작업 흐름 규칙](./workflow-rules.md)
-8. [설정 계약](./config-contract.md)
-9. [이식 가이드](./portability-guide.md)
-10. [스택 프리셋 목록](../stacks/README.md)
+5. [스택 프리셋 로컬 규칙](./stack-preset-rules.md)
+6. [도메인 규칙](./domain-rules.md)
+7. [아키텍처 규칙](./architecture-rules.md)
+8. [작업 흐름 규칙](./workflow-rules.md)
+9. [설정 계약](./config-contract.md)
+10. [이식 가이드](./portability-guide.md)
+11. [스택 프리셋 목록](../stacks/README.md)
 
 ## 운영 원칙
 - 아직 비어 있는 항목은 빈 채로 두지 말고 `TBD`와 필요한 입력을 함께 적습니다.
 - 프로젝트 방향이 정해지면 가장 먼저 이 하네스를 갱신합니다.
 - 정책 하네스와 세션 하네스보다 앞서 읽어야 하는 도메인 기준 문서입니다.
 - 프로젝트 고유의 개발방법론은 `local-methodology.md`와 하위 규칙 문서에 보존합니다.
+- 스택 프리셋을 적용하면 해당 프리셋의 지침은 `stack-preset-rules.md`에 로컬 규칙으로 정착됩니다.
 - 내용이 길어지면 이 문서는 인덱스 역할만 유지하고 상세 내용은 하위 문서로 분리합니다.

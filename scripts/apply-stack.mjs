@@ -12,6 +12,10 @@ const harnessRoot = path.join(repoRoot, harnessRootRel)
 const profilePath = path.join(harnessRoot, harnessRootRel === '.harness' ? 'policy' : 'policy-harness', 'profile.json')
 const stacksRoot = path.join(harnessRoot, 'stacks')
 const markerPath = path.join(harnessRoot, '.stack-applied.json')
+const stackPresetRulesRel = `${harnessRootRel}/project/stack-preset-rules.md`
+const stackPresetRulesPath = path.join(repoRoot, stackPresetRulesRel)
+const stackRulesStart = '<!-- harness-stack-rules:start -->'
+const stackRulesEnd = '<!-- harness-stack-rules:end -->'
 
 const args = process.argv.slice(2)
 const isReset = args.includes('--reset')
@@ -136,6 +140,85 @@ function restorePackageJson(snapshot) {
   }
 
   writeJson(path.join(repoRoot, 'package.json'), snapshot)
+}
+
+function readTextIfExists(absPath) {
+  return fs.existsSync(absPath) ? fs.readFileSync(absPath, 'utf8') : null
+}
+
+function upsertGeneratedSection(current, generated) {
+  const block = `${stackRulesStart}\n${generated.trim()}\n${stackRulesEnd}`
+
+  if (current.includes(stackRulesStart) && current.includes(stackRulesEnd)) {
+    const before = current.slice(0, current.indexOf(stackRulesStart))
+    const after = current.slice(current.indexOf(stackRulesEnd) + stackRulesEnd.length)
+    return `${before}${block}${after}`
+  }
+
+  const prefix = current.trim() ? `${current.replace(/\s*$/, '')}\n\n` : ''
+  return `${prefix}${block}\n`
+}
+
+function renderStackLocalRules(stackId, manifest) {
+  const lines = [
+    `## 적용된 스택: ${manifest.title ?? stackId}`,
+    '',
+    `- stackId: \`${stackId}\``,
+    `- framework: ${manifest.framework ? Object.values(manifest.framework).join(' / ') : 'TBD'}`,
+    `- designPattern: ${(manifest.designPattern ?? []).join(' + ') || 'TBD'}`,
+    '',
+    '이 섹션은 `npm run stack:apply`가 생성한 로컬 규칙입니다. 공통 하네스의 전역 강제가 아니라, 이 프로젝트가 선택한 스택 기준으로 해석합니다.',
+  ]
+
+  for (const instructionRel of manifest.instructions ?? []) {
+    const abs = path.join(repoRoot, instructionRel)
+    if (!fs.existsSync(abs)) {
+      continue
+    }
+
+    lines.push('')
+    lines.push(`---`)
+    lines.push('')
+    lines.push(`### ${instructionRel}`)
+    lines.push('')
+    lines.push(fs.readFileSync(abs, 'utf8').trim())
+  }
+
+  return `${lines.join('\n')}\n`
+}
+
+function applyStackLocalRules(stackId, manifest) {
+  const before = readTextIfExists(stackPresetRulesPath)
+  const current = before ?? '# 스택 프리셋 로컬 규칙\n\n'
+  const generated = renderStackLocalRules(stackId, manifest)
+  const next = upsertGeneratedSection(current, generated)
+
+  fs.mkdirSync(path.dirname(stackPresetRulesPath), { recursive: true })
+  fs.writeFileSync(stackPresetRulesPath, next)
+
+  return {
+    path: toPosix(stackPresetRulesRel),
+    existed: before !== null,
+    content: before,
+  }
+}
+
+function restoreStackLocalRules(snapshot) {
+  if (!snapshot?.path) {
+    return
+  }
+
+  const abs = path.join(repoRoot, snapshot.path)
+  if (snapshot.existed) {
+    fs.mkdirSync(path.dirname(abs), { recursive: true })
+    fs.writeFileSync(abs, snapshot.content ?? '')
+    return
+  }
+
+  if (fs.existsSync(abs)) {
+    fs.unlinkSync(abs)
+    removeEmptyParents(abs)
+  }
 }
 
 // ---------- Source adapters ----------
@@ -281,6 +364,7 @@ function commandApply() {
   const result = adapter(manifest)
   const copiedFiles = result.copied
   const packageBackup = mergePackageJson(result.packageMergeData)
+  const stackLocalRulesBackup = applyStackLocalRules(stackId, manifest)
 
   writeMarker({
     stackId,
@@ -288,6 +372,7 @@ function commandApply() {
     source: manifest.source,
     copiedFiles,
     packageJsonBackup: packageBackup,
+    stackLocalRulesBackup,
   })
 
   console.log(`Applied. ${copiedFiles.length} file(s) copied.`)
@@ -330,6 +415,7 @@ function commandReset() {
   }
 
   restorePackageJson(marker.packageJsonBackup)
+  restoreStackLocalRules(marker.stackLocalRulesBackup)
   deleteMarker()
 
   console.log(`Reset complete. ${removed} file(s) removed. package.json도 적용 전 상태로 복원했습니다.`)

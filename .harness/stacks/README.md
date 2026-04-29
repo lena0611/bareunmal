@@ -18,12 +18,15 @@
 - `.harness/policy/profile.json`의 `activeStack` 값이 결재의 단일 진실 출처입니다.
 - 활성 프리셋의 `policies.json`은 일반 정책에 자동 병합됩니다.
 - 활성 프리셋의 `instructions/`는 일반 instruction 인덱스에 함께 노출됩니다.
+- `npm run stack:apply`는 활성 프리셋의 `instructions/`를 `.harness/project/stack-preset-rules.md`의 관리 섹션에 복사해 프로젝트 로컬룰로 정착시킵니다.
+- 따라서 프리셋의 스타일/아키텍처 기준은 공통 하네스의 전역 강제가 아니라, 해당 프로젝트가 선택한 로컬 기준으로 해석합니다.
 
 ## 격리 원칙 (반드시 지킬 것)
 1. 일반 하네스 문서·스크립트는 어떤 스택 폴더도 import 하지 않습니다. 로더만 활성 스택을 읽습니다.
 2. 한 스택 폴더는 다른 스택 폴더를 참조하지 않습니다.
 3. 스택 폴더는 자체-완결되어야 합니다. 폴더 단위로 잘라 다른 저장소로 옮길 수 있어야 합니다.
 4. 스택의 정책은 반드시 `policies.json`을 통해서만 일반 인프라에 노출됩니다.
+5. 스택의 작업 지침은 `stack:apply` 시 `.harness/project/stack-preset-rules.md`에 로컬룰로 반영될 수 있어야 합니다.
 
 ## 신규 스택 추가 가이드
 1. `.harness/stacks/<new-id>/manifest.json` 작성 (id, framework, designPattern, instructions 목록, policiesFile, checksKey, source).
@@ -34,7 +37,7 @@
 6. `.harness/stacks/README.md`의 표에 등록.
 7. `document-registry.json`에 새 스택 그룹 등록 (scaffold 내부는 등록 불필요, doc-link-check가 자동 제외함).
 8. `npm run docs:check` 와 `npm run policy:guard` 통과 확인.
-9. `npm run stack:apply`로 실제 적용이 동작하는지 검증.
+9. `npm run stack:apply`로 scaffold 복사와 `.harness/project/stack-preset-rules.md` 반영이 동작하는지 검증.
 
 ## 향후 분리 경로 (지금은 적용하지 않음)
 - 프리셋 수가 늘거나 외부 저장소에서 공유해야 하면 `.harness/stacks/<id>/scaffold/`를 별도 저장소로 뗼어내고 manifest의 `source.type`을 `tiged`로 전환합니다.

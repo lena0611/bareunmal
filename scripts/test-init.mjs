@@ -147,6 +147,68 @@ function absorbReportSuggestsBridgeCandidates() {
   assert(report.includes('Project Harness Bridge'), 'absorb report should include bridge template')
 }
 
+function stackApplyMaterializesPresetAsLocalRules() {
+  const target = makeTarget()
+
+  runInit(target)
+  run('npm', ['run', 'stack:apply'], { cwd: target })
+
+  const localRules = read(target, '.harness/project/stack-preset-rules.md')
+  assert(localRules.includes('## 적용된 스택:'), 'stack apply should write applied stack section')
+  assert(localRules.includes('Feature-Sliced Design'), 'stack apply should materialize stack instructions as local rules')
+  assert(localRules.includes('harness-stack-rules:start'), 'stack local rules should stay inside managed section')
+
+  run('npm', ['run', 'stack:reset'], { cwd: target })
+
+  const resetRules = read(target, '.harness/project/stack-preset-rules.md')
+  assert(resetRules.includes('적용된 스택 프리셋이 없습니다.'), 'stack reset should restore previous local rules file')
+}
+
+function absorbReportSuggestsStylePresetsWhenStyleSourceMissing() {
+  const target = makeTarget()
+
+  fs.rmSync(path.join(target, '.editorconfig'), { force: true })
+  runInit(target)
+  fs.rmSync(path.join(target, '.editorconfig'), { force: true })
+  run('npm', ['run', 'absorb:report'], { cwd: target })
+
+  const report = read(target, '.harness/session/absorb-report.md')
+  assert(report.includes('## Style Preset Candidates'), 'absorb report should include style preset candidates')
+  assert(report.includes('standard-js'), 'absorb report should suggest standard-js preset')
+  assert(report.includes('explicit-ts'), 'absorb report should suggest explicit-ts preset')
+  assert(report.includes('formatter-owned'), 'absorb report should suggest formatter-owned preset')
+}
+
+function absorbReportDraftsStyleRulesFromConfigFiles() {
+  const target = makeTarget()
+
+  runInit(target)
+  fs.writeFileSync(path.join(target, '.editorconfig'), `root = true
+
+[*]
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+`)
+  fs.writeFileSync(path.join(target, '.eslintrc'), JSON.stringify({
+    rules: {
+      quotes: ['error', 'single'],
+      semi: ['error', 'always'],
+      'import/order': ['warn'],
+    },
+  }, null, 2))
+
+  run('npm', ['run', 'absorb:report'], { cwd: target })
+
+  const report = read(target, '.harness/session/absorb-report.md')
+  assert(report.includes('## Style Rule Draft'), 'absorb report should include style rule draft')
+  assert(report.includes('.editorconfig *: indent_style = space'), 'absorb report should draft editorconfig style rules')
+  assert(report.includes('.eslintrc: quote = single'), 'absorb report should draft eslint quote rule')
+  assert(report.includes('.eslintrc: semicolon = always'), 'absorb report should draft eslint semicolon rule')
+  assert(report.includes('.eslintrc: import grouping/order rule is configured'), 'absorb report should draft eslint import order rule')
+  assert(!report.includes('## Style Preset Candidates'), 'absorb report should not suggest presets when style sources exist')
+}
+
 const tests = [
   cleanInstallCreatesExpectedFiles,
   reinstallPreservesProjectOwnedFiles,
@@ -155,6 +217,9 @@ const tests = [
   noBackupRequiresForce,
   externalHarnessWithoutManifestIsPreserved,
   absorbReportSuggestsBridgeCandidates,
+  stackApplyMaterializesPresetAsLocalRules,
+  absorbReportSuggestsStylePresetsWhenStyleSourceMissing,
+  absorbReportDraftsStyleRulesFromConfigFiles,
 ]
 
 console.log('Init smoke tests')

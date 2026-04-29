@@ -50,6 +50,7 @@
         ".harness/project/project-charter.md",
         ".harness/project/scope-contract.md",
         ".harness/project/local-methodology.md",
+        ".harness/project/stack-preset-rules.md",
         ".harness/project/domain-rules.md",
         ".harness/project/architecture-rules.md",
         ".harness/project/workflow-rules.md",
@@ -88,6 +89,7 @@
       "children": [
         ".harness/style/style-rules.md",
         ".harness/style/validation-rules.md",
+        ".harness/style/presets.md",
         ".harness/style/style-evolution.md"
       ]
     },

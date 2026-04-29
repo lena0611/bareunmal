@@ -66,6 +66,7 @@ const PROJECT_OWNED_PATHS = new Set([
   '.harness/project/scope-contract.md',
   '.harness/project/config-contract.md',
   '.harness/project/local-methodology.md',
+  '.harness/project/stack-preset-rules.md',
   '.harness/project/domain-rules.md',
   '.harness/project/architecture-rules.md',
   '.harness/project/workflow-rules.md',

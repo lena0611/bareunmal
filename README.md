@@ -51,6 +51,7 @@ npx -y github:<owner>/<repo>#vX.Y.Z init
 | --- | --- |
 | `.harness/` | 하네스 본체. 정책, 문서, 세션, 스택 프리셋이 들어 있습니다. |
 | `.harness/project/local-methodology.md` | 프로젝트 고유 개발방법론의 진입점입니다. |
+| `.harness/project/stack-preset-rules.md` | 적용한 스택 프리셋이 프로젝트 로컬룰로 정착되는 문서입니다. |
 | `.harness/project/domain-rules.md` | 업무 용어, 불변식, 도메인 제약을 기록합니다. |
 | `.harness/project/architecture-rules.md` | 모듈 경계, 의존 방향, 데이터 흐름을 기록합니다. |
 | `.harness/project/workflow-rules.md` | 개발, 리뷰, 릴리스, 장애 대응 흐름을 기록합니다. |
@@ -80,6 +81,10 @@ npm run stack:reset         # 적용된 scaffold 제거
 
 `npm run guard`는 스택이 아직 적용되지 않았으면 policy/docs만 검사하고 lint/test/build는 건너뜁니다.
 
+`npm run stack:apply`는 선택한 스택의 scaffold를 복사할 뿐 아니라, 스택 instructions를 `.harness/project/stack-preset-rules.md`에 프로젝트 로컬룰로 반영합니다. 따라서 스택의 스타일/아키텍처 기준은 공통 하네스의 전역 강제가 아니라 해당 프로젝트가 선택한 로컬 기준으로 다룹니다.
+
+로컬 스타일 규칙 문서가 없어도 `.editorconfig`, formatter, linter 설정이 있으면 `npm run absorb:report`가 `Style Rule Draft`로 스타일 초안을 만듭니다. 로컬 스타일 출처가 전혀 없다면 스타일 프리셋 후보를 제안합니다. 후보와 초안은 자동 적용되지 않으며, 개발자가 확인한 뒤 로컬 방법론과 실제 설정 파일에 반영합니다.
+
 ## init 업데이트 옵션
 
 `init`은 기존 하네스 파일이 있으면 먼저 `.harness-backup/<timestamp>/`에 백업합니다. `.harness/install-manifest.json`으로 하네스시드가 만든 파일인지 판단하고, 관리 파일은 갱신하며, 프로젝트 소유 파일과 출처를 알 수 없는 기존 하네스 파일은 보존합니다.
@@ -90,7 +95,7 @@ npx -y git+<seed-repo-url>#vX.Y.Z init --force
 npx -y git+<seed-repo-url>#vX.Y.Z init --from-git <seed-repo-url> --ref vX.Y.Z
 ```
 
-보존 대상 예시는 `.harness/project/project-charter.md`, `.harness/project/local-methodology.md`, `.harness/project/domain-rules.md`, `.harness/project/architecture-rules.md`, `.harness/project/workflow-rules.md`, `.harness/session/active-context.md`, `.harness/policy/profile.json`, `.harness/policy/waivers.json`, `.claude/settings.local.json`입니다.
+보존 대상 예시는 `.harness/project/project-charter.md`, `.harness/project/local-methodology.md`, `.harness/project/stack-preset-rules.md`, `.harness/project/domain-rules.md`, `.harness/project/architecture-rules.md`, `.harness/project/workflow-rules.md`, `.harness/session/active-context.md`, `.harness/policy/profile.json`, `.harness/policy/waivers.json`, `.claude/settings.local.json`입니다.
 
 ## Claude Code 어댑터
 

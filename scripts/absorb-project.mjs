@@ -40,6 +40,11 @@ function readJson(rel, fallback = null) {
   }
 }
 
+function readText(rel) {
+  const abs = path.join(repoRoot, rel)
+  return fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : null
+}
+
 function runGit(gitArgs) {
   try {
     return execFileSync('git', gitArgs, {
@@ -155,9 +160,219 @@ function detectQualityFiles() {
   ])
 }
 
+function detectStyleGuideFiles() {
+  return listExisting([
+    '.editorconfig',
+    '.prettierrc',
+    'prettier.config.js',
+    'prettier.config.mjs',
+    'biome.json',
+    '.eslintrc',
+    '.eslintrc.js',
+    'eslint.config.js',
+    'eslint.config.mjs',
+    'STYLEGUIDE.md',
+    'styleguide.md',
+    'CONTRIBUTING.md',
+  ])
+}
+
+function parseEditorConfig() {
+  const content = readText('.editorconfig')
+  if (!content) return []
+
+  const rules = []
+  let currentSection = 'global'
+
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim()
+    if (!line || line.startsWith('#') || line.startsWith(';')) continue
+
+    const section = line.match(/^\[(.+)]$/)
+    if (section) {
+      currentSection = section[1]
+      continue
+    }
+
+    const pair = line.match(/^([^=]+?)\s*=\s*(.+)$/)
+    if (!pair) continue
+
+    const key = pair[1].trim()
+    const value = pair[2].trim()
+    if (['indent_style', 'indent_size', 'tab_width', 'end_of_line', 'charset', 'trim_trailing_whitespace', 'insert_final_newline'].includes(key)) {
+      rules.push(`.editorconfig ${currentSection}: ${key} = ${value}`)
+    }
+  }
+
+  return rules
+}
+
+function readPrettierConfig() {
+  const jsonConfig = readJson('.prettierrc')
+  if (jsonConfig) return { source: '.prettierrc', config: jsonConfig }
+
+  for (const rel of ['prettier.config.js', 'prettier.config.mjs']) {
+    const content = readText(rel)
+    if (content) return { source: rel, content }
+  }
+
+  return null
+}
+
+function parseObjectLikeConfig(source, config) {
+  const rules = []
+
+  const map = [
+    ['singleQuote', 'quote'],
+    ['semi', 'semicolon'],
+    ['trailingComma', 'trailing comma'],
+    ['printWidth', 'print width'],
+    ['tabWidth', 'tab width'],
+    ['useTabs', 'use tabs'],
+    ['bracketSpacing', 'bracket spacing'],
+    ['arrowParens', 'arrow parens'],
+  ]
+
+  for (const [key, label] of map) {
+    if (Object.hasOwn(config, key)) {
+      rules.push(`${source}: ${label} = ${String(config[key])}`)
+    }
+  }
+
+  return rules
+}
+
+function parseJsConfigByPattern(source, content) {
+  const rules = []
+  const patterns = [
+    ['singleQuote', /singleQuote\s*:\s*(true|false)/],
+    ['semicolon', /(?:^|[,{]\s*)semi\s*:\s*(true|false)/m],
+    ['trailing comma', /trailingComma\s*:\s*['"]([^'"]+)['"]/],
+    ['print width', /printWidth\s*:\s*(\d+)/],
+    ['tab width', /tabWidth\s*:\s*(\d+)/],
+    ['use tabs', /useTabs\s*:\s*(true|false)/],
+    ['quote', /quotes\s*:\s*\[[^\]]*['"](?:error|warn|off)['"]\s*,\s*['"]([^'"]+)['"]/],
+    ['semicolon', /semi\s*:\s*\[[^\]]*['"](?:error|warn|off)['"]\s*,\s*['"]([^'"]+)['"]/],
+  ]
+
+  for (const [label, pattern] of patterns) {
+    const match = content.match(pattern)
+    if (match) {
+      rules.push(`${source}: ${label} = ${match[1]}`)
+    }
+  }
+
+  return rules
+}
+
+function parsePrettierRules() {
+  const found = readPrettierConfig()
+  if (!found) return []
+
+  if (found.config) {
+    return parseObjectLikeConfig(found.source, found.config)
+  }
+
+  return parseJsConfigByPattern(found.source, found.content)
+}
+
+function parseEslintRules() {
+  const legacy = readJson('.eslintrc')
+  if (legacy?.rules) {
+    const rules = []
+    const quoteRule = legacy.rules.quotes
+    const semiRule = legacy.rules.semi
+
+    if (Array.isArray(quoteRule) && quoteRule[1]) {
+      rules.push(`.eslintrc: quote = ${quoteRule[1]}`)
+    }
+    if (Array.isArray(semiRule) && semiRule[1]) {
+      rules.push(`.eslintrc: semicolon = ${semiRule[1]}`)
+    }
+    if (legacy.rules['sort-imports']) {
+      rules.push('.eslintrc: import sorting rule is configured')
+    }
+    if (legacy.rules['import/order']) {
+      rules.push('.eslintrc: import grouping/order rule is configured')
+    }
+
+    return rules
+  }
+
+  for (const rel of ['.eslintrc.js', 'eslint.config.js', 'eslint.config.mjs']) {
+    const content = readText(rel)
+    if (content) return parseJsConfigByPattern(rel, content)
+  }
+
+  return []
+}
+
+function parseBiomeRules() {
+  const config = readJson('biome.json')
+  if (!config) return []
+
+  const rules = []
+  const formatter = config.formatter ?? {}
+  const javascriptFormatter = config.javascript?.formatter ?? {}
+
+  if (Object.hasOwn(formatter, 'indentStyle')) rules.push(`biome.json formatter: indent style = ${formatter.indentStyle}`)
+  if (Object.hasOwn(formatter, 'indentWidth')) rules.push(`biome.json formatter: indent width = ${formatter.indentWidth}`)
+  if (Object.hasOwn(formatter, 'lineWidth')) rules.push(`biome.json formatter: line width = ${formatter.lineWidth}`)
+  if (Object.hasOwn(javascriptFormatter, 'quoteStyle')) rules.push(`biome.json javascript formatter: quote = ${javascriptFormatter.quoteStyle}`)
+  if (Object.hasOwn(javascriptFormatter, 'semicolons')) rules.push(`biome.json javascript formatter: semicolon = ${javascriptFormatter.semicolons}`)
+  if (Object.hasOwn(javascriptFormatter, 'trailingCommas')) rules.push(`biome.json javascript formatter: trailing comma = ${javascriptFormatter.trailingCommas}`)
+
+  return rules
+}
+
+function buildStyleRuleDraft(styleGuideFiles) {
+  if (styleGuideFiles.length === 0) {
+    return [
+      '로컬 스타일 출처가 없습니다. 아래 Style Preset Candidates 중 하나를 선택한 뒤 실제 formatter/linter 설정과 로컬 방법론에 반영하세요.',
+    ]
+  }
+
+  const rules = [
+    ...parseEditorConfig(),
+    ...parsePrettierRules(),
+    ...parseEslintRules(),
+    ...parseBiomeRules(),
+  ]
+
+  if (rules.length === 0) {
+    return [
+      '스타일 출처는 발견했지만 자동 초안으로 추출할 수 있는 formatter/linter 값은 없습니다.',
+      '`STYLEGUIDE.md`, `CONTRIBUTING.md`, 또는 JS 기반 설정 파일을 사람이 확인해 로컬 방법론에 승격하세요.',
+    ]
+  }
+
+  return [
+    ...rules,
+    '',
+    '위 항목은 설정 파일에서 추출한 초안입니다. `.harness/project/workflow-rules.md` 또는 `.harness/project/local-methodology.md`에 승격하기 전에 개발자가 확인합니다.',
+  ]
+}
+
+function renderStylePresetCandidates(styleGuideFiles) {
+  if (styleGuideFiles.length > 0) {
+    return ''
+  }
+
+  return `## Style Preset Candidates
+로컬 스타일 출처가 없을 때만 아래 후보 중 하나를 선택합니다. 자동 적용하지 않습니다.
+
+- \`standard-js\`: single quote, no semicolon, sorted imports
+- \`explicit-ts\`: semicolon yes, multiline trailing comma, sorted imports
+- \`formatter-owned\`: formatter/linter 설정을 단일 진실 출처로 사용
+
+선택한 후보는 \`.harness/project/workflow-rules.md\`, \`.harness/project/local-methodology.md\`, 실제 formatter/linter 설정에 함께 반영합니다.
+`
+}
+
 function detectLocalMethodologyFiles() {
   return listExisting([
     '.harness/project/local-methodology.md',
+    '.harness/project/stack-preset-rules.md',
     '.harness/project/domain-rules.md',
     '.harness/project/architecture-rules.md',
     '.harness/project/workflow-rules.md',
@@ -202,6 +417,9 @@ function buildReport() {
   const buildFiles = detectBuildFiles()
   const ciFiles = detectCi()
   const qualityFiles = detectQualityFiles()
+  const styleGuideFiles = detectStyleGuideFiles()
+  const styleRuleDraft = buildStyleRuleDraft(styleGuideFiles)
+  const stylePresetCandidates = renderStylePresetCandidates(styleGuideFiles)
   const docs = detectDocs()
   const localMethodologyFiles = detectLocalMethodologyFiles()
   const bridgeCandidates = detectBridgeCandidates()
@@ -228,6 +446,9 @@ function buildReport() {
   }
   if (bridgeCandidates.length > 0) {
     questions.push('기존 엔트리포인트가 로컬 방법론을 읽지 않습니다. Bridge Section Candidates를 검토하세요.')
+  }
+  if (styleGuideFiles.length === 0) {
+    questions.push('로컬 스타일 출처를 찾지 못했습니다. Style Preset Candidates 중 하나를 선택하거나 기존 팀 표준을 연결하세요.')
   }
 
   return `# Harness Absorb Report
@@ -258,6 +479,9 @@ ${formatList(ciFiles)}
 ### Quality Files
 ${formatList(qualityFiles)}
 
+### Style Sources
+${formatList(styleGuideFiles)}
+
 ### Documentation
 ${formatList(docs)}
 
@@ -270,8 +494,13 @@ ${formatList(sourceRoots)}
 ### Test Roots
 ${formatList(testRoots)}
 
+## Style Rule Draft
+${formatList(styleRuleDraft)}
+
 ## Suggested Verification Commands
 ${formatList(suggestedCommands.map((name) => `npm run ${name}`))}
+
+${stylePresetCandidates}
 
 ## Bridge Section Candidates
 ${formatList(bridgeCandidates)}
@@ -295,6 +524,7 @@ ${formatList(bridgeCandidates)}
 - .harness/project/project-charter.md
 - .harness/project/scope-contract.md
 - .harness/project/local-methodology.md
+- .harness/project/stack-preset-rules.md
 - .harness/project/domain-rules.md
 - .harness/project/architecture-rules.md
 - .harness/project/workflow-rules.md
