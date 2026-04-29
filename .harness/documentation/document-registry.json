@@ -97,16 +97,6 @@
       "id": "stacks",
       "index": ".harness/stacks/README.md",
       "children": []
-    },
-    {
-      "id": "stack-vue3-fsd",
-      "index": ".harness/stacks/vue3-fsd/manifest.json",
-      "children": [
-        ".harness/stacks/vue3-fsd/policies.json",
-        ".harness/stacks/vue3-fsd/instructions/architecture.md",
-        ".harness/stacks/vue3-fsd/instructions/state-management.md",
-        ".harness/stacks/vue3-fsd/instructions/feature-sliced-design.md"
-      ]
     }
   ]
 }

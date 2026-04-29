@@ -9,10 +9,10 @@
 - stack 적용 마커는 새 구조에서 `.harness/.stack-applied.json`을 사용합니다.
 
 ## 2026-04-28 - Node 런타임 고정 및 init 안정화
-- `.nvmrc`를 `22.14.0`으로 추가하고 `package.json`의 `engines.node`를 현재 Vite/ESLint 도구체인 요구사항(`>=20.19.0 || >=22.13.0`)에 맞췄습니다.
+- `.nvmrc`를 `22.14.0`으로 추가하고 `package.json`의 `engines.node`를 현재 Node 기반 도구체인 요구사항(`>=20.19.0 || >=22.13.0`)에 맞췄습니다.
 - 모든 npm harness 명령 앞에 `scripts/check-node-version.mjs`를 연결해 낮은 Node에서 문법 에러 대신 명확한 업그레이드 안내가 나오게 했습니다.
 - `scripts/init.mjs`는 기존 프로젝트 병합 진입점이므로 낮은 Node에서도 최소한 버전 안내까지 도달하도록 최신 문법 사용을 피했습니다.
-- vue3-fsd scaffold의 `npm run dev`는 clubadm의 `scripts/dev.sh` 패턴을 반영해 nvm 로드/설치, `.nvmrc` 전환, Node/패키지 변경 감지, 의존성 동기화, Vite 재기동 루프를 처리합니다.
+- 당시 내장 scaffold의 `npm run dev`는 nvm 로드/설치, `.nvmrc` 전환, Node/패키지 변경 감지, 의존성 동기화, dev server 재기동 루프를 처리하도록 설계했습니다.
 - 팀 배포에서는 `git+<seed-repo-url>#<tag>` 형태의 tag 고정 실행을 권장하고, 장기적으로 npm publish가 가능하도록 `bin`, `files`, `engines` 구성을 정리했습니다.
 
 ## 2026-04-27 - 시드 하네스 저장소 분리 및 이름 변경 (bareunmal → harness-seed)
@@ -23,7 +23,7 @@
 - 실제 작업 프로젝트는 추후 별도 repo로 분리합니다.
 
 ## 2026-04-22 - 기본 스캐폴드 채택
-- Vue 3 + Pinia + Vite + TypeScript 조합으로 초기 스캐폴드를 구성했습니다.
+- 초기에는 특정 프론트엔드 조합으로 스캐폴드를 구성했습니다.
 - 도메인이 아직 없으므로 중립적인 예시 use-case만 두고 구조를 먼저 고정했습니다.
 
 ## 2026-04-22 - 아키텍처 규칙 문서 분리
@@ -32,7 +32,7 @@
 
 ## 2026-04-22 - GitHub Pages 자동 배포 채택
 - 무료 정적 배포를 위해 GitHub Pages + GitHub Actions 구성을 채택했습니다.
-- 저장소명을 반영하기 위해 Vite `base`를 `/bareunmal/`로 설정했습니다.
+- 저장소명을 반영하기 위해 당시 정적 빌드 `base`를 `/bareunmal/`로 설정했습니다.
 
 ## 2026-04-22 - 세션 하네스 도입
 - 새 세션이 이전 상태를 빠르게 복구할 수 있도록 `.harness/session/`를 추가했습니다.
@@ -64,8 +64,8 @@
 
 ## 2026-04-27 - 일반화 하네스와 스택 프리셋 분리
 - 저장소를 일반 하네스(프레임워크 독립 인프라)와 스택 프리셋(프레임워크+디자인패턴 꾸러미)으로 분리했습니다.
-- `vue3-fsd` 스택 자산을 `.harness/stacks/vue3-fsd/scaffold/`로 이동해 root가 스택-독립적이 되게 했습니다.
-- `apply-stack.mjs`를 source adapter 패턴(`local` 구현, `tiged` 스텅)으로 설계해 향후 외부 저장소로 분리가 저비용으로 가능하도록 했습니다 (B안 + A-1 호환).
+- 스택 자산을 본체와 격리해 root가 스택-독립적이 되게 했습니다.
+- `apply-stack.mjs`를 source adapter 패턴으로 설계해 향후 외부 저장소로 분리가 저비용으로 가능하도록 했습니다.
 - `npm run stack:apply` / `stack:reset` / `stack:status` 명령과 `.github/.stack-applied.json` 마커를 도입했습니다.
 - `guard.mjs`는 스택 미적용 시 lint/test/build를 자동 스킵하고 일반 검사만 실행합니다.
 - `doc-link-check.mjs`는 scaffold 폴더를 orphan/링크 검사에서 제외하고, 코드 경로 참조는 활성 스택의 scaffold 내부도 허용하도록 해서 미적용 상태에서도 문서 참조가 유효하게 했습니다.
@@ -75,7 +75,7 @@
 - `apply-stack.mjs`의 `adapterTiged()`를 실제 구현했습니다 (`npx -y tiged --force <ref> <tmp>` → subdir 분리 → 파일 복사 + packageMerge 처리). 어댑터 반환 형태를 `{ copied, packageMergeData }` 객체로 통일했습니다.
 - 외부 빈 디렉토리에 저장소를 풀어 시드 사용자 시나리오를 e2e 검증하던 중 두 가지 치명적 결함 발견:
   - `.github/.stack-applied.json` 마커가 tracked 상태였음 → 시드 사용자가 dev 머신의 적용 상태를 그대로 받음.
-  - `package.json`이 머지된 상태(vue/pinia/vite 의존성 포함)로 tracked → root가 슬림이 아님.
+  - `package.json`이 프리셋 의존성 머지 상태로 tracked → root가 슬림이 아님.
 - 두 결함 모두 수정: marker는 `.gitignore`로, root `package.json`/`package-lock.json`은 항상 슬림 상태(stack:reset 후)로만 커밋합니다.
 - CI 워크플로(`policy-guard.yml`)에 `node scripts/apply-stack.mjs` 단계와 `npm install` 호출을 추가해, 슬림 root에서도 CI가 머지된 의존성으로 검증하도록 했습니다.
 - `.gitignore`에 `.harness-backup/`도 미리 추가해 향후 흡수/백업 기능 도입을 위한 자리만 비워뒀습니다.

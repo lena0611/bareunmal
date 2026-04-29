@@ -30,6 +30,7 @@
     "docs:check": "npm run node:check --silent && node scripts/doc-link-check.mjs",
     "docs:check:strict": "npm run node:check --silent && node scripts/doc-link-check.mjs --strict",
     "absorb:report": "npm run node:check --silent && node scripts/absorb-project.mjs --write",
+    "templates:list": "npm run node:check --silent && node scripts/list-templates.mjs",
     "stack:apply": "npm run node:check --silent && node scripts/apply-stack.mjs",
     "stack:reset": "npm run node:check --silent && node scripts/apply-stack.mjs --reset",
     "stack:status": "npm run node:check --silent && node scripts/apply-stack.mjs --status"

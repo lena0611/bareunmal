@@ -32,6 +32,11 @@ function read(target, rel) {
   return fs.readFileSync(path.join(target, rel), 'utf8')
 }
 
+function writeJson(target, rel, value) {
+  fs.mkdirSync(path.dirname(path.join(target, rel)), { recursive: true })
+  fs.writeFileSync(path.join(target, rel), `${JSON.stringify(value, null, 2)}\n`)
+}
+
 function makeTarget() {
   const target = fs.mkdtempSync(path.join(os.tmpdir(), 'harness-seed-init-test-'))
   run('git', ['init', '--quiet'], { cwd: target })
@@ -59,6 +64,9 @@ function cleanInstallCreatesExpectedFiles() {
   const manifest = JSON.parse(read(target, '.harness/install-manifest.json'))
   assert(manifest.tool === 'harness-seed', 'install manifest should identify harness-seed')
   assert(manifest.managedFiles['scripts/guard.mjs'], 'install manifest should record managed files')
+
+  const profile = JSON.parse(read(target, '.harness/policy/profile.json'))
+  assert(profile.activeStack === 'none', 'clean install should default to stack-agnostic mode')
 
   const status = fs.statSync(path.join(target, '.claude/hooks/statusline.sh'))
   assert((status.mode & 0o111) !== 0, 'Claude hook should be executable')
@@ -147,21 +155,102 @@ function absorbReportSuggestsBridgeCandidates() {
   assert(report.includes('Project Harness Bridge'), 'absorb report should include bridge template')
 }
 
+function makePreset() {
+  const preset = fs.mkdtempSync(path.join(os.tmpdir(), 'harness-seed-preset-test-'))
+
+  fs.mkdirSync(path.join(preset, 'instructions'), { recursive: true })
+  fs.mkdirSync(path.join(preset, 'scaffold'), { recursive: true })
+  fs.writeFileSync(path.join(preset, 'instructions/rules.md'), '# External Rule\n\nUse the external preset contract.\n')
+  fs.writeFileSync(path.join(preset, 'scaffold/hello.txt'), 'hello from external preset\n')
+  fs.writeFileSync(path.join(preset, 'scaffold/package.merge.json'), JSON.stringify({
+    scripts: {
+      external: 'echo external',
+    },
+  }, null, 2))
+  fs.writeFileSync(path.join(preset, 'manifest.json'), JSON.stringify({
+    id: 'external-demo',
+    title: 'External Demo Preset',
+    framework: {
+      runtime: 'demo',
+    },
+    designPattern: ['External Preset Contract'],
+    instructions: ['instructions/rules.md'],
+    policiesFile: 'policies.json',
+    checksKey: null,
+    source: {
+      type: 'local',
+      path: 'scaffold',
+      packageMerge: 'scaffold/package.merge.json',
+    },
+  }, null, 2))
+  fs.writeFileSync(path.join(preset, 'policies.json'), JSON.stringify({
+    version: 1,
+    stackId: 'external-demo',
+    policies: [],
+  }, null, 2))
+
+  return preset
+}
+
 function stackApplyMaterializesPresetAsLocalRules() {
   const target = makeTarget()
+  const preset = makePreset()
 
   runInit(target)
-  run('npm', ['run', 'stack:apply'], { cwd: target })
+  run('npm', ['run', 'stack:apply', '--', '--preset-path', preset], { cwd: target })
 
   const localRules = read(target, '.harness/project/stack-preset-rules.md')
   assert(localRules.includes('## 적용된 스택:'), 'stack apply should write applied stack section')
-  assert(localRules.includes('Feature-Sliced Design'), 'stack apply should materialize stack instructions as local rules')
+  assert(localRules.includes('External Preset Contract'), 'stack apply should materialize stack instructions as local rules')
   assert(localRules.includes('harness-stack-rules:start'), 'stack local rules should stay inside managed section')
 
   run('npm', ['run', 'stack:reset'], { cwd: target })
 
   const resetRules = read(target, '.harness/project/stack-preset-rules.md')
   assert(resetRules.includes('적용된 스택 프리셋이 없습니다.'), 'stack reset should restore previous local rules file')
+}
+
+function stackApplySupportsExternalPresetPath() {
+  const target = makeTarget()
+  const preset = makePreset()
+
+  runInit(target)
+  writeJson(target, '.harness/policy/profile.json', {
+    version: 2,
+    activeStack: 'external-demo',
+    available: ['none'],
+    stackManifest: null,
+  })
+  run('npm', ['run', 'stack:apply', '--', '--preset-path', preset], { cwd: target })
+
+  assert(read(target, 'hello.txt').includes('external preset'), 'external preset should copy scaffold files')
+
+  const localRules = read(target, '.harness/project/stack-preset-rules.md')
+  assert(localRules.includes('External Demo Preset'), 'external preset should materialize title as local rules')
+  assert(localRules.includes('Use the external preset contract.'), 'external preset should materialize relative instruction files')
+
+  const pkg = JSON.parse(read(target, 'package.json'))
+  assert(pkg.scripts.external === 'echo external', 'external preset should merge package metadata')
+}
+
+function stackApplySupportsExternalPresetGit() {
+  const target = makeTarget()
+  const preset = makePreset()
+
+  run('git', ['init', '--quiet'], { cwd: preset })
+  run('git', ['config', 'user.email', 'test@example.com'], { cwd: preset })
+  run('git', ['config', 'user.name', 'Harness Test'], { cwd: preset })
+  run('git', ['add', '.'], { cwd: preset })
+  run('git', ['commit', '--quiet', '-m', 'preset'], { cwd: preset })
+  run('git', ['branch', '-M', 'main'], { cwd: preset })
+
+  runInit(target)
+  run('npm', ['run', 'stack:apply', '--', '--preset-git', preset, '--ref', 'main'], { cwd: target })
+
+  assert(read(target, 'hello.txt').includes('external preset'), 'git preset should copy scaffold files')
+
+  const localRules = read(target, '.harness/project/stack-preset-rules.md')
+  assert(localRules.includes('External Demo Preset'), 'git preset should materialize local rules')
 }
 
 function absorbReportSuggestsStylePresetsWhenStyleSourceMissing() {
@@ -218,6 +307,8 @@ const tests = [
   externalHarnessWithoutManifestIsPreserved,
   absorbReportSuggestsBridgeCandidates,
   stackApplyMaterializesPresetAsLocalRules,
+  stackApplySupportsExternalPresetPath,
+  stackApplySupportsExternalPresetGit,
   absorbReportSuggestsStylePresetsWhenStyleSourceMissing,
   absorbReportDraftsStyleRulesFromConfigFiles,
 ]

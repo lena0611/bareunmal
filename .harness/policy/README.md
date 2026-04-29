@@ -28,7 +28,7 @@ npm run docs:check
 
 ## 구성 요소
 - `policy-registry.json`: 정책 문서와 코드 영역의 연결 정보
-- `profile.json`: 프레임워크 특화 검사 프로파일 (`vue-fsd` 또는 `none`)
+- `profile.json`: 활성 프리셋 프로파일 (`none` 또는 외부 프리셋 manifest)
 - `enforcement-ladder.md`: 강제 강도와 예외 허용 범위 기준
 - `automation-coverage.md`: 자동 검증/수동 검토 범위
 - `waivers.json`: 승인된 예외 기록

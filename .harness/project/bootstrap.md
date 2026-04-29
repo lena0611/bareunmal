@@ -29,10 +29,11 @@
 
 질문 예시:
 > 사용할 스택 프리셋을 골라주세요.
-> - `vue3-fsd` — Vue 3 + Pinia + Vite + TypeScript / FSD + Clean Architecture + Headless Core + Adapter
 > - `none` — 어떤 프리셋도 적용하지 않음 (일반 하네스만 사용)
+> - 원격 템플릿 — `npm run templates:list`로 후보를 조회한 뒤 선택
+> - 로컬 프리셋 — 별도 폴더의 `manifest.json` 경로를 `stackManifest`에 기록
 
-선택 결과는 `.harness/policy/profile.json`의 `activeStack`에 기록합니다. 기본값 변경 시 `decision-log.md`에 사유를 한 줄 남깁니다.
+선택 결과는 `.harness/policy/profile.json`의 `activeStack`에 기록합니다. 외부 프리셋이면 `stackManifest`도 함께 기록합니다. 기본값 변경 시 `decision-log.md`에 사유를 한 줄 남깁니다.
 
 ### 3. 스택 호환성 검증 및 적용
 선택된 스택이 동작 가능한 상태인지 다음으로 결정합니다.
@@ -46,6 +47,8 @@ npm run guard
 
 - 스택 미적용 상태에서도 `npm run guard`는 일반 인프라 검사(policy + docs)만 실행하고 lint/test/build는 건너뜁니다.
 - 스택을 바꾸고 싶으면 `npm run stack:reset` 으로 먼저 적용을 되돌린 뒤 `activeStack`을 바꾸고 다시 `stack:apply`를 실행합니다.
+- 원격 프리셋을 적용하려면 `npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>`를 사용합니다.
+- 외부 프리셋을 일회성으로 적용하려면 `npm run stack:apply -- --preset-path <preset-dir>`를 사용합니다.
 - `"none"`으로 두면 스택 적용 없이 일반 하네스만 운영됩니다.
 
 ### 4. 첫 도메인 항목 정착 (선택)

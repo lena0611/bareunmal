@@ -34,7 +34,9 @@ function readActiveScaffoldRoot() {
     return null
   }
 
-  const manifestPath = path.join(stacksRoot, stackId, 'manifest.json')
+  const manifestPath = profile.stackManifest
+    ? path.resolve(repoRoot, profile.stackManifest)
+    : path.join(stacksRoot, stackId, 'manifest.json')
 
   if (!fs.existsSync(manifestPath)) {
     return null
@@ -54,7 +56,12 @@ function readActiveScaffoldRoot() {
     return null
   }
 
-  const abs = path.join(repoRoot, scaffoldPath)
+  const manifestRoot = path.dirname(manifestPath)
+  const abs = path.isAbsolute(scaffoldPath)
+    ? scaffoldPath
+    : scaffoldPath.startsWith('.harness/') || scaffoldPath.startsWith('.github/')
+      ? path.join(repoRoot, scaffoldPath)
+      : path.join(manifestRoot, scaffoldPath)
   return fs.existsSync(abs) ? abs : null
 }
 

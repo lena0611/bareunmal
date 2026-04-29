@@ -12,22 +12,17 @@
 | `stack-isolation` | 한 스택 폴더가 다른 스택 폴더를 참조하지 않음 | 자동 검사 (`docs:check`) |
 
 ## 활성 스택 자동 검증 (`activeStack`에 따라 ON/OFF)
-아래 규칙들은 활성 스택의 `manifest.json` `checksKey`에 의해 켜집니다. `"none"`이면 전부 비활성화됩니다.
+본체는 특정 프레임워크 전용 자동 검사를 내장하지 않습니다. `"none"`이면 전부 비활성화됩니다.
 
 | checksKey | Rule | 설명 |
 | --- | --- | --- |
-| `vue-fsd` | `core-purity` | core에서 Vue/Pinia/browser API 사용 금지 |
-| `vue-fsd` | `adapter-ui-boundary` | adapter에서 UI 계층 의존 금지 |
-| `vue-fsd` | `store-placement` | store 위치 제약 |
-| `vue-fsd` | `composable-placement` | composable 위치 제약 |
-| `vue-fsd` | `feature-structure` | feature 하위 구조 제약 |
-| `vue-fsd` | `shared-boundary` | shared의 feature/UI 의존 금지 |
-| `vue-fsd` | `no-dumping-folders` | `common`, `utils` dumping folder 금지 |
+| 외부 프리셋 값 | 프리셋 저장소 guard | 프리셋 전용 자동 검사는 해당 템플릿 저장소에서 관리 |
 
 ## 프로파일
 - 프레임워크 특화 규칙은 `.harness/policy/profile.json`의 `activeStack` 값으로 선택됩니다.
-- 접근 이름: 해당 스택 `manifest.json`의 `checksKey`가 `scripts/policy-harness.mjs`의 분기 식별자로 쓰입니다.
-- 현재 값: `activeStack=vue3-fsd` → `checksKey=vue-fsd`. `"none"`으로 두면 프레임워크 자동 검사가 전부 비활성화됩니다.
+- 외부 프리셋은 `stackManifest` 경로의 `manifest.json`으로 연결할 수 있습니다.
+- 접근 이름: 해당 스택 `manifest.json`의 `checksKey`를 기록할 수 있지만, 본체는 이를 실행하지 않고 안내만 합니다.
+- 기본값: `activeStack=none`.
 - 스택 미적용 상태(`.harness/.stack-applied.json` 없음)에서도 일반 인프라 검사(doc-link, SYNC GAP)는 항상 동작합니다. lint/test/build는 자동으로 건너뛰어집니다.
 
 ## 아직 수동 검토 필요

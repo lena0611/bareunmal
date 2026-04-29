@@ -441,7 +441,6 @@ function mergeGitignore(target, opts) {
     '.env.*.local',
     '.node-version.cache',
     '.package-json.hash',
-    '.vite.pid',
     '.harness/.stack-applied.json',
     '.harness/session/absorb-report.md',
     '.harness-backup/',
@@ -593,9 +592,10 @@ function main() {
 다음 단계:
   1) git hook 활성화
        npm run hooks:install
-  2) 선택: 스택 프리셋 적용
+  2) 선택: 템플릿이 필요하면 후보 조회 후 외부 프리셋 적용
        npm run stack:status
-       npm run stack:apply
+       npm run templates:list
+       npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>
   3) 정책/코드/문서 동기화 검증
        npm run guard
 
