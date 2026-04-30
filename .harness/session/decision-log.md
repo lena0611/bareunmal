@@ -1,5 +1,15 @@
 # 결정 로그
 
+## 2026-04-30 - policy 용어 설명 정리
+- 외부 설명에서는 policy를 회사 규정처럼 보이게 쓰지 않고, "프로젝트가 반복적으로 지키기로 한 개발 기준"으로 풀어 설명합니다.
+- `.harness/policy/` 폴더명과 `policy:*` 명령은 내부 구조명으로 유지하되, README와 하네스 문서에서는 개발 기준, 검증 기준, 기준 동기화라는 표현을 우선 사용합니다.
+
+## 2026-04-29 - doctor/check 설치 흐름 도입
+- 처음 주입할 때는 기존 프로젝트 구조를 파악하는 `harness:doctor`가 `.harness/session/absorb-report.md`를 자동 생성합니다.
+- 설치 직후 `harness:check`를 자동 실행해 하네스 문서, 정책, 링크, 스택 적용 상태가 기본적으로 맞는지 확인합니다.
+- `absorb:report`와 `guard`는 기존 사용자를 위한 호환 alias로 유지하지만, 새 문서와 CI 표기는 `harness:doctor`와 `harness:check`를 기준으로 정리합니다.
+- 자동 실행이 부담되는 환경을 위해 `init --no-doctor --no-check` 옵션을 둡니다.
+
 ## 2026-04-28 - 하네스 본체를 .harness로 이동
 - Copilot/GitHub 의존을 줄이기 위해 일반 하네스 본체를 `.github/`에서 `.harness/`로 이동했습니다.
 - `.github/`에는 Copilot shim, GitHub Actions, GitHub issue/PR template처럼 GitHub 플랫폼에 속한 어댑터만 남깁니다.

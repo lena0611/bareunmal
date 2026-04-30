@@ -7,9 +7,9 @@
 | 레벨 | 의미 | 적합한 장치 | 예시 |
 | --- | --- | --- | --- |
 | `inform` | 참고만 하면 됨 | 문서, 가이드 | 개념 설명, 배경 설명 |
-| `trigger` | 특정 상황에서 반드시 다시 떠올려야 함 | alert, protocol, queue | 세션 시작 시 확인, 정책 변경 시 재검토 |
-| `hook` | 실행 시 자동으로 돌거나 검사를 강제해야 함 | workflow, script, git hook | push/PR 검사, 통합 guard |
-| `block` | 통과하지 않으면 진행을 멈춰야 함 | failing CI, blocking hook | 정책 위반 시 실패 처리 |
+| `trigger` | 특정 상황에서 반드시 다시 떠올려야 함 | alert, protocol, queue | 세션 시작 시 확인, 기준 변경 시 재검토 |
+| `hook` | 실행 시 자동으로 돌거나 검사를 강제해야 함 | workflow, script, git hook | push/PR 검사, 통합 검사 |
+| `block` | 통과하지 않으면 진행을 멈춰야 함 | failing CI, blocking hook | 기준 위반 시 실패 처리 |
 
 ## 예외 허용 범위 표
 

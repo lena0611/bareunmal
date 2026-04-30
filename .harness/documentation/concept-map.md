@@ -6,9 +6,9 @@
 
 | 개념 | 핵심 역할 | 언제 쓰나 | 강제력 | 현재 저장소 예시 | 실제 위치 예시 |
 | --- | --- | --- | --- | --- | --- |
-| **Harness** | 방향, 읽기 순서, 운영 레일을 잡음 | 프로젝트/세션/정책/문서 체계를 만들 때 | 중간 | `session-harness`, `policy-harness`, `project-harness`, `documentation-harness` | `.harness/session/`, `.harness/policy/`, `.harness/project/`, `.harness/documentation/` |
-| **Trigger** | 특정 상황에서 무엇을 다시 떠올릴지 알려줌 | 파일 변경, 새 세션 시작, 문서 확장, 정책 수정 시 | 강함 | `session-start-alert.md`, `sync-protocol.md` | `.harness/session/session-start-alert.md`, `.harness/policy/sync-protocol.md` |
-| **Hook** | 실제 실행 시점에서 검사를 자동 실행하거나 통과를 막음 | push, PR, 배포, 로컬 실행 전 검증 | 가장 강함 | `policy-guard.yml`, `deploy-pages.yml`, `npm run guard` | `.github/workflows/`, `scripts/`, `package.json` |
+| **Harness** | 방향, 읽기 순서, 운영 레일을 잡음 | 프로젝트/세션/기준/문서 체계를 만들 때 | 중간 | `session-harness`, `policy-harness`, `project-harness`, `documentation-harness` | `.harness/session/`, `.harness/policy/`, `.harness/project/`, `.harness/documentation/` |
+| **Trigger** | 특정 상황에서 무엇을 다시 떠올릴지 알려줌 | 파일 변경, 새 세션 시작, 문서 확장, 기준 수정 시 | 강함 | `session-start-alert.md`, `sync-protocol.md` | `.harness/session/session-start-alert.md`, `.harness/policy/sync-protocol.md` |
+| **Hook** | 실제 실행 시점에서 검사를 자동 실행하거나 통과를 막음 | push, PR, 배포, 로컬 실행 전 검증 | 가장 강함 | `policy-guard.yml`, `npm run harness:check` | `.github/workflows/`, `scripts/`, `package.json` |
 | **Skill** | 특정 작업을 더 잘 수행하게 돕는 전문 능력/절차 | 이미 준비된 전문 기능을 사용할 때 | 낮음 | 현재 저장소 내부 전용 skill은 없음 | 저장소 폴더가 아니라 도구/플랫폼 기능에 가까움 |
 
 ## 쉽게 비유하면
@@ -24,19 +24,19 @@
 
 ### 1. Harness
 - 세션 시작 시 무엇을 읽어야 하는지 고정
-- 정책 문서와 소스의 관계를 구조화
+- 개발 기준 문서와 소스의 관계를 구조화
 - 프로젝트 목적/범위가 비어 있어도 재계획 지점을 남김
 - 긴 문서를 인덱스와 하위 문서로 분리하는 기준 제공
 
 ### 2. Trigger
 - 새 세션 시작 시 어떤 문서를 먼저 보고 무엇을 다시 물어봐야 하는지 상기
-- `src/`, 정책 문서, 하네스 문서를 바꾸면 `policy:guard`를 떠올리게 함
+- `src/`, 기준 문서, 하네스 문서를 바꾸면 `policy:guard`를 떠올리게 함
 - 문서가 길어질 때 분리 여부를 먼저 판단하게 함
 
 ### 3. Hook
 - push / PR 시 `policy-guard.yml`가 자동 실행
 - push 시 `deploy-pages.yml`가 자동 배포
-- 로컬에서는 `npm run guard`가 정책 검사, 스타일 검사, 빌드를 연속 실행
+- 로컬에서는 `npm run harness:check`가 기준 동기화 검사, 문서 검사, 적용된 프리셋 검사를 연속 실행
 
 ### 4. Skill
 - 현재 저장소 안에 `.skill/` 폴더를 두고 쓰는 구조는 아님

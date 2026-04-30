@@ -38,7 +38,7 @@
 ```bash
 git --no-pager status --short
 npm run policy:impact
-npm run guard
+npm run harness:check
 ```
 
 ## 5. 작업 재개 원칙

@@ -93,6 +93,8 @@ npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>
 
 `stack:apply`는 선택한 프리셋의 instruction을 `.harness/project/stack-preset-rules.md`에 로컬룰로 기록합니다. 따라서 프리셋의 스타일/아키텍처 기준은 공통 하네스의 전역 강제가 아니라, 해당 프로젝트가 선택한 로컬 기준으로 해석합니다.
 
+적용 후에는 `npm run harness:check`로 일반 하네스 문서, 정책, 링크, 적용된 프리셋 상태를 함께 확인합니다.
+
 ## 격리 원칙
 1. 일반 하네스 문서와 스크립트는 특정 스택 폴더를 직접 참조하지 않습니다.
 2. 프리셋은 자체 완결적인 폴더 또는 저장소여야 합니다.

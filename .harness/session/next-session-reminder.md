@@ -6,13 +6,13 @@
 - 일반화 하네스 ↔ 외부 스택 프리셋 런타임 분리가 완료되었습니다.
 - 본체에는 특정 스택 템플릿이 없으며 root는 스택-독립적입니다.
 - 결정/이유는 `decision-log.md` 2026-04-27 항목 참고.
-- 세션 종료 시점의 `npm run guard`는 적용/미적용 두 다 통과.
+- 세션 종료 시점의 `npm run harness:check`는 적용/미적용 두 다 통과.
 
 ## 내일 가장 먼저 확인할 것
 1. `npm run stack:status`로 현재 적용 상태 확인
 2. 개발 재개가 필요하면 `npm run stack:apply` + `npm install`
 3. 새 환경이면 `npm run hooks:install`
-4. 작업 전 `npm run guard`
+4. 작업 전 `npm run harness:check`
 
 ## 아직 비어 있는 중요한 것
 - 프로젝트가 해결하려는 핵심 문제

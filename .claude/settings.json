@@ -21,6 +21,8 @@
       "Bash(git branch *)",
       "Bash(git show *)",
       "Bash(git rev-parse *)",
+      "Bash(npm run harness:doctor*)",
+      "Bash(npm run harness:check*)",
       "Bash(npm run guard*)",
       "Bash(npm run policy:impact*)",
       "Bash(npm run docs:check*)",

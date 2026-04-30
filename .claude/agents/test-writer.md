@@ -1,6 +1,6 @@
 ---
 name: test-writer
-description: Add focused tests or guard coverage for harness behavior, stack presets, and project policy checks.
+description: Add focused tests or check coverage for harness behavior, stack presets, and project policy checks.
 tools: Read, Glob, Grep, Bash, Write, Edit
 ---
 
@@ -16,10 +16,10 @@ Read these first:
 4. `.harness/stacks/README.md`
 
 ## Expectations
-- Prefer existing guard scripts and npm scripts before introducing new tooling.
+- Prefer existing harness check scripts and npm scripts before introducing new tooling.
 - Cover policy, docs, and stack behavior at the smallest useful level.
 - Do not edit lockfiles manually.
 - Keep tests deterministic and runnable from the project root.
 
 ## Verification
-Run the targeted check first, then `npm run guard` when practical.
+Run the targeted check first, then `npm run harness:check` when practical.

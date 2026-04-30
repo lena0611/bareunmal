@@ -33,7 +33,10 @@
 - harness 스크립트는 충돌 시 항상 우선 (스택이 덮어쓰지 못함).
 
 ## 핵심 검증 명령
-- `npm run guard`: 통합. policy + docs + (스택 적용 시) lint+test+build
+- `npm run harness:doctor`: 현재 프로젝트 진단 리포트 생성
+- `npm run harness:check`: 통합 검사. policy + docs + (스택 적용 시) lint+test+build
+- `npm run harness:check:strict`: CI/릴리스용 엄격 검사
+- `npm run guard`: `harness:check` 호환 alias
 - `npm run policy:guard` / `policy:guard:strict`
 - `npm run docs:check` / `docs:check:strict`
 - `npm run stack:status` / `stack:apply` / `stack:reset`

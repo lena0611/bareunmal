@@ -11,22 +11,22 @@
 ## 기본 실행 순서
 1. `npm run policy:impact`
 2. `npm run policy:check`
-3. 필요 시 관련 정책 문서와 영향 영역을 함께 수정
+3. 필요 시 관련 기준 문서와 영향 영역을 함께 수정
 4. `npm run docs:check`로 문서 링크와 레지스트리 일관성 확인
-5. 최종 확인은 `npm run guard` (CI에서는 `npm run guard -- --strict`)
+5. 최종 확인은 `npm run harness:check` (CI에서는 `npm run harness:check:strict`)
 
 ## SYNC GAP 처리
 - `policy:impact` 출력에 `SYNC GAP detected` 블록이 보이면 한쪽(문서 또는 소스)만 변경된 상태라는 뜻입니다.
-- 기본 동작: 갭은 경고 수준이며 로컬 `guard`는 실패시키지 않습니다.
+- 기본 동작: 갭은 경고 수준이며 로컬 `harness:check`는 실패시키지 않습니다.
 - CI(`policy-guard.yml`)는 `--strict`를 사용하므로 갭이 남아 있으면 실패합니다.
 - 해결 옵션:
   1. 반대편을 같이 갱신해 갭을 닫는다.
   2. 의도된 단방향 변경이면 `decision-log.md`에 사유를 남기고 필요 시 `waivers.json`에 등록한다.
-  3. 정책 매핑이 잘못된 경우 `policy-registry.json`의 `documents`/`ownedAreas`를 수정한다.
+  3. 기준 매핑이 잘못된 경우 `policy-registry.json`의 `documents`/`ownedAreas`를 수정한다.
 
 ## 세션 트리거
 - 새 세션 시작 시 `session-boot.md`를 읽은 직후 이 프로토콜을 확인합니다.
-- 정책 또는 소스 코드를 손대는 작업을 시작하면 `policy:guard`를 먼저 떠올립니다.
+- 개발 기준 또는 소스 코드를 손대는 작업을 시작하면 `policy:guard`를 먼저 떠올립니다.
 - 작업 완료 전에도 `policy:guard`를 다시 실행해 최종 위반이 없는지 확인합니다.
 
 ## 해석 원칙
@@ -46,6 +46,6 @@
 - 외부 프리셋은 `profile.json`의 `stackManifest` 또는 `stack:apply -- --preset-path <dir>`로 연결하며, manifest 상대 경로는 manifest 위치 기준으로 해석합니다.
 - 원격 템플릿 후보 조회는 `scripts/list-templates.mjs`가 담당하며, 기본 대상은 사내 GitLab의 `ai-standard/template` 그룹입니다.
 - 세미콜론, quote, import 정렬 같은 구체 스타일 값은 공통 하네스가 아니라 로컬 방법론 또는 스택 프리셋 로컬 규칙에서 다룹니다.
-- 설치/업데이트 UX가 바뀌면 README의 init 사용법과 보존 정책 설명도 함께 갱신합니다.
-- `scripts/absorb-project.mjs`는 자동 감지 리포트까지만 생성하고, 프로젝트 정책 문서를 직접 덮어쓰지 않습니다.
+- 설치/업데이트 UX가 바뀌면 README의 init 사용법과 보존 기준 설명도 함께 갱신합니다.
+- `scripts/absorb-project.mjs`는 자동 감지 리포트까지만 생성하고, 프로젝트 기준 문서를 직접 덮어쓰지 않습니다.
 - `.harness/session/absorb-report.md`는 런타임 산출물이므로 레지스트리 필수 문서로 보지 않습니다.

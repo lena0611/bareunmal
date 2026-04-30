@@ -54,10 +54,14 @@ function cleanInstallCreatesExpectedFiles() {
   assert(exists(target, '.harness/policy/profile.json'), 'clean install should copy .harness')
   assert(exists(target, '.claude/settings.json'), 'clean install should copy Claude Code adapter')
   assert(exists(target, 'scripts/absorb-project.mjs'), 'clean install should copy absorb report script')
+  assert(exists(target, 'scripts/list-templates.mjs'), 'clean install should copy template listing script')
   assert(!exists(target, 'scripts/init.mjs'), 'clean install should not copy seed-only init entrypoint')
   assert(exists(target, '.harness/install-manifest.json'), 'clean install should write install manifest')
+  assert(exists(target, '.harness/session/absorb-report.md'), 'clean install should auto-create doctor report')
 
   const pkg = JSON.parse(read(target, 'package.json'))
+  assert(pkg.scripts['harness:doctor'], 'clean install should merge harness doctor script')
+  assert(pkg.scripts['harness:check'], 'clean install should merge harness check script')
   assert(pkg.scripts.guard, 'clean install should merge guard script')
   assert(pkg.scripts['absorb:report'], 'clean install should merge absorb report script')
 
@@ -147,7 +151,7 @@ function absorbReportSuggestsBridgeCandidates() {
 
   fs.writeFileSync(path.join(target, 'CLAUDE.md'), '# Personal Rules\n')
   runInit(target)
-  run('npm', ['run', 'absorb:report'], { cwd: target })
+  run('npm', ['run', 'harness:doctor'], { cwd: target })
 
   const report = read(target, '.harness/session/absorb-report.md')
   assert(report.includes('## Bridge Section Candidates'), 'absorb report should include bridge section candidate section')
@@ -259,7 +263,7 @@ function absorbReportSuggestsStylePresetsWhenStyleSourceMissing() {
   fs.rmSync(path.join(target, '.editorconfig'), { force: true })
   runInit(target)
   fs.rmSync(path.join(target, '.editorconfig'), { force: true })
-  run('npm', ['run', 'absorb:report'], { cwd: target })
+  run('npm', ['run', 'harness:doctor'], { cwd: target })
 
   const report = read(target, '.harness/session/absorb-report.md')
   assert(report.includes('## Style Preset Candidates'), 'absorb report should include style preset candidates')
@@ -287,7 +291,7 @@ insert_final_newline = true
     },
   }, null, 2))
 
-  run('npm', ['run', 'absorb:report'], { cwd: target })
+  run('npm', ['run', 'harness:doctor'], { cwd: target })
 
   const report = read(target, '.harness/session/absorb-report.md')
   assert(report.includes('## Style Rule Draft'), 'absorb report should include style rule draft')

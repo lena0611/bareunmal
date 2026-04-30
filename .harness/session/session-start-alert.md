@@ -12,7 +12,7 @@
 5. 문서를 키워야 한다면 먼저 `.harness/documentation/indexing-rules.md`에 맞게 인덱스/세부 문서 분리를 판단합니다.
 6. 개발 방향을 유지하려면 하네스만 만들지 말고, 필요 시 trigger와 hook까지 함께 설계해야 합니다.
 7. 강제 강도와 예외 허용 범위가 애매하면 `.harness/policy/enforcement-ladder.md`를 보고 사용자에게 묻습니다.
-8. 코드 변경 시 스타일 검증도 구조 검증과 함께 보며, `npm run lint` 또는 `npm run guard`를 기준으로 판단합니다.
+8. 코드 변경 시 스타일 검증도 구조 검증과 함께 보며, `npm run lint` 또는 `npm run harness:check`를 기준으로 판단합니다.
 9. 새 환경을 준비한 뒤에는 `npm run hooks:install`로 로컬 훅과 커밋 템플릿을 연결합니다.
 10. 스타일이 반복 패턴으로 굳어지기 시작하면 `.harness/style/style-evolution.md` 기준으로 규칙 승격 후보를 확인합니다.
 
@@ -46,5 +46,5 @@
 git --no-pager status --short
 npm run hooks:install
 npm run policy:impact
-npm run guard
+npm run harness:check
 ```

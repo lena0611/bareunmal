@@ -468,7 +468,7 @@ function commandApply() {
   }
   console.log('다음 단계:')
   console.log('  1. npm install')
-  console.log('  2. npm run guard')
+  console.log('  2. npm run harness:check')
 }
 
 function removeEmptyParents(absPath) {

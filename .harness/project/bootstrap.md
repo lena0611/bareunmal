@@ -6,7 +6,7 @@
 이 저장소를 새 프로젝트의 시작점으로 사용할 때 따르는 표준 인터뷰입니다.
 
 ## 목적
-- 일반 하네스(세션·정책·문서·스타일 동기화 인프라)는 그대로 두고, 프로젝트마다 달라지는 부분(목적, 사용자, 성공 기준, 기술 스택 선택)을 한 자리에서 입력받습니다.
+- 일반 하네스(세션·기준·문서·스타일 동기화 인프라)는 그대로 두고, 프로젝트마다 달라지는 부분(목적, 사용자, 성공 기준, 기술 스택 선택)을 한 자리에서 입력받습니다.
 - 입력 결과는 `project-charter.md`, `scope-contract.md`, `.harness/policy/profile.json`에 분산 저장됩니다.
 
 ## 인터뷰 순서
@@ -42,10 +42,10 @@
 npm run stack:status            # 현재 적용 상태 확인
 npm run stack:apply             # scaffold 복사 + package.json 머지 + .stack-applied.json 기록
 npm install
-npm run guard
+npm run harness:check
 ```
 
-- 스택 미적용 상태에서도 `npm run guard`는 일반 인프라 검사(policy + docs)만 실행하고 lint/test/build는 건너뜁니다.
+- 스택 미적용 상태에서도 `npm run harness:check`는 일반 인프라 검사(기준 동기화 + 문서)만 실행하고 lint/test/build는 건너뜁니다.
 - 스택을 바꾸고 싶으면 `npm run stack:reset` 으로 먼저 적용을 되돌린 뒤 `activeStack`을 바꾸고 다시 `stack:apply`를 실행합니다.
 - 원격 프리셋을 적용하려면 `npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>`를 사용합니다.
 - 외부 프리셋을 일회성으로 적용하려면 `npm run stack:apply -- --preset-path <preset-dir>`를 사용합니다.
@@ -62,7 +62,7 @@ npm run guard
 이 답들은 `project-charter.md`의 "첫 도메인 정의가 들어오면 바로 채워야 할 항목" 섹션에 들어갑니다.
 
 ## 인터뷰가 끝난 뒤
-1. `npm run guard` 1회 실행해 일반 인프라 + 스택 정책이 모두 통과하는지 확인합니다.
+1. `npm run harness:check` 1회 실행해 일반 인프라 + 스택 기준이 모두 통과하는지 확인합니다.
 2. `active-context.md`에 "프로젝트 개요 입력 완료, 스택=`<id>`" 한 줄을 남깁니다.
 3. 작업 시작 시 `session-boot.md` 순서로 복귀합니다.
 

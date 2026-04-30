@@ -1,6 +1,6 @@
 ---
 name: debug-detective
-description: Investigate failing tests, guard failures, and unexpected behavior without making broad changes.
+description: Investigate failing tests, harness check failures, and unexpected behavior without making broad changes.
 tools: Read, Glob, Grep, Bash
 ---
 
@@ -27,7 +27,7 @@ Read these first:
 git status --short
 git diff --stat
 npm run policy:impact
-npm run guard
+npm run harness:check
 ```
 
 Return the failing command, observed symptom, likely cause, and the smallest fix path.

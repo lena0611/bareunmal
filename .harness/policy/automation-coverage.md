@@ -1,6 +1,6 @@
 # Automation Coverage
 
-정책 중 무엇이 자동 검증 가능하고, 무엇이 아직 수동 검토 대상인지 기록합니다.
+개발 기준 중 무엇이 자동 검증 가능하고, 무엇이 아직 수동 검토 대상인지 기록합니다.
 
 ## 일반 하네스 자동 검증 (스택 무관)
 | Rule | 설명 | 현재 상태 |
@@ -8,7 +8,7 @@
 | `doc-registry-consistency` | `document-registry.json`과 실제 .md 파일 집합 일치 | 자동 검사 (`docs:check`) |
 | `doc-link-integrity` | `.harness/**/*.md`와 에이전트 진입점 문서의 상대 링크 유효성 | 자동 검사 (`docs:check`) |
 | `doc-code-path-integrity` | 문서가 인용한 `src/...`, `scripts/...`, `.github/...`, `.harness/...` 경로 존재 (활성 스택의 scaffold 내부도 관대 검사) | 자동 검사 (`docs:check`) |
-| `policy-source-sync-gap` | 정책 매핑의 한쪽만 변경되어 동기화 갭 발생 | 자동 검사 (`policy:impact`, CI에서 `--strict`로 차단) |
+| `policy-source-sync-gap` | 기준 매핑의 한쪽만 변경되어 동기화 갭 발생 | 자동 검사 (`policy:impact`, CI에서 `--strict`로 차단) |
 | `stack-isolation` | 한 스택 폴더가 다른 스택 폴더를 참조하지 않음 | 자동 검사 (`docs:check`) |
 
 ## 활성 스택 자동 검증 (`activeStack`에 따라 ON/OFF)
@@ -30,7 +30,7 @@
 | --- | --- |
 | store/composable 내부의 "비즈니스 로직인지 아닌지" 판단 | 의미적 해석이 필요 |
 | feature 경계를 섞는지에 대한 고수준 설계 판단 | 구조적 맥락이 필요 |
-| 정책 변경이 기존 코드의 설계 의도를 바꾸는지 여부 | 문맥 기반 검토가 필요 |
+| 기준 변경이 기존 코드의 설계 의도를 바꾸는지 여부 | 문맥 기반 검토가 필요 |
 | 프로젝트 목적/범위와 구현이 어긋나는지 여부 | 프로젝트 헌장 입력이 필요 |
 
 ## 확장 규칙

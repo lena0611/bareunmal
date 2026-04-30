@@ -9,7 +9,7 @@
 
 ## 현재 검증 진입점
 - 로컬: `npm run lint`
-- 통합 가드: `npm run guard`
+- 통합 검사: `npm run harness:check`
 - 원격: `.github/workflows/policy-guard.yml`
 
 ## 확장 원칙

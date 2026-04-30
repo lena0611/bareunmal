@@ -124,6 +124,8 @@ Options:
   --dry-run              변경 없이 설치 계획만 출력합니다.
   --force                프로젝트 소유 파일까지 덮어씁니다.
   --no-backup            백업을 만들지 않습니다. 기존 항목이 있으면 --force가 필요합니다.
+  --no-doctor            설치 후 프로젝트 진단 리포트를 자동 생성하지 않습니다.
+  --no-check             설치 후 하네스 기본 검사를 자동 실행하지 않습니다.
   --from-git <repo-url>  동봉본 대신 git 저장소에서 소스를 가져옵니다.
   --ref <ref>            --from-git과 함께 사용할 branch/tag/sha입니다. 기본값: main
   -h, --help             도움말을 출력합니다.
@@ -139,6 +141,8 @@ function parseArgs(argv) {
     dryRun: false,
     force: false,
     noBackup: false,
+    noDoctor: false,
+    noCheck: false,
     fromGit: null,
     ref: 'main',
   };
@@ -159,6 +163,12 @@ function parseArgs(argv) {
         break;
       case '--no-backup':
         opts.noBackup = true;
+        break;
+      case '--no-doctor':
+        opts.noDoctor = true;
+        break;
+      case '--no-check':
+        opts.noCheck = true;
         break;
       case '--from-git': {
         const repo = args[++i];
@@ -483,6 +493,45 @@ function ensureExecutable(target, opts) {
   }
 }
 
+function runPostInstallStep(target, title, commandArgs) {
+  console.log('');
+  console.log(title);
+  console.log(`$ ${commandArgs.join(' ')}`);
+
+  const result = spawnSync(commandArgs[0], commandArgs.slice(1), {
+    cwd: target,
+    stdio: 'inherit',
+  });
+
+  return result.status === 0;
+}
+
+function runPostInstallDiagnostics(target, opts) {
+  if (opts.dryRun) {
+    return { doctor: 'skipped', check: 'skipped' };
+  }
+
+  const result = { doctor: 'skipped', check: 'skipped' };
+
+  if (!opts.noDoctor) {
+    result.doctor = runPostInstallStep(
+      target,
+      '자동 진단: 현재 프로젝트 분석 리포트 생성',
+      [process.execPath, 'scripts/absorb-project.mjs', '--write'],
+    ) ? 'ok' : 'failed';
+  }
+
+  if (!opts.noCheck) {
+    result.check = runPostInstallStep(
+      target,
+      '자동 검사: 하네스 설치 상태 확인',
+      [process.execPath, 'scripts/guard.mjs'],
+    ) ? 'ok' : 'failed';
+  }
+
+  return result;
+}
+
 function fetchFromGit(repoUrl, ref) {
   const tmpRoot = mkdtempSync(join(tmpdir(), 'harness-seed-init-'));
   const args = ['clone', '--depth=1', '--branch', ref, repoUrl, tmpRoot];
@@ -555,6 +604,7 @@ function main() {
     const gitignoreAdded = mergeGitignore(TARGET, opts);
     ensureExecutable(TARGET, opts);
     const writtenManifest = writeInstallManifest(sourceRoot, TARGET, files, installed.copiedFiles, opts);
+    const diagnostics = runPostInstallDiagnostics(TARGET, opts);
 
     console.log('');
     console.log(`files: ${installed.added}개 추가, ${installed.updated}개 갱신, ${installed.skipped}개 보존`);
@@ -564,6 +614,8 @@ function main() {
     );
     console.log(`.gitignore: harness entry ${gitignoreAdded}개 추가`);
     console.log(`install manifest: ${opts.dryRun ? 'dry-run' : `${Object.keys(writtenManifest.managedFiles).length}개 managed file 기록`}`);
+    console.log(`doctor: ${diagnostics.doctor}`);
+    console.log(`check: ${diagnostics.check}`);
 
     if (installed.skippedFiles.length > 0) {
       console.log('');
@@ -585,21 +637,23 @@ function main() {
         console.log(`  - ${rel}`);
       }
       console.log('기존 개인/전용 룰을 보존했기 때문에, 위 파일에 .harness 읽기 순서를 연결할지 검토하세요.');
-      console.log('자세한 후보 템플릿은 npm run absorb:report 결과를 확인하세요.');
+      console.log('자세한 후보 템플릿은 npm run harness:doctor 결과를 확인하세요.');
     }
 
     console.log(`
 하네스 설치 완료
 
 다음 단계:
-  1) git hook 활성화
+  1) 자동 생성된 프로젝트 진단 리포트 확인
+       .harness/session/absorb-report.md
+  2) git hook 활성화
        npm run hooks:install
-  2) 선택: 템플릿이 필요하면 후보 조회 후 외부 프리셋 적용
+  3) 선택: 템플릿이 필요하면 후보 조회 후 외부 프리셋 적용
        npm run stack:status
        npm run templates:list
        npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>
-  3) 정책/코드/문서 동기화 검증
-       npm run guard
+  4) 작업 중간에 다시 검사
+       npm run harness:check
 
 문서:
   - CLAUDE.md

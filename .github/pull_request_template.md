@@ -12,7 +12,7 @@
 ## Checks
 - [ ] `npm run lint`
 - [ ] `npm run test`
-- [ ] `npm run guard`
+- [ ] `npm run harness:check`
 
 ## Policy / style impact
 - [ ] No policy changes
@@ -21,4 +21,3 @@
 - [ ] Developer input queue updated if needed
 
 ## Notes
-

@@ -18,5 +18,5 @@
 - `TBD`
 
 ## 변경 규칙
-- 작업 흐름이 바뀌면 README, CI, hook, guard 명령과 함께 검토합니다.
+- 작업 흐름이 바뀌면 README, CI, hook, `harness:check` 명령과 함께 검토합니다.
 - 임시 예외는 `waivers.json` 또는 `decision-log.md`에 범위와 만료 조건을 남깁니다.
