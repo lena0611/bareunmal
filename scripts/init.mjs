@@ -68,6 +68,7 @@ const PROJECT_OWNED_PATHS = new Set([
   '.harness/project/scope-contract.md',
   '.harness/project/config-contract.md',
   '.harness/project/local-methodology.md',
+  '.harness/project/personal-methodology.local.md',
   '.harness/project/stack-preset-rules.md',
   '.harness/project/domain-rules.md',
   '.harness/project/architecture-rules.md',
@@ -457,6 +458,7 @@ function mergeGitignore(target, opts) {
     '.harness/session/absorb-report.md',
     '.harness-backup/',
     'CLAUDE.local.md',
+    '.harness/project/personal-methodology.local.md',
     '.claude/settings.local.json',
   ];
 
@@ -637,7 +639,7 @@ function main() {
         console.log(`  - ${rel}`);
       }
       console.log('기존 개인/전용 룰을 보존했기 때문에, 위 파일에 .harness 읽기 순서를 연결할지 검토하세요.');
-      console.log('자세한 후보 템플릿은 npm run harness:doctor 결과를 확인하세요.');
+      console.log('기준 계층과 충돌 후보는 npm run harness:doctor 결과를 확인하세요.');
     }
 
     console.log(`
@@ -648,7 +650,7 @@ function main() {
        .harness/session/absorb-report.md
   2) git hook 활성화
        npm run hooks:install
-  3) 선택: 템플릿이 필요하면 후보 조회 후 외부 프리셋 적용
+  3) 스택 기준 선택 및 선택: scaffold가 필요하면 템플릿 후보 조회 후 적용
        npm run stack:status
        npm run templates:list
        npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>

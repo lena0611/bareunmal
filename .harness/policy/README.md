@@ -11,13 +11,14 @@
 - 새 세션에서도 이 트리거를 놓치지 않도록 세션 하네스와 연결합니다.
 
 ## 읽기 순서
-1. [기준 담당 가이드](./policy-steward.md)
-2. [동기화 프로토콜](./sync-protocol.md)
-3. [강제 강도 기준](./enforcement-ladder.md)
-4. [자동화 커버리지](./automation-coverage.md)
-5. [Waiver 가이드](./waiver-guidelines.md)
-6. `policy-registry.json`
-7. `waivers.json`
+1. [AI Standard Guiding Policy](./ai-standard-guiding-policy.md)
+2. [기준 담당 가이드](./policy-steward.md)
+3. [동기화 프로토콜](./sync-protocol.md)
+4. [강제 강도 기준](./enforcement-ladder.md)
+5. [자동화 커버리지](./automation-coverage.md)
+6. [Waiver 가이드](./waiver-guidelines.md)
+7. `policy-registry.json`
+8. `waivers.json`
 
 ## 실행 명령
 ```bash
@@ -30,6 +31,7 @@ npm run docs:check
 
 ## 구성 요소
 - `policy-registry.json`: 개발 기준 문서와 코드 영역의 연결 정보
+- `ai-standard-guiding-policy.md`: `ai-standard` 그룹 전체 작업의 최상위 판단 기준
 - `profile.json`: 활성 프리셋 프로파일 (`none` 또는 외부 프리셋 manifest)
 - `enforcement-ladder.md`: 강제 강도와 예외 허용 범위 기준
 - `automation-coverage.md`: 자동 검증/수동 검토 범위

@@ -50,6 +50,8 @@
         ".harness/project/project-charter.md",
         ".harness/project/scope-contract.md",
         ".harness/project/local-methodology.md",
+        ".harness/project/standards-layers.md",
+        ".harness/project/personal-methodology.example.md",
         ".harness/project/stack-preset-rules.md",
         ".harness/project/domain-rules.md",
         ".harness/project/architecture-rules.md",
@@ -62,6 +64,7 @@
       "id": "policy-harness",
       "index": ".harness/policy/README.md",
       "children": [
+        ".harness/policy/ai-standard-guiding-policy.md",
         ".harness/policy/enforcement-ladder.md",
         ".harness/policy/policy-steward.md",
         ".harness/policy/sync-protocol.md",

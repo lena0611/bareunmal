@@ -58,6 +58,7 @@ function cleanInstallCreatesExpectedFiles() {
   assert(!exists(target, 'scripts/init.mjs'), 'clean install should not copy seed-only init entrypoint')
   assert(exists(target, '.harness/install-manifest.json'), 'clean install should write install manifest')
   assert(exists(target, '.harness/session/absorb-report.md'), 'clean install should auto-create doctor report')
+  assert(exists(target, '.claude/hooks/enforce-check.sh'), 'clean install should copy agent completion check hook')
 
   const pkg = JSON.parse(read(target, 'package.json'))
   assert(pkg.scripts['harness:doctor'], 'clean install should merge harness doctor script')
@@ -74,6 +75,12 @@ function cleanInstallCreatesExpectedFiles() {
 
   const status = fs.statSync(path.join(target, '.claude/hooks/statusline.sh'))
   assert((status.mode & 0o111) !== 0, 'Claude hook should be executable')
+  const agentCheckStatus = fs.statSync(path.join(target, '.claude/hooks/enforce-check.sh'))
+  assert((agentCheckStatus.mode & 0o111) !== 0, 'Claude agent completion check hook should be executable')
+
+  const report = read(target, '.harness/session/absorb-report.md')
+  assert(report.includes('## Standards Layers'), 'doctor report should include standards layers')
+  assert(report.includes('## Conflict Candidates'), 'doctor report should include conflict candidates')
 }
 
 function reinstallPreservesProjectOwnedFiles() {

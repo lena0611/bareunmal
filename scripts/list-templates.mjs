@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const gitlabUrl = process.env.HARNESS_GITLAB_URL ?? 'https://git.smartscore.kr'
-const groupPath = process.env.HARNESS_TEMPLATE_GROUP ?? 'ai-standard/template'
+const groupPath = process.env.HARNESS_TEMPLATE_GROUP ?? 'ai-standard/stacks'
 const token = process.env.GITLAB_TOKEN ?? process.env.HARNESS_GITLAB_TOKEN
 
 function encodeGroupPath(value) {
@@ -11,12 +11,15 @@ function encodeGroupPath(value) {
 function printManualFallback() {
   console.log('템플릿 목록을 자동 조회하지 못했습니다.')
   console.log('')
-  console.log('사내 GitLab 템플릿 그룹을 만들면 아래 환경값으로 조회할 수 있습니다.')
+  console.log('사내 GitLab 스택 템플릿 조회 설정을 확인하세요.')
   console.log('  HARNESS_GITLAB_URL=https://git.smartscore.kr')
-  console.log('  HARNESS_TEMPLATE_GROUP=ai-standard/template')
-  console.log('  GITLAB_TOKEN=<private-token>   # 비공개 그룹이면 필요')
+  console.log('  HARNESS_TEMPLATE_GROUP=ai-standard/stacks')
+  console.log('  GITLAB_TOKEN=<private-token>   # 비공개 그룹이거나 API 권한이 필요하면 설정')
   console.log('')
-  console.log('템플릿을 알고 있다면 바로 적용할 수 있습니다.')
+  console.log('현재 등록된 템플릿 후보 예시는 바로 적용할 수 있습니다.')
+  console.log('  npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/stacks/cloud-front-admin-template.git --ref main')
+  console.log('')
+  console.log('다른 템플릿을 알고 있다면 직접 지정할 수 있습니다.')
   console.log('  npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>')
   console.log('  npm run stack:apply -- --preset-path <local-preset-dir>')
 }
@@ -48,7 +51,7 @@ async function main() {
     return
   }
 
-  console.log(`Template presets from ${groupPath}`)
+  console.log(`Scaffold templates from ${groupPath}`)
   console.log('')
 
   for (const project of projects) {

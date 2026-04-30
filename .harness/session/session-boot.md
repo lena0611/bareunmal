@@ -7,24 +7,29 @@
 - 코드 생성 규칙과 아키텍처 규칙은 `CLAUDE.md`와 활성 스택 instructions에서 확인합니다. `AGENTS.md`와 `.github/copilot-instructions.md`는 같은 기준을 가리키는 shim입니다.
 
 ## 2. 하네스 읽기
-1. `session-start-alert.md`
-2. `project-memory.md`
-3. `active-context.md`
-4. `decision-log.md`
-5. `developer-input-queue.md`
-6. `../project/README.md`
-7. `../project/project-charter.md`
-8. `../project/bootstrap.md`
-9. `../policy/README.md`
-10. `../policy/sync-protocol.md`
-11. `../policy/enforcement-ladder.md`
-12. `../policy/automation-coverage.md`
-13. `../documentation/README.md`
-14. `../documentation/indexing-rules.md`
-15. `../style/style-evolution.md`
-16. `../stacks/README.md` (활성 스택 메타 확인용)
+1. `../policy/ai-standard-guiding-policy.md`
+2. `session-start-alert.md`
+3. `project-memory.md`
+4. `active-context.md`
+5. `decision-log.md`
+6. `developer-input-queue.md`
+7. `../project/README.md`
+8. `../project/project-charter.md`
+9. `../project/local-methodology.md`
+10. `../project/standards-layers.md`
+11. `../project/stack-preset-rules.md`
+12. `../project/bootstrap.md`
+13. `../policy/README.md`
+14. `../policy/sync-protocol.md`
+15. `../policy/enforcement-ladder.md`
+16. `../policy/automation-coverage.md`
+17. `../documentation/README.md`
+18. `../documentation/indexing-rules.md`
+19. `../style/style-evolution.md`
+20. `../stacks/README.md` (활성 스택 메타 확인용)
 
 ## 3. 작업 시작 전 체크
+- `ai-standard-guiding-policy.md`의 위배 여부를 먼저 확인합니다.
 - 현재 기본 구조가 여전히 `core -> adapters -> UI` 흐름을 따르는지 확인합니다.
 - 새 작업이 `core`에 비즈니스 로직을 두는지 먼저 판단합니다.
 - feature-specific 코드인지, `shared`에 둘 순수 유틸인지 경계를 먼저 정합니다.
@@ -45,7 +50,8 @@ npm run harness:check
 - 현재 진행 상태는 `active-context.md`를 우선 신뢰합니다.
 - 장기 규칙은 `project-memory.md`와 `CLAUDE.md`를 우선 신뢰합니다.
 - 둘이 충돌하면 `active-context.md`에 충돌 사실을 기록하고 최신 코드 기준으로 다시 정리합니다.
-- 정책 문서나 `src/`를 건드리는 작업이면 `policy:guard`를 시작 전과 종료 전 모두 실행 대상으로 취급합니다.
+- 기준 문서나 `src/`를 건드리는 작업이면 `policy:guard`를 시작 전과 종료 전 모두 실행 대상으로 취급합니다.
+- 에이전트 작업에서는 로컬 git hook 설치 여부와 무관하게 기준 계층을 읽고 완료 전 `npm run harness:check`를 실행 대상으로 취급합니다.
 - 프로젝트 목적이 `TBD`인 상태라면 새 기능 설계 전에 `project-charter.md` 재계획 여부를 먼저 판단합니다.
 - 사용자가 "새 프로젝트 시작" 의사를 보이면 `../project/bootstrap.md`의 인터뷰 절차(프로젝트 개요 + 스택 선택)를 먼저 수행합니다.
 - 개발자 입력이 필요한 항목은 묻지 않고 넘기지 말고, 최소한 `지금 답변 / 이번 세션 유보 / 나중에 다시 묻기` 중 하나로 상태를 남깁니다.

@@ -371,12 +371,44 @@ function renderStylePresetCandidates(styleGuideFiles) {
 
 function detectLocalMethodologyFiles() {
   return listExisting([
+    '.harness/project/standards-layers.md',
     '.harness/project/local-methodology.md',
     '.harness/project/stack-preset-rules.md',
     '.harness/project/domain-rules.md',
     '.harness/project/architecture-rules.md',
     '.harness/project/workflow-rules.md',
   ])
+}
+
+function detectPersonalStandardFiles() {
+  return listExisting([
+    'CLAUDE.local.md',
+    '.claude/settings.local.json',
+    '.harness/project/personal-methodology.local.md',
+  ])
+}
+
+function detectCompanyStandardFiles() {
+  return listExisting([
+    '.harness/policy/ai-standard-guiding-policy.md',
+    'CLAUDE.md',
+    'AGENTS.md',
+    '.harness/session/README.md',
+    '.harness/policy/README.md',
+  ])
+}
+
+function detectStackStandardFiles(profile) {
+  const files = listExisting([
+    '.harness/project/stack-preset-rules.md',
+    '.harness/policy/profile.json',
+  ])
+
+  if (profile.stackManifest) {
+    files.push(`stackManifest: ${profile.stackManifest}`)
+  }
+
+  return files
 }
 
 function detectBridgeCandidates() {
@@ -405,6 +437,92 @@ function formatList(values, fallback = '- 없음') {
   return values.map((value) => `- ${value}`).join('\n')
 }
 
+function normalizeRuleValue(value) {
+  const normalized = String(value).trim().toLowerCase()
+  if (['true', 'yes', 'always'].includes(normalized)) return 'yes'
+  if (['false', 'no', 'never'].includes(normalized)) return 'no'
+  if (['single', 'double'].includes(normalized)) return normalized
+  return normalized
+}
+
+function detectStyleConflicts(styleRuleDraft) {
+  const valuesByRule = new Map()
+
+  for (const item of styleRuleDraft) {
+    const match = item.match(/(?:^|: )([^:=]+?)\s*=\s*(.+)$/)
+    if (!match) continue
+
+    const label = match[1].trim().toLowerCase()
+    const value = normalizeRuleValue(match[2])
+    if (!['semicolon', 'quote', 'indent style', 'tab width', 'trailing comma'].includes(label)) {
+      continue
+    }
+
+    if (!valuesByRule.has(label)) valuesByRule.set(label, new Set())
+    valuesByRule.get(label).add(value)
+  }
+
+  const conflicts = []
+  for (const [label, values] of valuesByRule.entries()) {
+    if (values.size > 1) {
+      conflicts.push(`style:${label} 값이 여러 출처에서 다릅니다 (${[...values].join(', ')}). 프로젝트 기준으로 하나를 선택하세요.`)
+    }
+  }
+
+  return conflicts
+}
+
+function buildStandardsLayerSummary(profile, companyFiles, stackFiles, projectFiles, personalFiles) {
+  const activeStack = profile.activeStack || 'none'
+  const stackSummary = activeStack === 'none'
+    ? '스택 기준 미선택 (`none`). 예외적으로 공통 기준만 운영하는 상태입니다.'
+    : `활성 스택 기준: ${activeStack}`
+
+  return [
+    `회사 공통 기준: ${companyFiles.length ? companyFiles.join(', ') : '감지 없음'}`,
+    `스택 기준: ${stackSummary}${stackFiles.length ? ` / ${stackFiles.join(', ')}` : ''}`,
+    `프로젝트 기준: ${projectFiles.length ? projectFiles.join(', ') : '감지 없음'}`,
+    `개인 기준: ${personalFiles.length ? personalFiles.join(', ') : '감지 없음'}`,
+  ]
+}
+
+function buildConflictCandidates({ profile, pkg, testRoots, styleGuideFiles, styleRuleDraft, bridgeCandidates, personalFiles, projectFiles }) {
+  const conflicts = []
+  const activeStack = profile.activeStack || 'none'
+
+  if (activeStack === 'none') {
+    conflicts.push('스택 기준 미선택: 적용 프로젝트 경험이 공통 기준 직접 사용으로 보일 수 있습니다. 스택 기준을 선택하거나 `none` 유지 사유를 기록하세요.')
+  }
+
+  if (profile.stackManifest && !path.isAbsolute(profile.stackManifest) && !exists(profile.stackManifest)) {
+    conflicts.push(`stackManifest 경로를 현재 프로젝트에서 찾지 못했습니다: ${profile.stackManifest}`)
+  }
+
+  if (personalFiles.length > 0) {
+    conflicts.push('개인 기준 파일이 감지되었습니다. 팀 공유가 필요한 내용은 프로젝트 기준으로 승격하고, 개인 선호는 로컬 파일에만 유지하세요.')
+  }
+
+  if (projectFiles.length === 0) {
+    conflicts.push('프로젝트 기준 문서가 감지되지 않았습니다. 회사/스택 기준이 프로젝트 맥락 없이 적용될 수 있습니다.')
+  }
+
+  if (styleGuideFiles.length === 0) {
+    conflicts.push('스타일 출처가 없습니다. 스택 기준, 프로젝트 기준, 개인 기준이 서로 다른 스타일을 암묵적으로 적용할 수 있습니다.')
+  }
+
+  conflicts.push(...detectStyleConflicts(styleRuleDraft))
+
+  if (testRoots.length === 0 && (!pkg || !pkg.scripts.some((name) => name.includes('test')))) {
+    conflicts.push('회사 공통 기준은 검증 흐름을 요구하지만 테스트 루트나 test script가 없습니다. 검증 전략을 선택하세요.')
+  }
+
+  if (bridgeCandidates.length > 0) {
+    conflicts.push('기존 에이전트 진입점이 하네스 기준 계층을 읽지 않습니다. Bridge Section Candidates를 적용할지 선택하세요.')
+  }
+
+  return conflicts
+}
+
 function buildReport() {
   const profile = readJson('.harness/policy/profile.json', { activeStack: 'none' })
   const pkg = readPackageSummary()
@@ -422,7 +540,27 @@ function buildReport() {
   const stylePresetCandidates = renderStylePresetCandidates(styleGuideFiles)
   const docs = detectDocs()
   const localMethodologyFiles = detectLocalMethodologyFiles()
+  const personalStandardFiles = detectPersonalStandardFiles()
+  const companyStandardFiles = detectCompanyStandardFiles()
+  const stackStandardFiles = detectStackStandardFiles(profile)
   const bridgeCandidates = detectBridgeCandidates()
+  const standardsLayerSummary = buildStandardsLayerSummary(
+    profile,
+    companyStandardFiles,
+    stackStandardFiles,
+    localMethodologyFiles,
+    personalStandardFiles,
+  )
+  const conflictCandidates = buildConflictCandidates({
+    profile,
+    pkg,
+    testRoots,
+    styleGuideFiles,
+    styleRuleDraft,
+    bridgeCandidates,
+    personalFiles: personalStandardFiles,
+    projectFiles: localMethodologyFiles,
+  })
 
   const suggestedCommands = pkg
     ? pkg.scripts.filter((name) => /^(dev|build|test|lint|typecheck|format|guard|docs:check|policy:guard|stack:status)$/.test(name))
@@ -488,11 +626,20 @@ ${formatList(docs)}
 ### Local Methodology Files
 ${formatList(localMethodologyFiles)}
 
+### Personal Standard Files
+${formatList(personalStandardFiles)}
+
 ### Source Roots
 ${formatList(sourceRoots)}
 
 ### Test Roots
 ${formatList(testRoots)}
+
+## Standards Layers
+${formatList(standardsLayerSummary)}
+
+## Conflict Candidates
+${formatList(conflictCandidates, '- 자동 감지 기준의 충돌 후보 없음')}
 
 ## Style Rule Draft
 ${formatList(styleRuleDraft)}
@@ -513,17 +660,21 @@ ${formatList(bridgeCandidates)}
 이 프로젝트에서는 기존 개인/전용 룰과 함께 하네스시드 기준을 읽습니다.
 
 1. \`.harness/project/local-methodology.md\`
-2. \`.harness/project/domain-rules.md\`
-3. \`.harness/project/architecture-rules.md\`
-4. \`.harness/project/workflow-rules.md\`
-5. \`.harness/policy/README.md\`
-6. \`.harness/session/active-context.md\`
+2. \`.harness/project/standards-layers.md\`
+3. \`.harness/project/stack-preset-rules.md\`
+4. \`.harness/project/domain-rules.md\`
+5. \`.harness/project/architecture-rules.md\`
+6. \`.harness/project/workflow-rules.md\`
+7. \`.harness/policy/ai-standard-guiding-policy.md\`
+8. \`.harness/policy/README.md\`
+9. \`.harness/session/active-context.md\`
 \`\`\`
 
 ## Harness Update Targets
 - .harness/project/project-charter.md
 - .harness/project/scope-contract.md
 - .harness/project/local-methodology.md
+- .harness/project/standards-layers.md
 - .harness/project/stack-preset-rules.md
 - .harness/project/domain-rules.md
 - .harness/project/architecture-rules.md

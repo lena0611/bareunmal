@@ -14,6 +14,9 @@ dist/
 .harness/.stack-applied.json
 .harness/session/absorb-report.md
 .harness-backup/
+CLAUDE.local.md
+.harness/project/personal-methodology.local.md
+.claude/settings.local.json
 
 # 시드 모드 안전장치
 # .harness-seed-mode 파일이 있으면 pre-commit hook이 stack-applied 산출물(src/, index.html, vite.config.* 등)의
