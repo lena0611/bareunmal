@@ -16,8 +16,8 @@ function printManualFallback() {
   console.log('  HARNESS_TEMPLATE_GROUP=ai-standard/stacks')
   console.log('  GITLAB_TOKEN=<private-token>   # 비공개 그룹이거나 API 권한이 필요하면 설정')
   console.log('')
-  console.log('현재 등록된 템플릿 후보 예시는 바로 적용할 수 있습니다.')
-  console.log('  npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/stacks/cloud-front-admin-template.git --ref main')
+  console.log('현재 등록된 템플릿 후보 예시입니다. 적용 전 템플릿 저장소 README와 manifest 계약을 확인하세요.')
+  console.log('  https://git.smartscore.kr/ai-standard/stacks/cloud-front-admin-template')
   console.log('')
   console.log('다른 템플릿을 알고 있다면 직접 지정할 수 있습니다.')
   console.log('  npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>')
@@ -57,9 +57,10 @@ async function main() {
   for (const project of projects) {
     const name = project.path_with_namespace ?? project.name
     const repo = project.http_url_to_repo ?? project.web_url
+    const ref = project.tag_list?.[0] ?? project.default_branch ?? '<tag-or-branch>'
     console.log(`- ${name}`)
     console.log(`  repo: ${repo}`)
-    console.log(`  apply: npm run stack:apply -- --preset-git ${repo} --ref main`)
+    console.log(`  apply: npm run stack:apply -- --preset-git ${repo} --ref ${ref}`)
   }
 }
 

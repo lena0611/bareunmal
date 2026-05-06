@@ -23,7 +23,7 @@ function printManualFallback() {
   console.log('  GITLAB_TOKEN=<private-token>   # 비공개 그룹이거나 API 권한이 필요하면 설정')
   console.log('')
   console.log('현재 예정된 스택 기준 후보 예시:')
-  console.log('  npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/harnesses/vue3-vite-pinia-router.git --ref master')
+  console.log('  npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/harnesses/vue3-vite-pinia-router.git --ref v0.1.2')
   console.log('')
   console.log('다른 스택 기준을 알고 있다면 직접 지정할 수 있습니다.')
   console.log('  npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>')
@@ -67,7 +67,7 @@ async function main() {
   for (const project of stackStandards) {
     const name = project.path_with_namespace ?? project.name
     const repo = project.http_url_to_repo ?? project.web_url
-    const ref = project.default_branch ?? 'main'
+    const ref = project.tag_list?.[0] ?? project.default_branch ?? 'main'
     console.log(`- ${name}`)
     console.log(`  repo: ${repo}`)
     console.log(`  apply: npm run stack:apply -- --preset-git ${repo} --ref ${ref}`)

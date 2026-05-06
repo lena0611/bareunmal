@@ -57,7 +57,7 @@ AI 에이전트는 코드만 보고도 작업할 수 있지만, 프로젝트의 
 | --- | --- | --- |
 | 안내 | 사람이 읽고 판단해야 하는 기준 | 프로젝트 목적, 도메인 설명, 작업 원칙 |
 | 초안 | 기존 설정이나 문서를 분석해 제안한 기준 | `.editorconfig`, `.eslintrc`에서 추출한 스타일 초안 |
-| 로컬룰 | 프로젝트가 선택한 기준 | 프로젝트 고유 방법론, 적용한 스택 프리셋 |
+| 로컬룰 | 프로젝트가 선택한 기준 | 프로젝트 고유 방법론, 적용한 스택 기준 |
 | 검증 | 명령으로 확인 가능한 기준 | 문서 링크, 기준-코드 동기화, lint/test/build |
 | 차단 | 통과하지 못하면 커밋이나 CI를 막는 기준 | git hook, CI check |
 
@@ -97,11 +97,11 @@ AI 에이전트는 코드만 보고도 작업할 수 있지만, 프로젝트의 
 
 ## 가장 흔한 사용법
 
-기존 프로젝트 폴더에서 실행합니다.
+기존 프로젝트 폴더에서 실행합니다. 사내 GitLab 기준으로는 아래 명령이 기본입니다.
 
 ```bash
 cd my-existing-project
-npx -y git+<seed-repo-url>#vX.Y.Z init
+npx -y git+https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git#v0.2.10 init
 ```
 
 `init`은 설치 직후 자동으로 `harness:doctor`와 `harness:check`를 실행합니다. 사용자는 먼저 생성된 `.harness/session/absorb-report.md`를 보고, 스택 기준 선택 여부와 충돌 후보를 확인한 뒤 필요한 경우 git hook, 스택 기준, scaffold 템플릿을 선택합니다.
@@ -109,16 +109,16 @@ npx -y git+<seed-repo-url>#vX.Y.Z init
 ```bash
 npm run hooks:install
 npm run standards:list
+npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/harnesses/vue3-vite-pinia-router.git --ref v0.1.2
+
+# scaffold 템플릿이 필요한 경우에만 조회
 npm run templates:list
 ```
 
-예시:
+다른 저장소 위치를 쓰는 경우:
 
 ```bash
-# 사내 GitLab 예시
 npx -y git+https://git.example.com/group/harness-seed.git#vX.Y.Z init
-
-# GitHub 예시
 npx -y github:<owner>/<repo>#vX.Y.Z init
 ```
 
@@ -186,26 +186,26 @@ GITLAB_TOKEN=<private-token> npm run standards:list
 현재 예정된 스택 기준 후보 예시는 다음 저장소입니다.
 
 ```bash
-npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/harnesses/vue3-vite-pinia-router.git --ref master
+npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/harnesses/vue3-vite-pinia-router.git --ref v0.1.2
 ```
 
 `stack:apply`는 선택한 스택의 instruction을 `.harness/project/stack-preset-rules.md`에 로컬룰로 기록합니다. 스택 기준 패키지가 `source.type=none`이면 파일 복사 없이 기준 문서만 정착합니다.
 
-즉, 스택 프리셋은 공통 하네스가 모든 프로젝트에 강제하는 규칙이 아니라, 이 프로젝트가 선택한 기준으로 정착됩니다.
+즉, 스택 기준은 공통 하네스가 모든 프로젝트에 강제하는 규칙이 아니라, 이 프로젝트가 선택한 기준으로 정착됩니다.
 
 외부 스택 기준은 별도 폴더나 저장소로 관리합니다. 일회성 적용은 `npm run stack:apply -- --preset-path ../my-stack-standard` 또는 `npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>`를 사용합니다. 프로젝트에 고정하려면 `.harness/policy/profile.json`의 `stackManifest`에 외부 `manifest.json` 경로를 기록합니다.
 
-scaffold 템플릿이 필요하면 별도로 `ai-standard/stacks` 하위 저장소를 조회합니다.
+scaffold 템플릿은 업무 파일을 생성하거나 복사할 수 있는 별도 자산입니다. 스택 기준만 적용하려는 경우에는 필요하지 않습니다. 새 프로젝트의 기본 파일 묶음이 필요할 때만 `ai-standard/stacks` 하위 저장소를 조회합니다.
 
 ```bash
 npm run templates:list
 GITLAB_TOKEN=<private-token> npm run templates:list
 ```
 
-현재 등록된 템플릿 후보 예시는 다음 저장소입니다.
+현재 등록된 템플릿 후보 예시는 다음 저장소입니다. 실제 적용 방법은 해당 템플릿 저장소의 README와 manifest 계약을 먼저 확인합니다.
 
 ```bash
-npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/stacks/cloud-front-admin-template.git --ref main
+npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/stacks/cloud-front-admin-template.git --ref <tag-or-branch>
 ```
 
 권장 그룹 구조는 다음과 같습니다.
@@ -252,7 +252,7 @@ npx -y git+<seed-repo-url>#vX.Y.Z init --from-git <seed-repo-url> --ref vX.Y.Z
 
 - `/harness-absorb`: 현재 프로젝트를 분석해 `.harness/project`, `.harness/policy`, `.harness/session` 문서에 반영합니다.
 - `npm run harness:doctor`: `/harness-absorb` 전에 `.harness/session/absorb-report.md`를 생성해 자동 감지 결과를 남깁니다.
-- 기존 개인/전용 룰 파일이 보존된 경우 `harness:doctor`가 브리지 섹션 추가 후보와 템플릿을 제안합니다.
+- 기존 개인/전용 룰 파일이 보존된 경우 `harness:doctor`가 브리지 섹션 추가 후보와 예시 문구를 제안합니다.
 - `code-reviewer`, `debug-detective`, `test-writer`, `security-auditor`: 하네스 기준을 먼저 읽는 Claude Code 서브에이전트입니다.
 - status line과 context hook: 브랜치, dirty 상태, active stack을 짧게 표시합니다.
 
@@ -261,27 +261,23 @@ npx -y git+<seed-repo-url>#vX.Y.Z init --from-git <seed-repo-url> --ref vX.Y.Z
 - 권장 버전은 `.nvmrc`의 Node `22.14.0`입니다.
 - 지원 범위는 `>=20.19.0 || >=22.13.0`입니다.
 - 낮은 Node에서 실행하면 하네스 명령이 먼저 업그레이드 안내를 출력합니다.
-- 프리셋이 더 높은 Node 버전을 요구하면 해당 프리셋의 `manifest.json` 또는 instruction 문서에 별도로 기록합니다.
+- 스택 기준이나 템플릿이 더 높은 Node 버전을 요구하면 해당 자산의 `manifest.json` 또는 instruction 문서에 별도로 기록합니다.
 
 ## 빈 프로젝트를 새로 시작할 때
 
-하네스 저장소 자체를 복제해 새 프로젝트의 시작점으로 쓸 수 있습니다.
+빈 폴더를 만든 뒤 공통 하네스를 설치하고, 필요한 스택 기준과 scaffold 템플릿을 선택합니다.
 
 ```bash
-npx degit <seed-repo-url> my-app
+mkdir my-app
 cd my-app
-nvm install && nvm use
-rm .harness-seed-mode
+npx -y git+https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git#v0.2.10 init
 npm run stack:status
 npm run standards:list
-npm run templates:list      # 템플릿이 필요할 때만 조회
-npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>
-npm install
+npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/harnesses/vue3-vite-pinia-router.git --ref v0.1.2
+npm run templates:list      # scaffold 템플릿이 필요할 때만 조회
 npm run hooks:install
 npm run harness:check
 ```
-
-`.harness-seed-mode`는 이 저장소를 하네스 본체로 운영할 때만 남겨두는 마커입니다. 일반 업무 프로젝트로 쓸 때는 삭제합니다.
 
 ## 본체 저장소를 운영할 때
 
@@ -290,7 +286,7 @@ npm run harness:check
 - `.harness-seed-mode`를 유지합니다.
 - 하네스 본체 변경 후 `npm run harness:check:strict`를 실행합니다.
 - seed-mode에서는 `harness:check`가 init smoke test를 함께 실행합니다.
-- 배포는 태그 기준으로 합니다. 예: `v0.2.4`.
+- 배포는 태그 기준으로 합니다. 예: `v0.2.10`.
 - 사내 GitLab처럼 보호 브랜치를 쓰는 저장소에는 fast-forward 가능한 배포 커밋으로 반영합니다.
 
 ## AI 에이전트 기준점
@@ -309,4 +305,4 @@ npm run harness:check
 - 이식 절차: `.harness/project/portability-guide.md`
 - 새 프로젝트 인터뷰: `.harness/project/bootstrap.md`
 - 개발 기준 동기화 모델: `.harness/policy/sync-protocol.md`
-- 스택 프리셋 구조: `.harness/stacks/README.md`
+- 스택 기준 구조: `.harness/stacks/README.md`

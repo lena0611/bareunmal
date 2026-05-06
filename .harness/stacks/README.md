@@ -30,7 +30,7 @@ GITLAB_TOKEN=<private-token> npm run standards:list
 현재 예정된 스택 기준 후보 예시:
 
 ```bash
-npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/harnesses/vue3-vite-pinia-router.git --ref master
+npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/harnesses/vue3-vite-pinia-router.git --ref v0.1.2
 ```
 
 기본 조회 대상:
@@ -46,6 +46,8 @@ npm run standards:list
 ```
 
 ## scaffold 템플릿 후보 조회
+scaffold 템플릿은 업무 파일을 생성하거나 복사할 수 있는 별도 자산입니다. 스택 기준만 적용하려는 경우에는 필요하지 않습니다.
+
 사내 GitLab에서는 `ai-standard/stacks` 하위 저장소를 템플릿 후보로 조회합니다.
 
 ```bash
@@ -58,10 +60,10 @@ npm run templates:list
 GITLAB_TOKEN=<private-token> npm run templates:list
 ```
 
-현재 등록된 템플릿 후보 예시:
+현재 등록된 템플릿 후보 예시입니다. 실제 적용 방법은 해당 템플릿 저장소의 README와 manifest 계약을 먼저 확인합니다.
 
 ```bash
-npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/stacks/cloud-front-admin-template.git --ref main
+npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/stacks/cloud-front-admin-template.git --ref <tag-or-branch>
 ```
 
 기본 조회 대상:
