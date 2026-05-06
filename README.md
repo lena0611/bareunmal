@@ -1,34 +1,92 @@
 # harness-seed
 
-하네스시드는 프로젝트에 개발 기준과 검증 절차를 심는 도구입니다.
+하네스시드는 프로젝트에 공통 개발 기준과 검증 절차를 설치하는 공통 시드입니다.
 
-AI 에이전트를 쓰든 사람이 직접 개발하든, 프로젝트에는 다음 질문에 대한 답이 필요합니다.
+업무 코드나 화면 scaffold를 직접 제공하는 템플릿이 아니라, 회사 공통 기준을 내부 베이스로 깔고 프로젝트가 선택한 스택 기준과 프로젝트 로컬 기준이 함께 동작하도록 연결합니다.
 
-- 이 프로젝트에서 먼저 읽어야 할 기준 문서는 무엇인가?
-- 어떤 규칙은 반드시 지켜야 하고, 어떤 규칙은 참고 수준인가?
-- 기존 프로젝트의 코드 스타일, 아키텍처, 업무 규칙은 어디에 보존되는가?
-- 새로 들어온 개발자나 AI 에이전트가 같은 기준으로 작업하고 있는지 어떻게 확인하는가?
+## 목적
 
-하네스시드는 이 답을 `.harness/` 문서와 `scripts/` 검증 명령으로 정리합니다.
+- AI 에이전트와 사람이 같은 개발 기준을 읽고 작업하게 합니다.
+- 특정 기술스택에 종속되지 않는 공통 개발 흐름과 검증 절차를 프로젝트에 설치합니다.
+- 회사 공통 기준, 스택 기준, 프로젝트 기준, 개인 기준이 공존할 수 있는 계층을 만듭니다.
+- 기존 프로젝트의 코드 스타일, 아키텍처, 업무 규칙을 지우지 않고 로컬 기준으로 정리합니다.
+- 기준 문서와 실제 코드, 설정, 검증 명령이 어긋나는 지점을 확인할 수 있게 합니다.
 
-## 한 줄 요약
+## 기대효과
 
-하네스시드는 기존 프로젝트를 갈아엎는 템플릿이 아니라, 회사 공통 기준을 내부 베이스로 깔고 프로젝트가 선택한 스택 기준과 검증 절차를 얹는 설치 엔진입니다.
+- 새로 참여한 개발자나 AI 에이전트가 먼저 읽어야 할 기준 위치가 고정됩니다.
+- 프로젝트마다 흩어져 있던 스타일, 도메인, 작업 절차를 문서와 명령으로 확인할 수 있습니다.
+- 기존 전용 하네스나 개인 룰이 있더라도 보존하고, 필요한 연결 지점을 리포트로 제안합니다.
+- `harness:doctor`로 현재 프로젝트의 스택, 문서, 스타일, 충돌 후보를 진단할 수 있습니다.
+- `harness:check`로 문서 링크, 기준 동기화, 스택 적용 상태, lint/test/build 연결 상태를 검사할 수 있습니다.
+- 스택 기준과 scaffold 템플릿을 분리해 기존 프로젝트와 새 프로젝트에 같은 방식으로 적용할 수 있습니다.
 
-## 왜 필요한가
+## 사용법
 
-AI 에이전트는 코드만 보고도 작업할 수 있지만, 프로젝트의 실제 기준을 자동으로 이해하지는 못합니다.
+### 1. 프로젝트 폴더에서 공통 하네스 설치
 
-예를 들어 다음 정보는 코드에 흩어져 있거나 사람 머릿속에만 있는 경우가 많습니다.
+이미 작업 중인 프로젝트라면 그 폴더로 이동합니다. 새 프로젝트라면 빈 폴더를 만든 뒤 같은 명령을 실행합니다.
 
-- 도메인 용어와 금지해야 할 구현 방식
-- 모듈 경계와 의존 방향
-- 테스트를 반드시 붙여야 하는 작업 범위
-- 세미콜론, quote, import 정렬 같은 스타일 기준
-- 릴리스 전 반드시 확인해야 하는 명령
-- 기존 팀이 오래 쓰던 로컬 개발 방식
+```bash
+cd my-project
+npx -y git+https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git#v0.2.11 init
+```
 
-하네스시드는 이런 기준을 문서화하고, 가능한 부분은 `npm run harness:check` 같은 명령으로 검증합니다.
+`init`은 설치 직후 현재 프로젝트를 진단하고 기본 검사를 실행합니다. 자동 실행을 끄고 싶으면 `--no-doctor`, `--no-check` 옵션을 사용합니다.
+
+### 2. 진단 리포트 확인
+
+설치 후 `.harness/session/absorb-report.md`를 먼저 봅니다. 이 리포트에는 감지된 기술 스택, 기존 스타일 설정, 기존 룰 문서, 충돌 후보, 확인 질문이 정리됩니다.
+
+다시 진단하려면 다음 명령을 실행합니다.
+
+```bash
+npm run harness:doctor
+```
+
+### 3. 스택 기준 선택
+
+공통 하네스는 특정 프레임워크 기준을 직접 담지 않습니다. 프로젝트에 맞는 스택 기준을 조회하고 선택합니다.
+
+```bash
+npm run standards:list
+npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/harnesses/vue3-vite-pinia-router.git --ref v0.1.2
+```
+
+### 4. 필요한 경우 scaffold 템플릿 선택
+
+기존 프로젝트에 기준만 적용하는 경우에는 scaffold 템플릿이 필요하지 않을 수 있습니다. 새 프로젝트의 기본 파일 묶음이 필요할 때만 템플릿 목록을 확인합니다.
+
+```bash
+npm run templates:list
+```
+
+템플릿 적용 방식은 각 템플릿 저장소의 README와 manifest 계약을 기준으로 확인합니다.
+
+### 5. 검증과 커밋 차단 연결
+
+개발 중에는 다음 명령으로 현재 기준과 프로젝트 상태를 확인합니다.
+
+```bash
+npm run harness:check
+```
+
+사람이 직접 커밋하는 흐름에서도 같은 검증을 강제하고 싶으면 git hook을 설치합니다.
+
+```bash
+npm run hooks:install
+```
+
+AI 에이전트 작업에서는 hook 선택 여부와 별개로 하네스 검증 기준을 따라야 합니다.
+
+다른 저장소 위치를 쓰는 경우:
+
+```bash
+npx -y git+https://git.example.com/group/harness-seed.git#vX.Y.Z init
+npx -y github:<owner>/<repo>#vX.Y.Z init
+```
+
+하네스시드는 계속 개선되므로 `main`, `master` 같은 움직이는 브랜치를 따라가며 최신 변경을 빠르게 받는 방식도 가능합니다. 다만 팀 프로젝트에서는 하네스 변경이 언제 들어왔는지 추적할 수 있도록 릴리스 태그인 `vX.Y.Z`를 고정해 주입하는 것을 권장합니다. 최신 버전으로 올릴 때는 새 태그로 다시 `init`을 실행하고, 생성된 변경분과 `harness:doctor`, `harness:check` 결과를 함께 확인합니다.
 
 ## 하네스시드가 하는 일
 
@@ -94,35 +152,6 @@ AI 에이전트는 코드만 보고도 작업할 수 있지만, 프로젝트의 
 | 이미 팀 전용 하네스가 있음 | 기존 하네스를 보존하고 브리지로 연결 |
 | 스타일 기준이 이미 있음 | 설정 파일을 읽어 로컬룰 초안 생성 |
 | 스타일 기준이 없음 | 프리셋 후보 중 선택 |
-
-## 가장 흔한 사용법
-
-기존 프로젝트 폴더에서 실행합니다. 사내 GitLab 기준으로는 아래 명령이 기본입니다.
-
-```bash
-cd my-existing-project
-npx -y git+https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git#v0.2.10 init
-```
-
-`init`은 설치 직후 자동으로 `harness:doctor`와 `harness:check`를 실행합니다. 사용자는 먼저 생성된 `.harness/session/absorb-report.md`를 보고, 스택 기준 선택 여부와 충돌 후보를 확인한 뒤 필요한 경우 git hook, 스택 기준, scaffold 템플릿을 선택합니다.
-
-```bash
-npm run hooks:install
-npm run standards:list
-npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/harnesses/vue3-vite-pinia-router.git --ref v0.1.2
-
-# scaffold 템플릿이 필요한 경우에만 조회
-npm run templates:list
-```
-
-다른 저장소 위치를 쓰는 경우:
-
-```bash
-npx -y git+https://git.example.com/group/harness-seed.git#vX.Y.Z init
-npx -y github:<owner>/<repo>#vX.Y.Z init
-```
-
-하네스시드는 계속 개선되므로 `main`, `master` 같은 움직이는 브랜치를 따라가며 최신 변경을 빠르게 받는 방식도 가능합니다. 다만 팀 프로젝트에서는 하네스 변경이 언제 들어왔는지 추적할 수 있도록 릴리스 태그인 `vX.Y.Z`를 고정해 주입하는 것을 권장합니다. 최신 버전으로 올릴 때는 새 태그로 다시 `init`을 실행하고, 생성된 변경분과 `harness:doctor`, `harness:check` 결과를 함께 확인합니다.
 
 ## 설치 후 먼저 볼 것
 
@@ -270,7 +299,7 @@ npx -y git+<seed-repo-url>#vX.Y.Z init --from-git <seed-repo-url> --ref vX.Y.Z
 ```bash
 mkdir my-app
 cd my-app
-npx -y git+https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git#v0.2.10 init
+npx -y git+https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git#v0.2.11 init
 npm run stack:status
 npm run standards:list
 npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/harnesses/vue3-vite-pinia-router.git --ref v0.1.2
@@ -286,7 +315,7 @@ npm run harness:check
 - `.harness-seed-mode`를 유지합니다.
 - 하네스 본체 변경 후 `npm run harness:check:strict`를 실행합니다.
 - seed-mode에서는 `harness:check`가 init smoke test를 함께 실행합니다.
-- 배포는 태그 기준으로 합니다. 예: `v0.2.10`.
+- 배포는 태그 기준으로 합니다. 예: `v0.2.11`.
 - 사내 GitLab처럼 보호 브랜치를 쓰는 저장소에는 fast-forward 가능한 배포 커밋으로 반영합니다.
 
 ## AI 에이전트 기준점
