@@ -18,6 +18,18 @@
       ]
     },
     {
+      "id": "claude-code-adapter",
+      "index": ".claude/README.md",
+      "children": [
+        ".claude/commands/harness-absorb.md",
+        ".claude/agents/code-reviewer.md",
+        ".claude/agents/debug-detective.md",
+        ".claude/agents/test-writer.md",
+        ".claude/agents/security-auditor.md",
+        ".claude/settings.json"
+      ]
+    },
+    {
       "id": "session-harness",
       "index": ".harness/session/README.md",
       "children": [
@@ -37,6 +49,13 @@
         ".harness/project/config-contract.md",
         ".harness/project/project-charter.md",
         ".harness/project/scope-contract.md",
+        ".harness/project/local-methodology.md",
+        ".harness/project/standards-layers.md",
+        ".harness/project/personal-methodology.example.md",
+        ".harness/project/stack-preset-rules.md",
+        ".harness/project/domain-rules.md",
+        ".harness/project/architecture-rules.md",
+        ".harness/project/workflow-rules.md",
         ".harness/project/portability-guide.md",
         ".harness/project/bootstrap.md"
       ]
@@ -45,6 +64,7 @@
       "id": "policy-harness",
       "index": ".harness/policy/README.md",
       "children": [
+        ".harness/policy/ai-standard-guiding-policy.md",
         ".harness/policy/enforcement-ladder.md",
         ".harness/policy/policy-steward.md",
         ".harness/policy/sync-protocol.md",
@@ -72,6 +92,7 @@
       "children": [
         ".harness/style/style-rules.md",
         ".harness/style/validation-rules.md",
+        ".harness/style/presets.md",
         ".harness/style/style-evolution.md"
       ]
     },
@@ -79,16 +100,6 @@
       "id": "stacks",
       "index": ".harness/stacks/README.md",
       "children": []
-    },
-    {
-      "id": "stack-vue3-fsd",
-      "index": ".harness/stacks/vue3-fsd/manifest.json",
-      "children": [
-        ".harness/stacks/vue3-fsd/policies.json",
-        ".harness/stacks/vue3-fsd/instructions/architecture.md",
-        ".harness/stacks/vue3-fsd/instructions/state-management.md",
-        ".harness/stacks/vue3-fsd/instructions/feature-sliced-design.md"
-      ]
     }
   ]
 }

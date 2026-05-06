@@ -23,10 +23,14 @@ function run(command, args) {
 run('node', ['scripts/policy-harness.mjs', 'guard', ...forwardedArgs])
 run('node', ['scripts/doc-link-check.mjs', ...forwardedArgs])
 
+if (fs.existsSync(path.join(repoRoot, '.harness-seed-mode')) && fs.existsSync(path.join(repoRoot, 'scripts/test-init.mjs'))) {
+  run('node', ['scripts/test-init.mjs'])
+}
+
 if (!stackApplied) {
   console.log('')
   console.log(`Stack not applied (${path.relative(repoRoot, markerPath)} 없음). lint/test/build 단계는 건너뜁니다.`)
-  console.log('스택을 적용하려면: npm run stack:apply')
+  console.log('스택 기준을 적용하려면: npm run stack:apply')
   process.exit(0)
 }
 

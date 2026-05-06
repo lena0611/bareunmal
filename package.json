@@ -10,6 +10,7 @@
   },
   "files": [
     ".harness",
+    ".claude",
     ".github",
     "scripts",
     ".githooks",
@@ -20,6 +21,9 @@
   ],
   "scripts": {
     "node:check": "node scripts/check-node-version.mjs",
+    "harness:doctor": "npm run node:check --silent && node scripts/absorb-project.mjs --write",
+    "harness:check": "npm run node:check --silent && node scripts/guard.mjs",
+    "harness:check:strict": "npm run node:check --silent && node scripts/guard.mjs --strict",
     "guard": "npm run node:check --silent && node scripts/guard.mjs",
     "hooks:install": "npm run node:check --silent && node scripts/install-hooks.mjs",
     "policy:check": "npm run node:check --silent && node scripts/policy-harness.mjs check",
@@ -28,6 +32,10 @@
     "policy:guard:strict": "npm run node:check --silent && node scripts/policy-harness.mjs guard --strict",
     "docs:check": "npm run node:check --silent && node scripts/doc-link-check.mjs",
     "docs:check:strict": "npm run node:check --silent && node scripts/doc-link-check.mjs --strict",
+    "absorb:report": "npm run harness:doctor",
+    "standards:list": "npm run node:check --silent && node scripts/list-stack-standards.mjs",
+    "stack:list": "npm run standards:list",
+    "templates:list": "npm run node:check --silent && node scripts/list-templates.mjs",
     "stack:apply": "npm run node:check --silent && node scripts/apply-stack.mjs",
     "stack:reset": "npm run node:check --silent && node scripts/apply-stack.mjs --reset",
     "stack:status": "npm run node:check --silent && node scripts/apply-stack.mjs --status"

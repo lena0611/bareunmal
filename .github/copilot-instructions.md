@@ -17,9 +17,5 @@ GitHub Copilot용 shim입니다. 기준 진입점은 루트의 `CLAUDE.md`입니
 - [Style Harness](../.harness/style/README.md)
 - [Stacks](../.harness/stacks/README.md)
 
-## 활성 스택 instruction (프로파일 기반)
-현재 `activeStack=vue3-fsd` 기준의 instruction입니다. `activeStack`을 바꾸면 이 섹션도 같이 갱신해야 합니다.
-
-- [Architecture](../.harness/stacks/vue3-fsd/instructions/architecture.md)
-- [State Management](../.harness/stacks/vue3-fsd/instructions/state-management.md)
-- [Feature-Sliced Design](../.harness/stacks/vue3-fsd/instructions/feature-sliced-design.md)
+## 활성 스택 instruction
+기본값은 `activeStack=none`입니다. 외부 프리셋을 적용한 프로젝트에서는 `.harness/project/stack-preset-rules.md`와 `profile.json`의 `stackManifest`를 확인합니다.

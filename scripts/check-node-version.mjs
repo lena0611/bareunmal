@@ -34,6 +34,6 @@ if (!isSupported(current)) {
   console.error('  nvm install')
   console.error('  nvm use')
   console.error('')
-  console.error('This matches Vite 7 and the vue3-fsd stack runtime.')
+  console.error('This matches the default harness runtime. Individual presets may require additional tools.')
   process.exit(1)
 }

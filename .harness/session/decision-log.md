@@ -1,5 +1,22 @@
 # 결정 로그
 
+## 2026-04-30 - 최상위 기준 정책 위배 항목 보정
+- `ai-standard/docs`의 최상위 길라잡이는 원본으로 두고, 하네스시드에는 참조 문서만 둡니다.
+- `harness:doctor` 리포트에 회사/스택/프로젝트/개인 기준 계층과 충돌 후보 섹션을 추가해, 기준 충돌을 개발자가 선택할 수 있게 합니다.
+- 프로젝트 적용 흐름은 공통 기준 직접 사용이 아니라 스택 기준 선택 중심으로 설명합니다. `none`은 예외 또는 전환 중 상태로 둡니다.
+- scaffold 템플릿은 기본값이 아니라 후보 목록으로 표현하며, 현재 등록된 후보 예시만 문서에 남깁니다.
+- 에이전트 작업은 로컬 git hook 설치 여부와 무관하게 완료 시 `harness:check`를 실행하는 Claude Code hook을 추가합니다.
+
+## 2026-04-30 - policy 용어 설명 정리
+- 외부 설명에서는 policy를 회사 규정처럼 보이게 쓰지 않고, "프로젝트가 반복적으로 지키기로 한 개발 기준"으로 풀어 설명합니다.
+- `.harness/policy/` 폴더명과 `policy:*` 명령은 내부 구조명으로 유지하되, README와 하네스 문서에서는 개발 기준, 검증 기준, 기준 동기화라는 표현을 우선 사용합니다.
+
+## 2026-04-29 - doctor/check 설치 흐름 도입
+- 처음 주입할 때는 기존 프로젝트 구조를 파악하는 `harness:doctor`가 `.harness/session/absorb-report.md`를 자동 생성합니다.
+- 설치 직후 `harness:check`를 자동 실행해 하네스 문서, 정책, 링크, 스택 적용 상태가 기본적으로 맞는지 확인합니다.
+- `absorb:report`와 `guard`는 기존 사용자를 위한 호환 alias로 유지하지만, 새 문서와 CI 표기는 `harness:doctor`와 `harness:check`를 기준으로 정리합니다.
+- 자동 실행이 부담되는 환경을 위해 `init --no-doctor --no-check` 옵션을 둡니다.
+
 ## 2026-04-28 - 하네스 본체를 .harness로 이동
 - Copilot/GitHub 의존을 줄이기 위해 일반 하네스 본체를 `.github/`에서 `.harness/`로 이동했습니다.
 - `.github/`에는 Copilot shim, GitHub Actions, GitHub issue/PR template처럼 GitHub 플랫폼에 속한 어댑터만 남깁니다.
@@ -9,10 +26,10 @@
 - stack 적용 마커는 새 구조에서 `.harness/.stack-applied.json`을 사용합니다.
 
 ## 2026-04-28 - Node 런타임 고정 및 init 안정화
-- `.nvmrc`를 `22.14.0`으로 추가하고 `package.json`의 `engines.node`를 현재 Vite/ESLint 도구체인 요구사항(`>=20.19.0 || >=22.13.0`)에 맞췄습니다.
+- `.nvmrc`를 `22.14.0`으로 추가하고 `package.json`의 `engines.node`를 현재 Node 기반 도구체인 요구사항(`>=20.19.0 || >=22.13.0`)에 맞췄습니다.
 - 모든 npm harness 명령 앞에 `scripts/check-node-version.mjs`를 연결해 낮은 Node에서 문법 에러 대신 명확한 업그레이드 안내가 나오게 했습니다.
 - `scripts/init.mjs`는 기존 프로젝트 병합 진입점이므로 낮은 Node에서도 최소한 버전 안내까지 도달하도록 최신 문법 사용을 피했습니다.
-- vue3-fsd scaffold의 `npm run dev`는 clubadm의 `scripts/dev.sh` 패턴을 반영해 nvm 로드/설치, `.nvmrc` 전환, Node/패키지 변경 감지, 의존성 동기화, Vite 재기동 루프를 처리합니다.
+- 당시 내장 scaffold의 `npm run dev`는 nvm 로드/설치, `.nvmrc` 전환, Node/패키지 변경 감지, 의존성 동기화, dev server 재기동 루프를 처리하도록 설계했습니다.
 - 팀 배포에서는 `git+<seed-repo-url>#<tag>` 형태의 tag 고정 실행을 권장하고, 장기적으로 npm publish가 가능하도록 `bin`, `files`, `engines` 구성을 정리했습니다.
 
 ## 2026-04-27 - 시드 하네스 저장소 분리 및 이름 변경 (bareunmal → harness-seed)
@@ -23,7 +40,7 @@
 - 실제 작업 프로젝트는 추후 별도 repo로 분리합니다.
 
 ## 2026-04-22 - 기본 스캐폴드 채택
-- Vue 3 + Pinia + Vite + TypeScript 조합으로 초기 스캐폴드를 구성했습니다.
+- 초기에는 특정 프론트엔드 조합으로 스캐폴드를 구성했습니다.
 - 도메인이 아직 없으므로 중립적인 예시 use-case만 두고 구조를 먼저 고정했습니다.
 
 ## 2026-04-22 - 아키텍처 규칙 문서 분리
@@ -32,7 +49,7 @@
 
 ## 2026-04-22 - GitHub Pages 자동 배포 채택
 - 무료 정적 배포를 위해 GitHub Pages + GitHub Actions 구성을 채택했습니다.
-- 저장소명을 반영하기 위해 Vite `base`를 `/bareunmal/`로 설정했습니다.
+- 저장소명을 반영하기 위해 당시 정적 빌드 `base`를 `/bareunmal/`로 설정했습니다.
 
 ## 2026-04-22 - 세션 하네스 도입
 - 새 세션이 이전 상태를 빠르게 복구할 수 있도록 `.harness/session/`를 추가했습니다.
@@ -64,8 +81,8 @@
 
 ## 2026-04-27 - 일반화 하네스와 스택 프리셋 분리
 - 저장소를 일반 하네스(프레임워크 독립 인프라)와 스택 프리셋(프레임워크+디자인패턴 꾸러미)으로 분리했습니다.
-- `vue3-fsd` 스택 자산을 `.harness/stacks/vue3-fsd/scaffold/`로 이동해 root가 스택-독립적이 되게 했습니다.
-- `apply-stack.mjs`를 source adapter 패턴(`local` 구현, `tiged` 스텅)으로 설계해 향후 외부 저장소로 분리가 저비용으로 가능하도록 했습니다 (B안 + A-1 호환).
+- 스택 자산을 본체와 격리해 root가 스택-독립적이 되게 했습니다.
+- `apply-stack.mjs`를 source adapter 패턴으로 설계해 향후 외부 저장소로 분리가 저비용으로 가능하도록 했습니다.
 - `npm run stack:apply` / `stack:reset` / `stack:status` 명령과 `.github/.stack-applied.json` 마커를 도입했습니다.
 - `guard.mjs`는 스택 미적용 시 lint/test/build를 자동 스킵하고 일반 검사만 실행합니다.
 - `doc-link-check.mjs`는 scaffold 폴더를 orphan/링크 검사에서 제외하고, 코드 경로 참조는 활성 스택의 scaffold 내부도 허용하도록 해서 미적용 상태에서도 문서 참조가 유효하게 했습니다.
@@ -75,7 +92,7 @@
 - `apply-stack.mjs`의 `adapterTiged()`를 실제 구현했습니다 (`npx -y tiged --force <ref> <tmp>` → subdir 분리 → 파일 복사 + packageMerge 처리). 어댑터 반환 형태를 `{ copied, packageMergeData }` 객체로 통일했습니다.
 - 외부 빈 디렉토리에 저장소를 풀어 시드 사용자 시나리오를 e2e 검증하던 중 두 가지 치명적 결함 발견:
   - `.github/.stack-applied.json` 마커가 tracked 상태였음 → 시드 사용자가 dev 머신의 적용 상태를 그대로 받음.
-  - `package.json`이 머지된 상태(vue/pinia/vite 의존성 포함)로 tracked → root가 슬림이 아님.
+  - `package.json`이 프리셋 의존성 머지 상태로 tracked → root가 슬림이 아님.
 - 두 결함 모두 수정: marker는 `.gitignore`로, root `package.json`/`package-lock.json`은 항상 슬림 상태(stack:reset 후)로만 커밋합니다.
 - CI 워크플로(`policy-guard.yml`)에 `node scripts/apply-stack.mjs` 단계와 `npm install` 호출을 추가해, 슬림 root에서도 CI가 머지된 의존성으로 검증하도록 했습니다.
 - `.gitignore`에 `.harness-backup/`도 미리 추가해 향후 흡수/백업 기능 도입을 위한 자리만 비워뒀습니다.

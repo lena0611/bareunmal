@@ -52,14 +52,28 @@ const scaffoldFiles = new Set()
 let packageMergeData = null
 
 if (stackId && stackId !== 'none') {
-  const manifest = readJson(path.join(stacksRoot, stackId, 'manifest.json'))
+  const manifestPath = profile.stackManifest
+    ? path.resolve(repoRoot, profile.stackManifest)
+    : path.join(stacksRoot, stackId, 'manifest.json')
+  const manifest = readJson(manifestPath)
+  const manifestRoot = path.dirname(manifestPath)
   const scaffoldRel = manifest?.source?.path
   if (scaffoldRel) {
-    walkScaffold(path.join(repoRoot, scaffoldRel), '', scaffoldFiles)
+    const scaffoldRoot = path.isAbsolute(scaffoldRel)
+      ? scaffoldRel
+      : scaffoldRel.startsWith('.harness/') || scaffoldRel.startsWith('.github/')
+        ? path.join(repoRoot, scaffoldRel)
+        : path.join(manifestRoot, scaffoldRel)
+    walkScaffold(scaffoldRoot, '', scaffoldFiles)
   }
   const packageMergeRel = manifest?.source?.packageMerge
   if (packageMergeRel) {
-    packageMergeData = readJson(path.join(repoRoot, packageMergeRel))
+    const packageMergePath = path.isAbsolute(packageMergeRel)
+      ? packageMergeRel
+      : packageMergeRel.startsWith('.harness/') || packageMergeRel.startsWith('.github/')
+        ? path.join(repoRoot, packageMergeRel)
+        : path.join(manifestRoot, packageMergeRel)
+    packageMergeData = readJson(packageMergePath)
   }
 }
 

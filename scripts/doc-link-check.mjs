@@ -34,7 +34,9 @@ function readActiveScaffoldRoot() {
     return null
   }
 
-  const manifestPath = path.join(stacksRoot, stackId, 'manifest.json')
+  const manifestPath = profile.stackManifest
+    ? path.resolve(repoRoot, profile.stackManifest)
+    : path.join(stacksRoot, stackId, 'manifest.json')
 
   if (!fs.existsSync(manifestPath)) {
     return null
@@ -54,7 +56,12 @@ function readActiveScaffoldRoot() {
     return null
   }
 
-  const abs = path.join(repoRoot, scaffoldPath)
+  const manifestRoot = path.dirname(manifestPath)
+  const abs = path.isAbsolute(scaffoldPath)
+    ? scaffoldPath
+    : scaffoldPath.startsWith('.harness/') || scaffoldPath.startsWith('.github/')
+      ? path.join(repoRoot, scaffoldPath)
+      : path.join(manifestRoot, scaffoldPath)
   return fs.existsSync(abs) ? abs : null
 }
 
@@ -64,10 +71,20 @@ const activeScaffoldRoot = readActiveScaffoldRoot()
 const dynamicArtifactPaths = new Set([
   '.harness/.stack-applied.json',
   '.github/.stack-applied.json',
+  '.claude/settings.local.json',
+  'CLAUDE.local.md',
+  '.harness/session/absorb-report.md',
+  '.harness/install-manifest.json',
   // npx init 진입점은 사용자 프로젝트에 복사하지 않는다. 시드 결정 로그의
   // 역사적 참조는 사용자 프로젝트에서도 broken reference로 취급하지 않는다.
   'scripts/init.mjs',
+  'scripts/test-init.mjs',
 ])
+
+const dynamicArtifactPrefixes = [
+  '.harness/stacks/.applied/',
+  '.github/stacks/.applied/',
+]
 
 function toPosix(p) {
   return p.split(path.sep).join('/')
@@ -75,6 +92,10 @@ function toPosix(p) {
 
 function exists(rel) {
   if (dynamicArtifactPaths.has(rel)) {
+    return true
+  }
+
+  if (dynamicArtifactPrefixes.some((prefix) => rel.startsWith(prefix))) {
     return true
   }
 
@@ -114,7 +135,15 @@ function listMarkdownFiles() {
   const markdownFiles = walk(harnessRoot)
     .filter((f) => f.endsWith('.md'))
     .map((f) => toPosix(path.relative(repoRoot, f)))
-    .filter((rel) => !rel.includes('/scaffold/'))
+    .filter((rel) => !rel.includes('/scaffold/') && !rel.includes('/.applied/'))
+
+  if (fs.existsSync(path.join(repoRoot, '.claude'))) {
+    markdownFiles.push(
+      ...walk(path.join(repoRoot, '.claude'))
+        .filter((f) => f.endsWith('.md'))
+        .map((f) => toPosix(path.relative(repoRoot, f))),
+    )
+  }
 
   for (const rel of ['AGENTS.md', 'CLAUDE.md', '.github/copilot-instructions.md']) {
     if (fs.existsSync(path.join(repoRoot, rel))) {
@@ -158,6 +187,10 @@ function findOrphans(registered) {
       continue
     }
 
+    if (dynamicArtifactPaths.has(file)) {
+      continue
+    }
+
     if (file.startsWith('.github/ISSUE_TEMPLATE/')) {
       continue
     }
@@ -185,7 +218,7 @@ function findMissingFromRegistry(registered) {
 }
 
 const linkPattern = /\[[^\]]*\]\(([^)\s]+)\)/g
-const codePathPattern = /`((?:src|scripts|\.github|\.harness|\.githooks)\/[A-Za-z0-9_./-]+)`/g
+const codePathPattern = /`((?:src|scripts|\.github|\.harness|\.claude|\.githooks)\/[A-Za-z0-9_./-]+)`/g
 
 function stripFence(text) {
   return text.replace(/```[\s\S]*?```/g, '')
@@ -269,7 +302,7 @@ function findStackIsolationViolations() {
     for (const file of files) {
       const rel = toPosix(path.relative(repoRoot, file))
 
-      if (rel.includes('/scaffold/')) {
+      if (rel.includes('/scaffold/') || rel.includes('/.applied/')) {
         continue
       }
 

@@ -28,6 +28,30 @@ function readProfile() {
   }
 }
 
+function resolvePresetManifestPath(stackId, profile) {
+  if (profile.stackManifest) {
+    return path.resolve(repoRoot, profile.stackManifest)
+  }
+
+  return path.join(stacksRoot, stackId, 'manifest.json')
+}
+
+function resolveManifestRelative(manifestRoot, relPath) {
+  if (!relPath) {
+    return null
+  }
+
+  if (path.isAbsolute(relPath)) {
+    return relPath
+  }
+
+  if (relPath.startsWith('.harness/') || relPath.startsWith('.github/') || relPath.startsWith('scripts/')) {
+    return path.join(repoRoot, relPath)
+  }
+
+  return path.join(manifestRoot, relPath)
+}
+
 function readActiveStack() {
   const profile = readProfile()
   const stackId = profile.activeStack ?? 'none'
@@ -36,8 +60,7 @@ function readActiveStack() {
     return { id: 'none', manifest: null, policies: [], checksKey: null }
   }
 
-  const stackDir = path.join(stacksRoot, stackId)
-  const manifestPath = path.join(stackDir, 'manifest.json')
+  const manifestPath = resolvePresetManifestPath(stackId, profile)
 
   if (!fs.existsSync(manifestPath)) {
     console.warn(`activeStack='${stackId}' 의 manifest를 찾을 수 없습니다: ${manifestPath}`)
@@ -45,9 +68,10 @@ function readActiveStack() {
   }
 
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
+  const manifestRoot = path.dirname(manifestPath)
   const policiesFile = manifest.policiesFile
-    ? path.join(repoRoot, manifest.policiesFile)
-    : path.join(stackDir, 'policies.json')
+    ? resolveManifestRelative(manifestRoot, manifest.policiesFile)
+    : path.join(manifestRoot, 'policies.json')
 
   let policies = []
 
@@ -228,8 +252,7 @@ function isIgnoredPolicyChange(filePath) {
     filePath.startsWith('.git/') ||
     filePath.startsWith('.idea/') ||
     filePath === '.package-json.hash' ||
-    filePath === '.node-version.cache' ||
-    filePath === '.vite.pid'
+    filePath === '.node-version.cache'
   )
 }
 
@@ -275,155 +298,7 @@ function collectViolations() {
     return violations
   }
 
-  if (checksKey !== 'vue-fsd') {
-    console.warn(`Unknown checksKey: ${checksKey}. Skipping framework-specific checks.`)
-    return violations
-  }
-
-  const trackedFiles = getAllTrackedFiles()
-  const sourceFiles = trackedFiles.filter((filePath) => filePath.startsWith('src/'))
-
-  const coreFiles = sourceFiles.filter((filePath) => filePath.startsWith('src/core/'))
-
-  for (const filePath of coreFiles) {
-    if (filePath.endsWith('.vue')) {
-      violations.push({
-        rule: 'core-purity',
-        file: filePath,
-        message: 'core 내부에 Vue SFC를 둘 수 없습니다.',
-      })
-      continue
-    }
-
-    const content = readText(filePath)
-
-    if (/from\s+['"]vue['"]|import\s+['"]vue['"]/.test(content)) {
-      violations.push({
-        rule: 'core-purity',
-        file: filePath,
-        message: 'core 내부에서 Vue를 import하면 안 됩니다.',
-      })
-    }
-
-    if (/from\s+['"]pinia['"]|import\s+['"]pinia['"]/.test(content)) {
-      violations.push({
-        rule: 'core-purity',
-        file: filePath,
-        message: 'core 내부에서 Pinia를 import하면 안 됩니다.',
-      })
-    }
-
-    if (/\b(window|document|localStorage|sessionStorage|navigator|location|history|HTMLElement|MutationObserver)\b/.test(content)) {
-      violations.push({
-        rule: 'core-purity',
-        file: filePath,
-        message: 'core 내부에서 browser API를 직접 사용하면 안 됩니다.',
-      })
-    }
-  }
-
-  for (const filePath of sourceFiles) {
-    const segments = filePath.split('/')
-
-    if (
-      filePath.startsWith('src/') &&
-      segments.some((segment, index) => index > 0 && (segment === 'common' || segment === 'utils'))
-    ) {
-      violations.push({
-        rule: 'no-dumping-folders',
-        file: filePath,
-        message: '`common` 또는 `utils` dumping folder를 만들면 안 됩니다.',
-      })
-    }
-  }
-
-  const featureFiles = sourceFiles.filter((filePath) => filePath.startsWith('src/features/'))
-
-  for (const filePath of featureFiles) {
-    const segments = filePath.split('/')
-    const layer = segments[3]
-
-    if (segments.length > 3 && !['model', 'ui', 'api'].includes(layer)) {
-      violations.push({
-        rule: 'feature-structure',
-        file: filePath,
-        message: 'feature 내부의 1차 하위 디렉터리는 model/ui/api만 허용합니다.',
-      })
-    }
-  }
-
-  const sharedFiles = sourceFiles.filter((filePath) => filePath.startsWith('src/shared/'))
-
-  for (const filePath of sharedFiles) {
-    for (const imported of getImports(filePath)) {
-      if (
-        /^src\/(features|pages|widgets|app)\//.test(imported.resolved)
-      ) {
-        violations.push({
-          rule: 'shared-boundary',
-          file: filePath,
-          message: `shared는 feature/UI 계층(${imported.specifier})에 의존하면 안 됩니다.`,
-        })
-      }
-    }
-  }
-
-  const storeFiles = sourceFiles.filter((filePath) => filePath.endsWith('.store.ts'))
-
-  for (const filePath of storeFiles) {
-    if (!filePath.startsWith('src/adapters/vue/stores/')) {
-      violations.push({
-        rule: 'store-placement',
-        file: filePath,
-        message: 'Pinia store 파일은 src/adapters/vue/stores 아래에 있어야 합니다.',
-      })
-    }
-  }
-
-  for (const filePath of sourceFiles) {
-    const content = readText(filePath)
-
-    if (/\bdefineStore\s*\(/.test(content) && !filePath.startsWith('src/adapters/vue/stores/')) {
-      violations.push({
-        rule: 'store-placement',
-        file: filePath,
-        message: 'defineStore 사용 위치는 src/adapters/vue/stores로 제한합니다.',
-      })
-    }
-  }
-
-  const composableFiles = sourceFiles.filter((filePath) => /\/use[A-Z].+\.ts$/.test(filePath))
-
-  for (const filePath of composableFiles) {
-    if (!filePath.startsWith('src/adapters/vue/composables/')) {
-      violations.push({
-        rule: 'composable-placement',
-        file: filePath,
-        message: 'Vue composable은 src/adapters/vue/composables 아래에 있어야 합니다.',
-      })
-    }
-  }
-
-  const adapterFiles = sourceFiles.filter(
-    (filePath) =>
-      filePath.startsWith('src/adapters/vue/stores/') ||
-      filePath.startsWith('src/adapters/vue/composables/'),
-  )
-
-  for (const filePath of adapterFiles) {
-    for (const imported of getImports(filePath)) {
-      if (
-        /^src\/(app|pages|widgets)\//.test(imported.resolved) ||
-        /^src\/features\/[^/]+\/ui\//.test(imported.resolved)
-      ) {
-        violations.push({
-          rule: 'adapter-ui-boundary',
-          file: filePath,
-          message: `adapter 계층은 UI 계층(${imported.specifier})에 의존하면 안 됩니다.`,
-        })
-      }
-    }
-  }
+  console.warn(`checksKey='${checksKey}' 는 본체에서 실행하지 않습니다. 프리셋 전용 검사는 해당 스택 기준 또는 템플릿 저장소의 guard에 연결하세요.`)
 
   return violations
 }
