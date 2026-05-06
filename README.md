@@ -211,6 +211,8 @@ npm run harness:update -- --range ^1.0.0
 
 스택 하네스만 설치된 초기 프로젝트에는 프로젝트 고유의 도메인 규칙이 거의 없을 수 있습니다. 이 상태에서 AI 에이전트가 버그 수정을 맡으면, 하네스는 완성된 답을 주기보다 기존 코드에서 반복 패턴을 찾고 로컬 룰 후보를 남기게 합니다.
 
+프로젝트 하네스를 의도적으로 만들거나 보강해야 한다면 `.harness/project/project-harness-guide.md`를 기준으로 삼습니다. 이 문서는 공통 하네스, 스택 하네스, 프로젝트 로컬룰, 개인룰의 역할을 나누고, 어떤 내용을 `domain-rules.md`, `architecture-rules.md`, `workflow-rules.md`로 승격할지 안내합니다.
+
 예를 들어 "회원 목록에서 검색 후 상세로 갔다가 뒤로 오면 검색 조건이 초기화된다"는 버그가 들어왔다고 가정합니다.
 
 1. 에이전트는 먼저 공통 기준과 스택 기준을 읽고, Vue Router, Pinia, API adapter, 페이지 컴포넌트 중 어디가 책임 영역인지 좁힙니다.
@@ -271,6 +273,8 @@ npm run harness:check
 ## 스택 기준과 템플릿
 
 하네스시드 본체는 특정 프레임워크를 전제로 하지 않습니다. 프로젝트에서는 회사 공통 기준을 직접 고르는 대신, 보통 회사 공통 기준을 기반으로 한 스택 하네스를 선택합니다.
+
+현재 실제 스택 하네스가 하나뿐이어도 구조는 Vue3에 묶여 있지 않습니다. 백엔드 API, 배치, 모바일, 라이브러리 패키지처럼 다른 개발 스택도 같은 방식으로 별도 스택 하네스를 만들 수 있습니다. 새 스택 하네스를 만들 때는 `.harness/stacks/authoring-guide.md`를 기준으로 범위, manifest 계약, compatibility 검사, instruction 작성, 릴리스 절차를 정리합니다.
 
 `none`은 스택 기준을 아직 고르지 않았거나, 예외적으로 공통 기준만 운영하는 내부 상태입니다. 일반 프로젝트 적용 흐름에서는 `harness:doctor` 리포트의 충돌 후보를 확인하고 스택 기준 선택 여부를 기록합니다.
 
@@ -401,6 +405,8 @@ npm run harness:check
 ## 더 읽을 문서
 
 - 이식 절차: `.harness/project/portability-guide.md`
+- 프로젝트 하네스 작성 가이드: `.harness/project/project-harness-guide.md`
 - 새 프로젝트 인터뷰: `.harness/project/bootstrap.md`
 - 개발 기준 동기화 모델: `.harness/policy/sync-protocol.md`
 - 스택 기준 구조: `.harness/stacks/README.md`
+- 스택 하네스 작성 가이드: `.harness/stacks/authoring-guide.md`

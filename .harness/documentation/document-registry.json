@@ -46,6 +46,7 @@
       "id": "project-harness",
       "index": ".harness/project/README.md",
       "children": [
+        ".harness/project/project-harness-guide.md",
         ".harness/project/config-contract.md",
         ".harness/project/project-charter.md",
         ".harness/project/scope-contract.md",
@@ -99,7 +100,9 @@
     {
       "id": "stacks",
       "index": ".harness/stacks/README.md",
-      "children": []
+      "children": [
+        ".harness/stacks/authoring-guide.md"
+      ]
     }
   ]
 }

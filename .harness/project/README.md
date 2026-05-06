@@ -8,19 +8,20 @@
 - 새 세션에서 도메인 의사결정을 다시 추론하지 않도록 합니다.
 
 ## 읽기 순서
-1. [프로젝트 시작 인터뷰 (Bootstrap)](./bootstrap.md)
-2. [프로젝트 헌장](./project-charter.md)
-3. [범위 계약](./scope-contract.md)
-4. [로컬 개발방법론](./local-methodology.md)
-5. [개발 기준 계층](./standards-layers.md)
-6. [개인 개발 기준 예시](./personal-methodology.example.md)
-7. [스택 프리셋 로컬 규칙](./stack-preset-rules.md)
-8. [도메인 규칙](./domain-rules.md)
-9. [아키텍처 규칙](./architecture-rules.md)
-10. [작업 흐름 규칙](./workflow-rules.md)
-11. [설정 계약](./config-contract.md)
-12. [이식 가이드](./portability-guide.md)
-13. [스택 프리셋 목록](../stacks/README.md)
+1. [프로젝트 하네스 작성 가이드](./project-harness-guide.md)
+2. [프로젝트 시작 인터뷰 (Bootstrap)](./bootstrap.md)
+3. [프로젝트 헌장](./project-charter.md)
+4. [범위 계약](./scope-contract.md)
+5. [로컬 개발방법론](./local-methodology.md)
+6. [개발 기준 계층](./standards-layers.md)
+7. [개인 개발 기준 예시](./personal-methodology.example.md)
+8. [스택 프리셋 로컬 규칙](./stack-preset-rules.md)
+9. [도메인 규칙](./domain-rules.md)
+10. [아키텍처 규칙](./architecture-rules.md)
+11. [작업 흐름 규칙](./workflow-rules.md)
+12. [설정 계약](./config-contract.md)
+13. [이식 가이드](./portability-guide.md)
+14. [스택 프리셋 목록](../stacks/README.md)
 
 ## 운영 원칙
 - 아직 비어 있는 항목은 빈 채로 두지 말고 `TBD`와 필요한 입력을 함께 적습니다.
@@ -28,6 +29,7 @@
 - policy 하네스와 세션 하네스보다 앞서 읽어야 하는 도메인 기준 문서입니다.
 - 회사 공통, 스택, 프로젝트, 개인 기준의 계층은 `standards-layers.md`에 따릅니다.
 - 프로젝트 고유의 개발방법론은 `local-methodology.md`와 하위 규칙 문서에 보존합니다.
+- 프로젝트 하네스를 새로 만들거나 보강할 때는 `project-harness-guide.md`의 계층, 승격, 충돌 처리 기준을 따릅니다.
 - 스택 프리셋을 적용하면 해당 프리셋의 지침은 `stack-preset-rules.md`에 로컬 규칙으로 정착됩니다.
 - 로컬 규칙이 비어 있으면 실제 버그 수정과 기능 개발 중 관찰한 반복 패턴을 후보로 기록하고, 사용자 확인이나 반복 근거가 쌓이면 `domain-rules.md`, `architecture-rules.md`, `workflow-rules.md`로 승격합니다.
 - 하네스는 도메인 규칙을 임의로 발명하지 않습니다. 기존 코드, 반복 패턴, 사용자 확인을 근거로 프로젝트의 기억을 쌓습니다.
