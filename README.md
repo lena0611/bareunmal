@@ -104,10 +104,11 @@ cd my-existing-project
 npx -y git+<seed-repo-url>#vX.Y.Z init
 ```
 
-`init`은 설치 직후 자동으로 `harness:doctor`와 `harness:check`를 실행합니다. 사용자는 먼저 생성된 `.harness/session/absorb-report.md`를 보고, 스택 기준 선택 여부와 충돌 후보를 확인한 뒤 필요한 경우 git hook이나 외부 템플릿을 선택합니다.
+`init`은 설치 직후 자동으로 `harness:doctor`와 `harness:check`를 실행합니다. 사용자는 먼저 생성된 `.harness/session/absorb-report.md`를 보고, 스택 기준 선택 여부와 충돌 후보를 확인한 뒤 필요한 경우 git hook, 스택 기준, scaffold 템플릿을 선택합니다.
 
 ```bash
 npm run hooks:install
+npm run standards:list
 npm run templates:list
 ```
 
@@ -160,10 +161,12 @@ npm run harness:check
 | `npm run absorb:report` | `harness:doctor` 호환 alias |
 | `npm run guard` | `harness:check` 호환 alias |
 | `npm run hooks:install` | 로컬 git hook 등록 |
+| `npm run standards:list` | 원격 스택 기준 후보 조회 |
+| `npm run stack:list` | `standards:list` alias |
 | `npm run templates:list` | 원격 템플릿 후보 조회 |
 | `npm run stack:status` | 활성 스택과 적용 상태 확인 |
-| `npm run stack:apply` | 활성 스택 scaffold와 로컬룰 적용 |
-| `npm run stack:reset` | 적용된 scaffold 제거 |
+| `npm run stack:apply` | 선택한 스택 기준을 로컬룰로 적용하고, 포함된 scaffold가 있으면 함께 적용 |
+| `npm run stack:reset` | 적용된 스택 기준 관리 섹션과 scaffold 산출물 제거 |
 
 ## 스택 기준과 템플릿
 
@@ -173,13 +176,26 @@ npm run harness:check
 
 본체에는 특정 스택 기준이나 템플릿을 넣지 않습니다. 스택 기준은 `ai-standard/harnesses` 쪽에서, 실제 scaffold 템플릿은 `ai-standard/stacks` 쪽에서 관리합니다.
 
-`stack:apply`는 단순히 파일을 복사하는 데서 끝나지 않습니다. 선택한 스택의 instruction을 `.harness/project/stack-preset-rules.md`에 로컬룰로 기록합니다.
+스택 기준 후보는 다음 명령으로 조회합니다.
+
+```bash
+npm run standards:list
+GITLAB_TOKEN=<private-token> npm run standards:list
+```
+
+현재 예정된 스택 기준 후보 예시는 다음 저장소입니다.
+
+```bash
+npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/harnesses/vue3-vite-pinia-router.git --ref master
+```
+
+`stack:apply`는 선택한 스택의 instruction을 `.harness/project/stack-preset-rules.md`에 로컬룰로 기록합니다. 스택 기준 패키지가 `source.type=none`이면 파일 복사 없이 기준 문서만 정착합니다.
 
 즉, 스택 프리셋은 공통 하네스가 모든 프로젝트에 강제하는 규칙이 아니라, 이 프로젝트가 선택한 기준으로 정착됩니다.
 
-외부 프리셋은 별도 폴더나 저장소로 관리합니다. 일회성 적용은 `npm run stack:apply -- --preset-path ../my-stack-preset` 또는 `npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>`를 사용합니다. 프로젝트에 고정하려면 `.harness/policy/profile.json`의 `stackManifest`에 외부 `manifest.json` 경로를 기록합니다.
+외부 스택 기준은 별도 폴더나 저장소로 관리합니다. 일회성 적용은 `npm run stack:apply -- --preset-path ../my-stack-standard` 또는 `npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>`를 사용합니다. 프로젝트에 고정하려면 `.harness/policy/profile.json`의 `stackManifest`에 외부 `manifest.json` 경로를 기록합니다.
 
-사내 GitLab에서는 `ai-standard/stacks` 하위 저장소를 scaffold 템플릿 후보로 조회합니다.
+scaffold 템플릿이 필요하면 별도로 `ai-standard/stacks` 하위 저장소를 조회합니다.
 
 ```bash
 npm run templates:list
@@ -257,6 +273,7 @@ cd my-app
 nvm install && nvm use
 rm .harness-seed-mode
 npm run stack:status
+npm run standards:list
 npm run templates:list      # 템플릿이 필요할 때만 조회
 npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>
 npm install

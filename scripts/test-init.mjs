@@ -54,6 +54,7 @@ function cleanInstallCreatesExpectedFiles() {
   assert(exists(target, '.harness/policy/profile.json'), 'clean install should copy .harness')
   assert(exists(target, '.claude/settings.json'), 'clean install should copy Claude Code adapter')
   assert(exists(target, 'scripts/absorb-project.mjs'), 'clean install should copy absorb report script')
+  assert(exists(target, 'scripts/list-stack-standards.mjs'), 'clean install should copy stack standard listing script')
   assert(exists(target, 'scripts/list-templates.mjs'), 'clean install should copy template listing script')
   assert(!exists(target, 'scripts/init.mjs'), 'clean install should not copy seed-only init entrypoint')
   assert(exists(target, '.harness/install-manifest.json'), 'clean install should write install manifest')
@@ -65,6 +66,7 @@ function cleanInstallCreatesExpectedFiles() {
   assert(pkg.scripts['harness:check'], 'clean install should merge harness check script')
   assert(pkg.scripts.guard, 'clean install should merge guard script')
   assert(pkg.scripts['absorb:report'], 'clean install should merge absorb report script')
+  assert(pkg.scripts['standards:list'], 'clean install should merge stack standard listing script')
 
   const manifest = JSON.parse(read(target, '.harness/install-manifest.json'))
   assert(manifest.tool === 'harness-seed', 'install manifest should identify harness-seed')
@@ -203,6 +205,34 @@ function makePreset() {
   return preset
 }
 
+function makeRulesOnlyPreset() {
+  const preset = fs.mkdtempSync(path.join(os.tmpdir(), 'harness-seed-rules-only-preset-test-'))
+
+  fs.mkdirSync(path.join(preset, 'instructions'), { recursive: true })
+  fs.writeFileSync(path.join(preset, 'instructions/rules.md'), '# Rules Only\n\nApply stack instructions without copying scaffold files.\n')
+  fs.writeFileSync(path.join(preset, 'manifest.json'), JSON.stringify({
+    id: 'rules-only-demo',
+    title: 'Rules Only Demo',
+    framework: {
+      runtime: 'demo',
+    },
+    designPattern: ['Rules Only Stack Standard'],
+    instructions: ['instructions/rules.md'],
+    policiesFile: 'policies.json',
+    checksKey: null,
+    source: {
+      type: 'none',
+    },
+  }, null, 2))
+  fs.writeFileSync(path.join(preset, 'policies.json'), JSON.stringify({
+    version: 1,
+    stackId: 'rules-only-demo',
+    policies: [],
+  }, null, 2))
+
+  return preset
+}
+
 function stackApplyMaterializesPresetAsLocalRules() {
   const target = makeTarget()
   const preset = makePreset()
@@ -219,6 +249,9 @@ function stackApplyMaterializesPresetAsLocalRules() {
 
   const resetRules = read(target, '.harness/project/stack-preset-rules.md')
   assert(resetRules.includes('적용된 스택 프리셋이 없습니다.'), 'stack reset should restore previous local rules file')
+  const resetProfile = JSON.parse(read(target, '.harness/policy/profile.json'))
+  assert(resetProfile.activeStack === 'none', 'stack reset should restore previous profile')
+  assert(!exists(target, '.harness/stacks/.applied/external-demo/manifest.json'), 'stack reset should remove applied stack snapshot')
 }
 
 function stackApplySupportsExternalPresetPath() {
@@ -242,6 +275,11 @@ function stackApplySupportsExternalPresetPath() {
 
   const pkg = JSON.parse(read(target, 'package.json'))
   assert(pkg.scripts.external === 'echo external', 'external preset should merge package metadata')
+
+  const profile = JSON.parse(read(target, '.harness/policy/profile.json'))
+  assert(profile.activeStack === 'external-demo', 'external preset should update activeStack')
+  assert(profile.stackManifest === '.harness/stacks/.applied/external-demo/manifest.json', 'external preset should snapshot manifest into project')
+  assert(exists(target, '.harness/stacks/.applied/external-demo/instructions/rules.md'), 'external preset should snapshot instruction files')
 }
 
 function stackApplySupportsExternalPresetGit() {
@@ -262,6 +300,31 @@ function stackApplySupportsExternalPresetGit() {
 
   const localRules = read(target, '.harness/project/stack-preset-rules.md')
   assert(localRules.includes('External Demo Preset'), 'git preset should materialize local rules')
+
+  const profile = JSON.parse(read(target, '.harness/policy/profile.json'))
+  assert(profile.activeStack === 'external-demo', 'git preset should update activeStack')
+  assert(exists(target, '.harness/stacks/.applied/external-demo/manifest.json'), 'git preset should snapshot manifest into project')
+}
+
+function stackApplySupportsRulesOnlyPreset() {
+  const target = makeTarget()
+  const preset = makeRulesOnlyPreset()
+
+  runInit(target)
+  run('npm', ['run', 'stack:apply', '--', '--preset-path', preset], { cwd: target })
+
+  assert(!exists(target, 'scaffold'), 'rules-only preset should not copy scaffold files')
+
+  const localRules = read(target, '.harness/project/stack-preset-rules.md')
+  assert(localRules.includes('Rules Only Demo'), 'rules-only preset should materialize title as local rules')
+  assert(localRules.includes('Apply stack instructions without copying scaffold files.'), 'rules-only preset should materialize instructions')
+
+  const marker = JSON.parse(read(target, '.harness/.stack-applied.json'))
+  assert(marker.source.type === 'none', 'rules-only preset should record source.type=none')
+
+  const profile = JSON.parse(read(target, '.harness/policy/profile.json'))
+  assert(profile.activeStack === 'rules-only-demo', 'rules-only preset should update activeStack')
+  assert(profile.stackManifest === '.harness/stacks/.applied/rules-only-demo/manifest.json', 'rules-only preset should snapshot manifest into project')
 }
 
 function absorbReportSuggestsStylePresetsWhenStyleSourceMissing() {
@@ -320,6 +383,7 @@ const tests = [
   stackApplyMaterializesPresetAsLocalRules,
   stackApplySupportsExternalPresetPath,
   stackApplySupportsExternalPresetGit,
+  stackApplySupportsRulesOnlyPreset,
   absorbReportSuggestsStylePresetsWhenStyleSourceMissing,
   absorbReportDraftsStyleRulesFromConfigFiles,
 ]

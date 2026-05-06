@@ -2,7 +2,8 @@
 
 ## 현재 자동 검증 대상
 - 프로젝트에 설치된 formatter/linter 설정
-- `stack:apply`로 적용된 스택 scaffold의 lint 설정
+- 프로젝트에 적용된 스택 기준의 스타일 instruction
+- scaffold가 적용된 경우 해당 scaffold의 lint 설정
 - 공통 하네스의 문서/정책/링크 검증
 
 세미콜론, quote, import 정렬 방식은 공통 하네스가 직접 정하지 않습니다. 해당 프로젝트의 로컬 방법론, formatter/linter 설정, 스택 프리셋 로컬 규칙을 따릅니다.

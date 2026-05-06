@@ -2,23 +2,23 @@
 
 이 문서는 최근 작업 상태와 다음 세션이 바로 이어받아야 할 정보를 담습니다.
 
-## 현재 상태 (2026-04-27)
-- 저장소가 **일반화 하네스 + 외부 스택 프리셋 런타임** 구조로 분리되었습니다.
-- 본체에는 특정 스택 템플릿을 포함하지 않습니다.
+## 현재 상태 (2026-04-30)
+- 저장소가 **일반화 하네스 + 외부 스택 기준 런타임** 구조로 분리되었습니다.
+- 본체에는 특정 스택 기준이나 스택 템플릿을 포함하지 않습니다.
 - root는 일반 하네스 전용입니다.
-- `npm run stack:apply` / `stack:reset` / `stack:status` 로 스택 적용을 제어합니다.
+- `npm run standards:list` / `stack:apply` / `stack:reset` / `stack:status` 로 스택 기준 적용을 제어합니다.
 - 적용 상태는 `.harness/.stack-applied.json` 마커로 기록됩니다 (gitignore — dev 머신/시드 사용자 머신마다 다른 상태).
-- root `package.json`/`package-lock.json`은 항상 슬림 상태(stack:reset 후)로만 커밋합니다. CI는 `apply-stack` 후 `npm install`로 의존성을 설치합니다.
+- `source.type=none`인 스택 기준은 scaffold 없이 instruction만 로컬룰로 정착합니다.
 - 외부 프리셋은 `--preset-path`, `--preset-git`, `stackManifest`로 연결합니다.
-- 외부 빈 디렉토리에 풀어 시드 사용자 시나리오 e2e 검증 통과 (status → guard skip → apply → install → guard full pass).
 
 ## 핵심 파일 (일반 하네스)
 - `.harness/policy/profile.json` — `activeStack` 단일 진실 출처
 - `.harness/policy/policy-registry.json` — stack-agnostic 정책만
-- `.harness/stacks/README.md` — 스택 프리셋 격리 원칙
+- `.harness/stacks/README.md` — 스택 기준과 scaffold 템플릿 격리 원칙
 - `.harness/project/bootstrap.md` — 신규 프로젝트 인터뷰
 - `.harness/project/portability-guide.md` — 이식 절차
-- `scripts/apply-stack.mjs` — 외부 프리셋 적용 런타임
+- `scripts/apply-stack.mjs` — 외부 스택 기준 적용 런타임
+- `scripts/list-stack-standards.mjs` — 원격 스택 기준 후보 조회
 - `scripts/list-templates.mjs` — 원격 템플릿 후보 조회
 - `scripts/guard.mjs` — 미적용 시 lint/test/build 자동 스킵
 - `scripts/doc-link-check.mjs` — scaffold 경로 자동 제외 + 활성 스택 fallback
@@ -26,7 +26,8 @@
 ## 다음 세션이 바로 이어받을 작업
 - 프로젝트 헌장 `TBD` 항목 채우기
 - 첫 실제 도메인 feature 후보 결정
-- 필요 시 `npm run templates:list`로 외부 템플릿 후보를 조회한 뒤 `npm run stack:apply -- --preset-git <repo-url> --ref <tag>` 실행
+- 필요 시 `npm run standards:list`로 외부 스택 기준 후보를 조회한 뒤 `npm run stack:apply -- --preset-git <repo-url> --ref <tag>` 실행
+- scaffold가 필요할 때만 `npm run templates:list`로 템플릿 후보를 별도 조회
 
 ## 마지막 검증
 - 외부 프리셋 fixture로 `npm run stack:apply` → `npm run stack:reset` 통과

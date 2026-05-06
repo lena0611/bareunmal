@@ -81,12 +81,21 @@ const dynamicArtifactPaths = new Set([
   'scripts/test-init.mjs',
 ])
 
+const dynamicArtifactPrefixes = [
+  '.harness/stacks/.applied/',
+  '.github/stacks/.applied/',
+]
+
 function toPosix(p) {
   return p.split(path.sep).join('/')
 }
 
 function exists(rel) {
   if (dynamicArtifactPaths.has(rel)) {
+    return true
+  }
+
+  if (dynamicArtifactPrefixes.some((prefix) => rel.startsWith(prefix))) {
     return true
   }
 
@@ -126,7 +135,7 @@ function listMarkdownFiles() {
   const markdownFiles = walk(harnessRoot)
     .filter((f) => f.endsWith('.md'))
     .map((f) => toPosix(path.relative(repoRoot, f)))
-    .filter((rel) => !rel.includes('/scaffold/'))
+    .filter((rel) => !rel.includes('/scaffold/') && !rel.includes('/.applied/'))
 
   if (fs.existsSync(path.join(repoRoot, '.claude'))) {
     markdownFiles.push(
@@ -293,7 +302,7 @@ function findStackIsolationViolations() {
     for (const file of files) {
       const rel = toPosix(path.relative(repoRoot, file))
 
-      if (rel.includes('/scaffold/')) {
+      if (rel.includes('/scaffold/') || rel.includes('/.applied/')) {
         continue
       }
 

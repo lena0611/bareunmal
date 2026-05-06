@@ -298,7 +298,7 @@ function collectViolations() {
     return violations
   }
 
-  console.warn(`checksKey='${checksKey}' 는 본체에서 실행하지 않습니다. 프리셋 전용 검사는 해당 템플릿 저장소의 guard에 연결하세요.`)
+  console.warn(`checksKey='${checksKey}' 는 본체에서 실행하지 않습니다. 프리셋 전용 검사는 해당 스택 기준 또는 템플릿 저장소의 guard에 연결하세요.`)
 
   return violations
 }

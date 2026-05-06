@@ -42,7 +42,8 @@
       "ownedAreas": [
         ".harness/stacks/**",
         ".harness/policy/profile.json",
-        "scripts/apply-stack.mjs"
+        "scripts/apply-stack.mjs",
+        "scripts/list-stack-standards.mjs"
       ],
       "checks": []
     }

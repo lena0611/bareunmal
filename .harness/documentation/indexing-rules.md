@@ -19,3 +19,8 @@
 - 같은 문서군 내부 링크는 상대 경로를 사용합니다.
 - 새 세션에서 먼저 읽어야 하는 문서는 상위 인덱스 문서에 반드시 링크합니다.
 - 문서를 분리하면 기존 진입 문서는 새 하위 문서 링크로 갱신합니다.
+
+## 5. 자동 생성 스냅샷 예외
+- `.harness/stacks/.applied/`는 `stack:apply`가 외부 스택 기준을 프로젝트에 정착시키기 위해 생성하는 스냅샷 영역입니다.
+- 이 영역의 instruction 문서는 원격 스택 기준의 복사본이므로 `document-registry.json`에 등록하지 않습니다.
+- doc-link 검사는 `.harness/stacks/.applied/` 아래 Markdown을 orphan 문서로 보지 않습니다.

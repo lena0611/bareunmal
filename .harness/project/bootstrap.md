@@ -29,7 +29,7 @@
 
 질문 예시:
 > 사용할 스택 프리셋을 골라주세요.
-> - 사내 스택 기준 — `ai-standard/harnesses`의 스택 기준 패키지
+> - 사내 스택 기준 — `npm run standards:list`로 `ai-standard/harnesses`의 스택 기준 패키지 조회
 > - scaffold 템플릿 — `npm run templates:list`로 후보를 조회한 뒤 선택
 > - 로컬 스택 자산 — 별도 폴더의 `manifest.json` 경로를 `stackManifest`에 기록
 > - `none` — 예외적으로 공통 기준만 운영. 사유를 `decision-log.md`에 기록
@@ -41,12 +41,14 @@
 
 ```bash
 npm run stack:status            # 현재 적용 상태 확인
-npm run stack:apply             # scaffold 복사 + package.json 머지 + .stack-applied.json 기록
+npm run standards:list          # 사내 스택 기준 후보 조회
+npm run stack:apply             # 스택 기준 로컬룰 적용, scaffold가 있으면 파일 복사와 package.json 머지
 npm install
 npm run harness:check
 ```
 
 - 스택 미적용 상태에서도 `npm run harness:check`는 일반 인프라 검사(기준 동기화 + 문서)만 실행하고 lint/test/build는 건너뜁니다.
+- `source.type=none`인 스택 기준은 파일 복사 없이 `.harness/project/stack-preset-rules.md`만 갱신합니다.
 - 스택을 바꾸고 싶으면 `npm run stack:reset` 으로 먼저 적용을 되돌린 뒤 `activeStack`을 바꾸고 다시 `stack:apply`를 실행합니다.
 - 원격 프리셋을 적용하려면 `npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>`를 사용합니다.
 - 외부 프리셋을 일회성으로 적용하려면 `npm run stack:apply -- --preset-path <preset-dir>`를 사용합니다.

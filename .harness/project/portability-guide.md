@@ -5,17 +5,17 @@
 ## 분리 원칙
 - 일반 인프라(세션/문서/기준 동기화/스타일 하네스, doc-link 검증, SYNC GAP 검출)는 모든 프로젝트에서 그대로 재사용합니다.
 - 프레임워크-특화 검사는 프로파일로만 켜고 끕니다.
-- 프리셋은 본체 내부에 고정하지 않고 외부 `manifest.json`으로도 연결할 수 있습니다.
+- 스택 기준과 scaffold 템플릿은 본체 내부에 고정하지 않고 외부 `manifest.json`으로 연결합니다.
 
 ## 이식 절차
 1. 기존 프로젝트 루트에서 `npx -y git+<seed-repo-url>#<tag> init`을 실행합니다. 안정 재현을 위해 `main`/`master` 대신 릴리스 tag를 사용합니다.
 2. `npm run hooks:install`로 로컬 hook을 연결합니다.
-3. `.harness/policy/profile.json`의 `activeStack`을 원하는 값으로 변경합니다 (구조만 쓰고 싶으면 `"none"`).
+3. `npm run standards:list`로 사용할 스택 기준 후보를 확인합니다.
 4. `npm run harness:check`로 일반 하네스가 통과하는지 먼저 확인합니다.
-5. 스택 scaffold가 필요하면 `npm run stack:apply`를 실행합니다.
+5. `npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>`로 스택 기준을 로컬룰로 정착합니다.
 6. `stack:apply`가 `.harness/project/stack-preset-rules.md`에 스택 instructions를 로컬룰로 반영했는지 확인합니다.
-7. `npm install` 후 `npm run harness:check`로 lint/test/build까지 검증합니다.
-8. 새 스택이 필요하면 외부 프리셋 폴더나 저장소를 만들고 `manifest.json + policies.json + instructions/ + scaffold/ + package.merge.json` 계약을 맞춥니다.
+7. scaffold가 함께 적용되었으면 `npm install` 후 `npm run harness:check`로 lint/test/build까지 검증합니다.
+8. 새 스택이 필요하면 외부 프리셋 폴더나 저장소를 만들고 `manifest.json + policies.json + instructions/` 계약을 맞춥니다. scaffold가 있는 경우에만 `scaffold/ + package.merge.json`을 추가합니다.
 9. `policy-registry.json`은 일반 개발 기준만 유지합니다. 스택-특화 기준은 스택의 `policies.json`으로만 둡니다.
 10. `policy-harness.mjs`의 framework-specific 블록은 새 `checksKey`를 원할 때만 분기 확장합니다.
 11. `project-charter.md`, `scope-contract.md`를 새 도메인 정보로 채웁니다.
@@ -29,8 +29,9 @@
 ## 소스 어댑터 (`source.type`)
 - `local`: manifest 기준 상대 경로의 `scaffold/` 폴더에서 직접 복사. 현재 기본.
 - `tiged`: 외부 GitHub 저장소에서 `npx tiged`로 scaffold를 가져오기.
+- `none`: scaffold 파일 복사 없이 instruction만 로컬룰로 정착.
 - 외부 프리셋 연결: `npm run stack:apply -- --preset-path <preset-dir>` 또는 `profile.json`의 `stackManifest`.
-- 마이그레이션 시점: 스택을 다른 저장소에서 공유해야 하는 시점. 본체에 새 프리셋을 계속 추가하지 않습니다.
+- 분리 시점: 스택을 다른 저장소에서 공유해야 하는 시점. 본체에 새 프리셋을 계속 추가하지 않습니다.
 - 전환 방법: 스택 `manifest.json`의 `source` 섹션을 `{ "type": "tiged", "ref": "owner/repo#tag-or-branch" }`로 바꾸면 됩니다 (인터페이스 동일).
 
 ## 릴리스와 실행 방식

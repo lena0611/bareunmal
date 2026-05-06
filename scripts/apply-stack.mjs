@@ -11,6 +11,7 @@ const harnessRootRel = fs.existsSync(path.join(repoRoot, '.harness')) ? '.harnes
 const harnessRoot = path.join(repoRoot, harnessRootRel)
 const profilePath = path.join(harnessRoot, harnessRootRel === '.harness' ? 'policy' : 'policy-harness', 'profile.json')
 const stacksRoot = path.join(harnessRoot, 'stacks')
+const appliedStacksRoot = path.join(stacksRoot, '.applied')
 const markerPath = path.join(harnessRoot, '.stack-applied.json')
 const stackPresetRulesRel = `${harnessRootRel}/project/stack-preset-rules.md`
 const stackPresetRulesPath = path.join(repoRoot, stackPresetRulesRel)
@@ -50,6 +51,31 @@ function readJson(absPath, fallback = null) {
 
 function writeJson(absPath, value) {
   fs.writeFileSync(absPath, `${JSON.stringify(value, null, 2)}\n`)
+}
+
+function copyDirectoryExcluding(srcDir, destDir, shouldExclude) {
+  if (!fs.existsSync(srcDir)) {
+    return
+  }
+
+  for (const entry of fs.readdirSync(srcDir, { withFileTypes: true })) {
+    const src = path.join(srcDir, entry.name)
+    const dest = path.join(destDir, entry.name)
+    const rel = toPosix(path.relative(srcDir, src))
+
+    if (shouldExclude(rel, entry)) {
+      continue
+    }
+
+    if (entry.isDirectory()) {
+      fs.mkdirSync(dest, { recursive: true })
+      copyDirectoryExcluding(src, dest, (childRel, childEntry) => shouldExclude(`${rel}/${childRel}`, childEntry))
+      continue
+    }
+
+    fs.mkdirSync(path.dirname(dest), { recursive: true })
+    fs.copyFileSync(src, dest)
+  }
 }
 
 function readProfile() {
@@ -138,6 +164,67 @@ function deleteMarker() {
   if (fs.existsSync(markerPath)) {
     fs.unlinkSync(markerPath)
   }
+}
+
+function snapshotStackStandard(stackId, manifest, context) {
+  const snapshotRoot = path.join(appliedStacksRoot, stackId)
+  fs.rmSync(snapshotRoot, { recursive: true, force: true })
+  fs.mkdirSync(snapshotRoot, { recursive: true })
+
+  const sourcePath = manifest.source?.path
+  const sourceRel = sourcePath ? toPosix(sourcePath) : null
+  const packageMergeRel = manifest.source?.packageMerge ? toPosix(manifest.source.packageMerge) : null
+
+  copyDirectoryExcluding(context.manifestRoot, snapshotRoot, (rel, entry) => {
+    if (rel === '.git' || rel.startsWith('.git/')) {
+      return true
+    }
+
+    if (sourceRel && (rel === sourceRel || rel.startsWith(`${sourceRel}/`))) {
+      return true
+    }
+
+    if (packageMergeRel && rel === packageMergeRel) {
+      return true
+    }
+
+    return false
+  })
+
+  const snapshotManifestPath = path.join(snapshotRoot, 'manifest.json')
+  const snapshotManifest = readJson(snapshotManifestPath, manifest)
+  snapshotManifest.source = { type: 'none' }
+  writeJson(snapshotManifestPath, snapshotManifest)
+
+  return {
+    root: toPosix(path.relative(repoRoot, snapshotRoot)),
+    manifestPath: toPosix(path.relative(repoRoot, snapshotManifestPath)),
+  }
+}
+
+function updateProfileForAppliedStack(stackId, stackSnapshot) {
+  const previous = readProfile()
+  const next = {
+    ...previous,
+    activeStack: stackId,
+    available: unique([...(previous.available ?? ['none']), stackId]),
+    stackManifest: stackSnapshot.manifestPath,
+  }
+
+  writeJson(profilePath, next)
+  return previous
+}
+
+function restoreProfile(snapshot) {
+  if (!snapshot) {
+    return
+  }
+
+  writeJson(profilePath, snapshot)
+}
+
+function unique(values) {
+  return [...new Set(values)]
 }
 
 function listScaffoldFiles(scaffoldRoot) {
@@ -374,9 +461,14 @@ function adapterTiged(manifest) {
   }
 }
 
+function adapterNone() {
+  return { copied: [], packageMergeData: null }
+}
+
 const SOURCE_ADAPTERS = {
   local: adapterLocal,
   tiged: adapterTiged,
+  none: adapterNone,
 }
 
 // ---------- Commands ----------
@@ -418,7 +510,7 @@ function commandApply() {
 
   if ((!stackId || stackId === 'none') && !hasExternalPresetInput) {
     console.error(`activeStack이 설정되지 않았습니다. ${toPosix(path.relative(repoRoot, profilePath))}의 activeStack을 먼저 지정하세요.`)
-    console.error('외부 템플릿을 바로 적용하려면 npm run stack:apply -- --preset-path <dir> 또는 --preset-git <repo-url> --ref <tag>를 사용하세요.')
+    console.error('외부 스택 기준을 바로 적용하려면 npm run stack:apply -- --preset-path <dir> 또는 --preset-git <repo-url> --ref <tag>를 사용하세요.')
     process.exit(1)
   }
 
@@ -451,6 +543,8 @@ function commandApply() {
   const copiedFiles = result.copied
   const packageBackup = mergePackageJson(result.packageMergeData)
   const stackLocalRulesBackup = applyStackLocalRules(stackId, manifest, context.manifestRoot)
+  const stackSnapshot = snapshotStackStandard(stackId, manifest, context)
+  const profileBackup = updateProfileForAppliedStack(stackId, stackSnapshot)
 
   writeMarker({
     stackId,
@@ -460,15 +554,23 @@ function commandApply() {
     copiedFiles,
     packageJsonBackup: packageBackup,
     stackLocalRulesBackup,
+    stackSnapshot,
+    profileBackup,
   })
 
   console.log(`Applied. ${copiedFiles.length} file(s) copied.`)
-  if (hasExternalPresetInput && !profile.stackManifest) {
-    console.log('참고: 이 외부 프리셋을 계속 쓰려면 .harness/policy/profile.json의 stackManifest에 manifest.json 경로를 기록하세요.')
+  if (sourceType === 'none') {
+    console.log('rules-only 스택 기준입니다. scaffold 파일 복사는 수행하지 않았습니다.')
   }
+  console.log(`stackManifest: ${stackSnapshot.manifestPath}`)
   console.log('다음 단계:')
-  console.log('  1. npm install')
-  console.log('  2. npm run harness:check')
+  if (sourceType !== 'none') {
+    console.log('  1. npm install')
+    console.log('  2. npm run harness:check')
+  } else {
+    console.log('  1. .harness/project/stack-preset-rules.md 확인')
+    console.log('  2. npm run harness:check')
+  }
 }
 
 function removeEmptyParents(absPath) {
@@ -506,6 +608,11 @@ function commandReset() {
 
   restorePackageJson(marker.packageJsonBackup)
   restoreStackLocalRules(marker.stackLocalRulesBackup)
+  restoreProfile(marker.profileBackup)
+  if (marker.stackSnapshot?.root) {
+    fs.rmSync(path.join(repoRoot, marker.stackSnapshot.root), { recursive: true, force: true })
+    removeEmptyParents(path.join(repoRoot, marker.stackSnapshot.root))
+  }
   deleteMarker()
 
   console.log(`Reset complete. ${removed} file(s) removed. package.json도 적용 전 상태로 복원했습니다.`)

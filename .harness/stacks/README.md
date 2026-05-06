@@ -14,6 +14,37 @@
 
 하네스시드 본체는 특정 스택 기준이나 scaffold 템플릿을 포함하지 않습니다. 프로젝트 적용 시에는 스택 기준을 선택하고, 필요한 경우 별도 템플릿 저장소에서 scaffold를 적용합니다.
 
+## 스택 기준 후보 조회
+사내 GitLab에서는 `ai-standard/harnesses` 하위 저장소를 스택 기준 후보로 조회합니다.
+
+```bash
+npm run standards:list
+```
+
+비공개 그룹이면 토큰을 함께 전달합니다.
+
+```bash
+GITLAB_TOKEN=<private-token> npm run standards:list
+```
+
+현재 예정된 스택 기준 후보 예시:
+
+```bash
+npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/harnesses/vue3-vite-pinia-router.git --ref master
+```
+
+기본 조회 대상:
+- GitLab URL: `https://git.smartscore.kr`
+- 그룹: `ai-standard/harnesses`
+
+필요하면 환경변수로 바꿉니다.
+
+```bash
+HARNESS_GITLAB_URL=https://git.example.com \
+HARNESS_STACK_STANDARD_GROUP=ai-standard/harnesses \
+npm run standards:list
+```
+
 ## scaffold 템플릿 후보 조회
 사내 GitLab에서는 `ai-standard/stacks` 하위 저장소를 템플릿 후보로 조회합니다.
 
@@ -75,7 +106,7 @@ my-stack-preset/
   policies.json
   instructions/
     architecture.md
-  scaffold/
+  scaffold/                 # scaffold가 있는 경우에만 필요
     package.merge.json
     ...
 ```
@@ -93,6 +124,21 @@ my-stack-preset/
     "type": "local",
     "path": "scaffold",
     "packageMerge": "scaffold/package.merge.json"
+  }
+}
+```
+
+스택 기준만 있고 scaffold가 없으면 `source.type`을 `none`으로 둡니다.
+
+```json
+{
+  "id": "my-stack",
+  "title": "My Stack",
+  "instructions": ["instructions/architecture.md"],
+  "policiesFile": "policies.json",
+  "checksKey": null,
+  "source": {
+    "type": "none"
   }
 }
 ```
@@ -119,7 +165,7 @@ npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>
 }
 ```
 
-`stack:apply`는 선택한 스택 자산의 instruction을 `.harness/project/stack-preset-rules.md`에 로컬룰로 기록합니다. 따라서 스택의 스타일/아키텍처 기준은 공통 하네스의 전역 강제가 아니라, 해당 프로젝트가 선택한 로컬 기준으로 해석합니다.
+`stack:apply`는 선택한 스택 자산의 instruction을 `.harness/project/stack-preset-rules.md`에 로컬룰로 기록합니다. `source.type=none`이면 파일 복사 없이 기준 문서만 정착합니다. 따라서 스택의 스타일/아키텍처 기준은 공통 하네스의 전역 강제가 아니라, 해당 프로젝트가 선택한 로컬 기준으로 해석합니다.
 
 적용 후에는 `npm run harness:check`로 일반 하네스 문서, 기준, 링크, 적용된 스택 상태를 함께 확인합니다.
 

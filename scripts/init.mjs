@@ -52,6 +52,7 @@ const INSTALL_ITEMS = [
   'scripts/policy-harness.mjs',
   'scripts/doc-link-check.mjs',
   'scripts/absorb-project.mjs',
+  'scripts/list-stack-standards.mjs',
   'scripts/list-templates.mjs',
   'scripts/check-node-version.mjs',
   'scripts/check-seed-mode.mjs',
@@ -650,8 +651,9 @@ function main() {
        .harness/session/absorb-report.md
   2) git hook 활성화
        npm run hooks:install
-  3) 스택 기준 선택 및 선택: scaffold가 필요하면 템플릿 후보 조회 후 적용
+  3) 스택 기준 선택, 필요하면 scaffold 템플릿 후보 조회 후 적용
        npm run stack:status
+       npm run standards:list
        npm run templates:list
        npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>
   4) 작업 중간에 다시 검사
