@@ -72,15 +72,17 @@ function cleanInstallCreatesExpectedFiles() {
   assert(pkg.scripts['harness:outdated'], 'clean install should merge harness outdated script')
   assert(pkg.scripts['harness:update'], 'clean install should merge harness update script')
   assert(pkg.scripts['standards:list'], 'clean install should merge stack standard listing script')
+  assert(pkg.scripts['template:apply'], 'clean install should merge template apply script')
+  assert(exists(target, '.harness/project/template-contract.md'), 'clean install should copy template contract bridge')
 
   const manifest = JSON.parse(read(target, '.harness/install-manifest.json'))
   assert(manifest.tool === 'harness-seed', 'install manifest should identify harness-seed')
-  assert(manifest.version === '0.2.14', 'install manifest should record package version')
-  assert(manifest.source.packageVersion === '0.2.14', 'install manifest should record source package version')
+  assert(manifest.version === '0.2.15', 'install manifest should record package version')
+  assert(manifest.source.packageVersion === '0.2.15', 'install manifest should record source package version')
   assert(manifest.managedFiles['scripts/guard.mjs'], 'install manifest should record managed files')
 
   const lock = JSON.parse(read(target, '.harness/harness-lock.json'))
-  assert(lock.baseHarness.version === '0.2.14', 'harness lock should record base harness version')
+  assert(lock.baseHarness.version === '0.2.15', 'harness lock should record base harness version')
 
   const profile = JSON.parse(read(target, '.harness/policy/profile.json'))
   assert(profile.activeStack === 'none', 'clean install should default to stack-agnostic mode')
@@ -288,8 +290,8 @@ function makePreset() {
     },
     baseHarness: {
       repo: 'https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git',
-      ref: 'v0.2.14',
-      minVersion: '0.2.14',
+      ref: 'v0.2.15',
+      minVersion: '0.2.15',
     },
     framework: {
       runtime: 'demo',
@@ -338,6 +340,63 @@ function makeRulesOnlyPreset() {
     version: 1,
     stackId: 'rules-only-demo',
     policies: [],
+  }, null, 2))
+
+  return preset
+}
+
+function makeScaffoldTemplatePreset(requiredStackId = 'rules-only-demo') {
+  const preset = fs.mkdtempSync(path.join(os.tmpdir(), 'harness-seed-template-preset-test-'))
+
+  fs.mkdirSync(path.join(preset, 'developmentGuide'), { recursive: true })
+  fs.mkdirSync(path.join(preset, 'src'), { recursive: true })
+  fs.mkdirSync(path.join(preset, 'node_modules/ignored'), { recursive: true })
+  fs.writeFileSync(path.join(preset, 'README.md'), '# Demo Template\n')
+  fs.writeFileSync(path.join(preset, 'developmentGuide/README.md'), '# Template Guide\n')
+  fs.writeFileSync(path.join(preset, 'developmentGuide/menu.md'), '# Menu Contract\n')
+  fs.writeFileSync(path.join(preset, 'src/App.vue'), '<template><main>demo</main></template>\n')
+  fs.writeFileSync(path.join(preset, 'node_modules/ignored/file.txt'), 'ignore me\n')
+  fs.writeFileSync(path.join(preset, 'package.json'), JSON.stringify({
+    name: 'demo-template',
+    version: '1.2.3',
+    private: true,
+    type: 'module',
+    scripts: {
+      dev: 'vite',
+    },
+    dependencies: {
+      vue: '^3.5.0',
+    },
+  }, null, 2))
+  fs.writeFileSync(path.join(preset, 'manifest.json'), JSON.stringify({
+    kind: 'scaffold-template',
+    id: 'demo-template',
+    title: 'Demo Scaffold Template',
+    version: '1.2.3',
+    template: {
+      repo: 'https://example.test/demo-template.git',
+      ref: 'v1.2.3',
+      range: '^1.2.3',
+      guideRoot: 'developmentGuide/README.md',
+      docs: [
+        'developmentGuide/README.md',
+        'developmentGuide/menu.md',
+      ],
+    },
+    requiredStackHarness: {
+      id: requiredStackId,
+      repo: 'https://example.test/rules-only-demo.git',
+      ref: 'v1.0.0',
+    },
+    source: {
+      type: 'local',
+      path: '.',
+      packageMerge: 'package.json',
+      exclude: [
+        'manifest.json',
+        'package.json',
+      ],
+    },
   }, null, 2))
 
   return preset
@@ -424,7 +483,7 @@ function stackApplySupportsExternalPresetPath() {
   assert(lock.stackHarness.repo === 'https://example.test/external-demo.git', 'harness lock should record stack repository')
   assert(lock.stackHarness.ref === 'v9.8.7', 'harness lock should record stack ref')
   assert(lock.stackHarness.manifestPath === '.harness/stacks/.applied/external-demo/manifest.json', 'harness lock should record stack manifest snapshot')
-  assert(lock.stackHarness.requiredBaseHarness.ref === 'v0.2.14', 'harness lock should record required base harness ref')
+  assert(lock.stackHarness.requiredBaseHarness.ref === 'v0.2.15', 'harness lock should record required base harness ref')
 
   const updatePlan = run('npm', ['run', 'harness:update', '--', '--dry-run'], { cwd: target })
   assert(updatePlan.includes('npx -y git+https://example.test/external-demo.git#semver:^9.8.7 init'), 'harness update dry-run should target compatible stack range')
@@ -509,6 +568,77 @@ function stackApplySupportsRulesOnlyPreset() {
   assert(lock.stackHarness.requiredBaseHarness === null, 'rules-only preset without baseHarness should record null base requirement')
 }
 
+function templateApplyCreatesBridgeWithoutReplacingActiveStack() {
+  const target = makeTarget()
+  const stackPreset = makeRulesOnlyPreset()
+  const templatePreset = makeScaffoldTemplatePreset()
+
+  runInit(target)
+  run('npm', ['run', 'stack:apply', '--', '--preset-path', stackPreset], { cwd: target })
+  run('npm', ['run', 'template:apply', '--', '--preset-path', templatePreset], { cwd: target })
+
+  assert(exists(target, 'src/App.vue'), 'template apply should copy scaffold files')
+  assert(!exists(target, 'node_modules/ignored/file.txt'), 'template apply should exclude node_modules')
+  assert(!exists(target, 'manifest.json'), 'template apply should not copy template manifest to project root')
+
+  const pkg = JSON.parse(read(target, 'package.json'))
+  assert(pkg.scripts['harness:check'], 'template package merge should preserve harness scripts')
+  assert(pkg.scripts.dev === 'vite', 'template package merge should add template scripts')
+  assert(pkg.dependencies.vue === '^3.5.0', 'template package merge should add template dependencies')
+
+  const contract = read(target, '.harness/project/template-contract.md')
+  assert(contract.includes('Demo Scaffold Template'), 'template apply should write template contract bridge')
+  assert(contract.includes('developmentGuide/README.md'), 'template contract should list guide root')
+  assert(contract.includes('rules-only-demo'), 'template contract should list required stack')
+
+  const profile = JSON.parse(read(target, '.harness/policy/profile.json'))
+  assert(profile.activeStack === 'rules-only-demo', 'template apply should not replace active stack')
+
+  const lock = JSON.parse(read(target, '.harness/harness-lock.json'))
+  assert(lock.stackHarness.id === 'rules-only-demo', 'template apply should preserve stack harness lock')
+  assert(lock.scaffoldTemplate.id === 'demo-template', 'template apply should record scaffold template lock')
+  assert(lock.scaffoldTemplate.version === '1.2.3', 'template lock should record template version')
+  assert(lock.scaffoldTemplate.requiredStackHarness.id === 'rules-only-demo', 'template lock should record required stack')
+
+  const marker = JSON.parse(read(target, '.harness/.template-applied.json'))
+  assert(marker.templateId === 'demo-template', 'template marker should record applied template id')
+  assert(marker.manifestPath === '.harness/templates/.applied/demo-template/manifest.json', 'template marker should point to template snapshot')
+  assert(exists(target, '.harness/templates/.applied/demo-template/manifest.json'), 'template apply should snapshot manifest')
+  assert(exists(target, '.harness/templates/.applied/demo-template/developmentGuide/README.md'), 'template apply should snapshot guide docs')
+
+  const status = run('npm', ['run', 'template:status'], { cwd: target })
+  assert(status.includes('template: demo-template 1.2.3'), 'template status should show template version')
+  assert(status.includes('requiredStack: rules-only-demo'), 'template status should show required stack')
+
+  run('npm', ['run', 'template:reset'], { cwd: target })
+  assert(!exists(target, 'src/App.vue'), 'template reset should remove scaffold files')
+  assert(!exists(target, '.harness/.template-applied.json'), 'template reset should remove marker')
+  const resetLock = JSON.parse(read(target, '.harness/harness-lock.json'))
+  assert(resetLock.stackHarness.id === 'rules-only-demo', 'template reset should preserve stack harness lock')
+  assert(resetLock.scaffoldTemplate === null, 'template reset should clear template lock')
+}
+
+function templateApplyStopsWhenRequiredStackDoesNotMatch() {
+  const target = makeTarget()
+  const stackPreset = makeRulesOnlyPreset()
+  const templatePreset = makeScaffoldTemplatePreset('other-stack')
+
+  runInit(target)
+  run('npm', ['run', 'stack:apply', '--', '--preset-path', stackPreset], { cwd: target })
+
+  let failed = false
+  try {
+    run('npm', ['run', 'template:apply', '--', '--preset-path', templatePreset], { cwd: target })
+  } catch (error) {
+    failed = error.status === 1
+    assert(String(error.stderr).includes('템플릿 요구 스택'), 'template mismatch should explain required stack failure')
+  }
+
+  assert(failed, 'template apply should fail when required stack does not match')
+  assert(!exists(target, 'src/App.vue'), 'template mismatch should not copy scaffold files')
+  assert(!exists(target, '.harness/.template-applied.json'), 'template mismatch should not write marker')
+}
+
 function absorbReportSuggestsStylePresetsWhenStyleSourceMissing() {
   const target = makeTarget()
 
@@ -569,6 +699,8 @@ const tests = [
   harnessOutdatedDetectsCompatibleStackUpdate,
   stackApplySupportsExternalPresetGit,
   stackApplySupportsRulesOnlyPreset,
+  templateApplyCreatesBridgeWithoutReplacingActiveStack,
+  templateApplyStopsWhenRequiredStackDoesNotMatch,
   absorbReportSuggestsStylePresetsWhenStyleSourceMissing,
   absorbReportDraftsStyleRulesFromConfigFiles,
 ]

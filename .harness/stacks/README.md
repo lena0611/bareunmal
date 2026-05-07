@@ -66,8 +66,10 @@ GITLAB_TOKEN=<private-token> npm run templates:list
 현재 등록된 템플릿 후보 예시입니다. 실제 적용 방법은 해당 템플릿 저장소의 README와 manifest 계약을 먼저 확인합니다.
 
 ```bash
-npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/stacks/cloud-front-admin-template.git --ref <tag-or-branch>
+npm run template:apply -- --preset-git https://git.smartscore.kr/ai-standard/stacks/cloud-front-admin-template.git --ref <tag-or-branch>
 ```
+
+템플릿을 적용하면 코드와 템플릿 개발 가이드는 프로젝트에 복사되고, `.harness/project/template-contract.md`에는 템플릿 사용 계약 브리지가 생성됩니다. 템플릿 가이드 전체를 프로젝트 로컬룰로 다시 복사하지 않고, 프로젝트별 예외와 보충 규칙만 `.harness/project/*`에 남깁니다.
 
 기본 조회 대상:
 - GitLab URL: `https://git.smartscore.kr`
@@ -132,8 +134,8 @@ my-stack-preset/
   },
   "baseHarness": {
     "repo": "https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git",
-    "ref": "v0.2.14",
-    "minVersion": "0.2.14"
+    "ref": "v0.2.15",
+    "minVersion": "0.2.15"
   },
   "compatibility": {
     "allowEmptyProject": true,
@@ -168,8 +170,8 @@ my-stack-preset/
   },
   "baseHarness": {
     "repo": "https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git",
-    "ref": "v0.2.14",
-    "minVersion": "0.2.14"
+    "ref": "v0.2.15",
+    "minVersion": "0.2.15"
   },
   "compatibility": {
     "allowEmptyProject": true,
@@ -234,6 +236,15 @@ npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>
 ```
 
 `stack:apply`는 선택한 스택 자산의 instruction을 `.harness/project/stack-preset-rules.md`에 로컬룰로 기록합니다. `source.type=none`이면 파일 복사 없이 기준 문서만 정착합니다. 따라서 스택의 스타일/아키텍처 기준은 공통 하네스의 전역 강제가 아니라, 해당 프로젝트가 선택한 로컬 기준으로 해석합니다.
+
+scaffold 템플릿은 스택 기준과 분리해서 적용합니다.
+
+```bash
+npm run template:apply -- --preset-path ../my-scaffold-template
+npm run template:apply -- --preset-git <repo-url> --ref <tag-or-branch>
+```
+
+`template:apply`는 템플릿 manifest의 `requiredStackHarness`가 현재 적용된 스택 하네스와 맞는지 확인한 뒤 파일을 복사하고, `.harness/project/template-contract.md`와 `.harness/templates/.applied/<template-id>/manifest.json`에 출처를 남깁니다. 템플릿을 되돌릴 때는 `npm run template:reset`, 적용 상태만 확인할 때는 `npm run template:status`를 사용합니다.
 
 적용 후에는 `npm run harness:check`로 일반 하네스 문서, 기준, 링크, 적용된 스택 상태를 함께 확인합니다.
 

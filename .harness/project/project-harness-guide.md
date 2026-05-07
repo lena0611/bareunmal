@@ -45,6 +45,7 @@
 | `local-methodology.md` | 프로젝트 하네스의 진입점과 우선순위 |
 | `standards-layers.md` | 공통/스택/프로젝트/개인 기준의 계층과 충돌 처리 방식 |
 | `stack-preset-rules.md` | 적용된 스택 하네스 기준. 관리 섹션은 직접 수정하지 않음 |
+| `template-contract.md` | 적용된 scaffold 템플릿의 사용 계약 브리지. 전체 가이드는 템플릿 저장소가 소유 |
 | `domain-rules.md` | 업무 용어, 핵심 엔티티, 도메인 불변식, 외부 시스템 계약 |
 | `architecture-rules.md` | 모듈 경계, 의존 방향, 데이터 흐름, 공개 API 경계 |
 | `workflow-rules.md` | 개발, 리뷰, 릴리스, 장애 대응, 검증 명령 |

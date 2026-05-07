@@ -10,7 +10,7 @@
 ## 사용 가능한 스택 기준
 - `none` — 일반 하네스만 사용
 - 사내 스택 기준 — `npm run standards:list`, `--preset-path`, `--preset-git`, `stackManifest`로 연결
-- scaffold 템플릿 — `npm run templates:list`로 조회한 뒤 필요한 경우 별도 적용
+- scaffold 템플릿 — `npm run templates:list`로 조회한 뒤 `template:apply`로 별도 적용
 
 ## 활성 스택 결정
 - `.harness/policy/profile.json`의 `activeStack`이 단일 진실 출처입니다.
@@ -33,8 +33,10 @@
   - `--preset-path`: 로컬 프리셋 폴더의 `manifest.json` 사용
   - `--preset-git`: 원격 저장소를 임시 clone해 `manifest.json` 사용
   - `stackManifest`: 프로젝트에 고정된 외부 manifest 경로 사용
-- 적용 시 `.harness/project/stack-preset-rules.md`에 instruction을 정착하고 `.harness/.stack-applied.json` 마커를 기록합니다. scaffold가 있으면 root `package.json`에 `package.merge.json`을 머지합니다.
+- 스택 적용 시 `.harness/project/stack-preset-rules.md`에 instruction을 정착하고 `.harness/.stack-applied.json` 마커를 기록합니다.
+- 템플릿 적용 시 `.harness/project/template-contract.md`에 사용 계약 브리지를 정착하고 `.harness/.template-applied.json` 마커를 기록합니다.
 - `stack:reset`은 마커를 기준으로 복사된 파일 제거 + package.json 적용 전 상태로 복원.
+- `template:reset`은 템플릿 마커를 기준으로 복사된 파일 제거 + package.json 적용 전 상태로 복원.
 - `harness:outdated`는 `.harness/harness-lock.json`의 스택 하네스 repo/version을 읽고 원격 tag에서 업데이트 후보만 확인. 프로젝트 파일은 수정하지 않음.
 - `harness:update`는 `.harness/harness-lock.json`의 스택 하네스 repo/version을 읽고 기본 `compatible` 전략으로 같은 SemVer caret 범위의 최신 태그를 다시 실행.
 - harness 스크립트는 충돌 시 항상 우선 (스택이 덮어쓰지 못함).
@@ -49,6 +51,7 @@
 - `npm run policy:guard` / `policy:guard:strict`
 - `npm run docs:check` / `docs:check:strict`
 - `npm run standards:list` / `stack:status` / `stack:apply` / `stack:reset`
+- `npm run templates:list` / `template:status` / `template:apply` / `template:reset`
 - CI에서는 `npm run harness:check:strict`를 기준으로 실행
 
 ## 운영 장치 원칙
@@ -64,3 +67,4 @@
 2. 프리셋은 자체-완결. 폴더 단위나 저장소 단위로 옮길 수 있어야 함.
 3. 스택의 정책은 반드시 `policies.json`을 통해서만 일반 인프라에 노출.
 4. 프리셋 전용 자동 검사는 해당 스택 기준 또는 템플릿 저장소의 guard에 둠.
+5. 템플릿 사용 계약은 `.harness/project/template-contract.md` 브리지로만 연결하고, 템플릿 가이드 전체를 프로젝트 로컬룰로 복사하지 않음.

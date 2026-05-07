@@ -74,6 +74,7 @@ const PROJECT_OWNED_PATHS = new Set([
   '.harness/project/local-methodology.md',
   '.harness/project/personal-methodology.local.md',
   '.harness/project/stack-preset-rules.md',
+  '.harness/project/template-contract.md',
   '.harness/project/domain-rules.md',
   '.harness/project/architecture-rules.md',
   '.harness/project/workflow-rules.md',
@@ -881,7 +882,7 @@ function main() {
        npm run stack:status
        npm run standards:list
        npm run templates:list
-       npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>
+       npm run template:apply -- --preset-git <repo-url> --ref <tag-or-branch>
   4) 작업 중간에 다시 검사
        npm run harness:check
 

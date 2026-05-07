@@ -53,7 +53,7 @@
 질문 예시:
 > 사용할 스택 하네스를 골라주세요.
 > - 사내 스택 하네스 — `npm run standards:list`로 `ai-standard/harnesses`의 스택 하네스 패키지 조회
-> - scaffold 템플릿 — `npm run templates:list`로 후보를 조회한 뒤 선택
+> - scaffold 템플릿 — 스택 하네스 적용 후 `npm run templates:list`로 후보를 조회한 뒤 선택
 > - 로컬 스택 자산 — 별도 폴더의 `manifest.json` 경로를 `stackManifest`에 기록
 > - `none` — 예외적으로 공통 기준만 운영. 사유를 `decision-log.md`에 기록
 
@@ -65,7 +65,9 @@
 ```bash
 npm run stack:status            # 현재 적용 상태 확인
 npm run standards:list          # 사내 스택 하네스 후보 조회
-npm run stack:apply             # 스택 기준 로컬룰 적용, scaffold가 있으면 파일 복사와 package.json 머지
+npm run stack:apply             # 스택 기준 로컬룰 적용
+npm run templates:list          # 새 프로젝트 scaffold가 필요할 때만 후보 조회
+npm run template:apply -- --preset-git <repo-url> --ref <tag-or-branch>
 npm install
 npm run harness:check
 ```
@@ -76,6 +78,7 @@ npm run harness:check
 - 스택을 바꾸고 싶으면 `npm run stack:reset` 으로 먼저 적용을 되돌린 뒤 `activeStack`을 바꾸고 다시 `stack:apply`를 실행합니다.
 - 원격 프리셋을 적용하려면 `npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>`를 사용합니다.
 - 외부 프리셋을 일회성으로 적용하려면 `npm run stack:apply -- --preset-path <preset-dir>`를 사용합니다.
+- scaffold 템플릿은 스택 기준과 분리해 `template:apply`로 적용합니다. 적용 후 템플릿 사용 계약은 `template-contract.md`에 브리지로 남깁니다.
 - `"none"`으로 두면 스택 적용 없이 일반 하네스만 운영됩니다. 이 상태는 예외 또는 전환 중 상태로 보고 `harness:doctor`의 충돌 후보를 확인합니다.
 
 ### 5. 첫 로컬룰 후보 정착 (선택)

@@ -12,16 +12,26 @@ const harnessRoot = path.join(repoRoot, harnessRootRel)
 const profilePath = path.join(harnessRoot, harnessRootRel === '.harness' ? 'policy' : 'policy-harness', 'profile.json')
 const stacksRoot = path.join(harnessRoot, 'stacks')
 const appliedStacksRoot = path.join(stacksRoot, '.applied')
+const templatesRoot = path.join(harnessRoot, 'templates')
+const appliedTemplatesRoot = path.join(templatesRoot, '.applied')
 const markerPath = path.join(harnessRoot, '.stack-applied.json')
+const templateMarkerPath = path.join(harnessRoot, '.template-applied.json')
 const lockPath = path.join(harnessRoot, 'harness-lock.json')
 const stackPresetRulesRel = `${harnessRootRel}/project/stack-preset-rules.md`
 const stackPresetRulesPath = path.join(repoRoot, stackPresetRulesRel)
+const templateContractRel = `${harnessRootRel}/project/template-contract.md`
+const templateContractPath = path.join(repoRoot, templateContractRel)
 const stackRulesStart = '<!-- harness-stack-rules:start -->'
 const stackRulesEnd = '<!-- harness-stack-rules:end -->'
+const templateContractStart = '<!-- harness-template-contract:start -->'
+const templateContractEnd = '<!-- harness-template-contract:end -->'
 
 const args = process.argv.slice(2)
 const isReset = args.includes('--reset')
 const isStatus = args.includes('--status')
+const isTemplateMode = args.includes('--template')
+const isTemplateReset = args.includes('--template-reset')
+const isTemplateStatus = args.includes('--template-status')
 const tempRoots = []
 
 function getArgValue(flag) {
@@ -165,6 +175,14 @@ function writeMarker(value) {
   writeJson(markerPath, value)
 }
 
+function readTemplateMarker() {
+  return readJson(templateMarkerPath)
+}
+
+function writeTemplateMarker(value) {
+  writeJson(templateMarkerPath, value)
+}
+
 function readLock() {
   return readJson(lockPath, { version: 1 })
 }
@@ -177,6 +195,21 @@ function deleteMarker() {
   if (fs.existsSync(markerPath)) {
     fs.unlinkSync(markerPath)
   }
+}
+
+function deleteTemplateMarker() {
+  if (fs.existsSync(templateMarkerPath)) {
+    fs.unlinkSync(templateMarkerPath)
+  }
+}
+
+function isTemplateManifest(manifest) {
+  const kind = String(manifest.kind ?? manifest.assetType ?? '').toLowerCase()
+  return isTemplateMode
+    || kind === 'scaffold-template'
+    || kind === 'template'
+    || Boolean(manifest.template?.guideRoot)
+    || Boolean(manifest.template?.docs)
 }
 
 function snapshotStackStandard(stackId, manifest, context) {
@@ -215,6 +248,38 @@ function snapshotStackStandard(stackId, manifest, context) {
   const snapshotManifest = readJson(snapshotManifestPath, manifest)
   snapshotManifest.source = { type: 'none' }
   writeJson(snapshotManifestPath, snapshotManifest)
+
+  return {
+    root: toPosix(path.relative(repoRoot, snapshotRoot)),
+    manifestPath: toPosix(path.relative(repoRoot, snapshotManifestPath)),
+  }
+}
+
+function templateDocs(manifest) {
+  const guideRoot = manifest.template?.guideRoot ?? manifest.guideRoot ?? null
+  const docs = manifest.template?.docs ?? manifest.docs ?? []
+  return unique([guideRoot, ...docs].filter(Boolean))
+}
+
+function snapshotTemplateAsset(templateId, manifest, context) {
+  const snapshotRoot = path.join(appliedTemplatesRoot, templateId)
+  fs.rmSync(snapshotRoot, { recursive: true, force: true })
+  fs.mkdirSync(snapshotRoot, { recursive: true })
+
+  const snapshotManifestPath = path.join(snapshotRoot, 'manifest.json')
+  writeJson(snapshotManifestPath, manifest)
+
+  for (const docRel of templateDocs(manifest)) {
+    const src = resolveManifestRelative(context.manifestRoot, docRel)
+
+    if (!src || !fs.existsSync(src) || fs.statSync(src).isDirectory()) {
+      continue
+    }
+
+    const dest = path.join(snapshotRoot, docRel)
+    fs.mkdirSync(path.dirname(dest), { recursive: true })
+    fs.copyFileSync(src, dest)
+  }
 
   return {
     root: toPosix(path.relative(repoRoot, snapshotRoot)),
@@ -263,6 +328,32 @@ function buildStackHarnessMetadata(stackId, manifest, context, stackSnapshot) {
   }
 }
 
+function buildTemplateMetadata(templateId, manifest, context, templateSnapshot) {
+  const cliPresetGit = nonEmpty(getArgValue('--preset-git'))
+  const cliRef = nonEmpty(getArgValue('--ref'))
+  const repo = nonEmpty(getArgValue('--template-repo')) ?? cliPresetGit ?? manifest.template?.repo ?? null
+  const ref = nonEmpty(getArgValue('--template-ref')) ?? (cliPresetGit ? cliRef : manifest.template?.ref) ?? null
+  const range = nonEmpty(getArgValue('--template-range')) ?? manifest.template?.range ?? null
+  const version = nonEmpty(getArgValue('--template-version')) ?? readPackageVersion(context.manifestRoot) ?? manifest.version ?? manifest.template?.version ?? null
+  const commit = nonEmpty(getArgValue('--template-commit'))
+
+  return {
+    id: templateId,
+    title: manifest.title ?? templateId,
+    version,
+    repo,
+    ref,
+    range,
+    commit,
+    manifestVersion: manifest.version ?? null,
+    manifestPath: templateSnapshot.manifestPath,
+    guideRoot: manifest.template?.guideRoot ?? manifest.guideRoot ?? null,
+    docs: templateDocs(manifest),
+    requiredStackHarness: manifest.requiredStackHarness ?? null,
+    requiredBaseHarness: manifest.baseHarness ?? null,
+  }
+}
+
 function updateHarnessLockForStack(stackHarness) {
   const previous = readLock()
   const next = {
@@ -270,6 +361,19 @@ function updateHarnessLockForStack(stackHarness) {
     updatedAt: new Date().toISOString(),
     baseHarness: previous.baseHarness ?? null,
     stackHarness,
+  }
+
+  writeLock(next)
+  return next
+}
+
+function updateHarnessLockForTemplate(scaffoldTemplate) {
+  const previous = readLock()
+  const next = {
+    ...previous,
+    version: 1,
+    updatedAt: new Date().toISOString(),
+    scaffoldTemplate,
   }
 
   writeLock(next)
@@ -292,6 +396,22 @@ function clearStackHarnessLock() {
   return next
 }
 
+function clearTemplateLock() {
+  const previous = readLock()
+  if (!previous.scaffoldTemplate) {
+    return previous
+  }
+
+  const next = {
+    ...previous,
+    updatedAt: new Date().toISOString(),
+    scaffoldTemplate: null,
+  }
+
+  writeLock(next)
+  return next
+}
+
 function restoreProfile(snapshot) {
   if (!snapshot) {
     return
@@ -304,8 +424,43 @@ function unique(values) {
   return [...new Set(values)]
 }
 
-function listScaffoldFiles(scaffoldRoot) {
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function matchesPattern(rel, pattern) {
+  const normalized = toPosix(pattern)
+
+  if (normalized.endsWith('/**')) {
+    const prefix = normalized.slice(0, -3)
+    return rel === prefix || rel.startsWith(`${prefix}/`)
+  }
+
+  if (normalized.includes('*')) {
+    const regex = new RegExp(`^${escapeRegExp(normalized)
+      .replace(/\\\*\\\*/g, '.*')
+      .replace(/\\\*/g, '[^/]*')}$`)
+    return regex.test(rel)
+  }
+
+  return rel === normalized
+}
+
+function matchesAnyPattern(rel, patterns) {
+  return patterns.some((pattern) => matchesPattern(rel, pattern))
+}
+
+function listScaffoldFiles(scaffoldRoot, manifest = {}) {
   const out = []
+  const includePatterns = manifest.source?.include ?? []
+  const excludePatterns = [
+    '.git/**',
+    'node_modules/**',
+    '.harness-backup/**',
+    'dist/**',
+    '.DS_Store',
+    ...(manifest.source?.exclude ?? []),
+  ]
 
   function walk(absDir, relDir) {
     for (const entry of fs.readdirSync(absDir, { withFileTypes: true })) {
@@ -316,8 +471,16 @@ function listScaffoldFiles(scaffoldRoot) {
       const absChild = path.join(absDir, entry.name)
       const relChild = relDir ? `${relDir}/${entry.name}` : entry.name
 
+      if (matchesAnyPattern(relChild, excludePatterns)) {
+        continue
+      }
+
       if (entry.isDirectory()) {
         walk(absChild, relChild)
+        continue
+      }
+
+      if (includePatterns.length > 0 && !matchesAnyPattern(relChild, includePatterns)) {
         continue
       }
 
@@ -380,12 +543,12 @@ function readTextIfExists(absPath) {
   return fs.existsSync(absPath) ? fs.readFileSync(absPath, 'utf8') : null
 }
 
-function upsertGeneratedSection(current, generated) {
-  const block = `${stackRulesStart}\n${generated.trim()}\n${stackRulesEnd}`
+function upsertGeneratedSection(current, generated, startMarker = stackRulesStart, endMarker = stackRulesEnd) {
+  const block = `${startMarker}\n${generated.trim()}\n${endMarker}`
 
-  if (current.includes(stackRulesStart) && current.includes(stackRulesEnd)) {
-    const before = current.slice(0, current.indexOf(stackRulesStart))
-    const after = current.slice(current.indexOf(stackRulesEnd) + stackRulesEnd.length)
+  if (current.includes(startMarker) && current.includes(endMarker)) {
+    const before = current.slice(0, current.indexOf(startMarker))
+    const after = current.slice(current.indexOf(endMarker) + endMarker.length)
     return `${before}${block}${after}`
   }
 
@@ -421,6 +584,48 @@ function renderStackLocalRules(stackId, manifest, manifestRoot) {
   return `${lines.join('\n')}\n`
 }
 
+function renderTemplateContract(templateId, manifest, templateSnapshot) {
+  const requiredStack = manifest.requiredStackHarness ?? null
+  const guideRoot = manifest.template?.guideRoot ?? manifest.guideRoot ?? null
+  const docs = templateDocs(manifest)
+  const lines = [
+    `## 적용된 템플릿: ${manifest.title ?? templateId}`,
+    '',
+    `- templateId: \`${templateId}\``,
+    `- version: ${manifest.version ?? manifest.template?.version ?? 'TBD'}`,
+    `- manifest: \`${templateSnapshot.manifestPath}\``,
+    `- guideRoot: ${guideRoot ? `\`${guideRoot}\`` : 'TBD'}`,
+    '',
+    '이 섹션은 scaffold 템플릿이 생성한 코드와 템플릿 개발 가이드를 프로젝트 하네스에 연결하는 브리지입니다.',
+    '템플릿 가이드 전체는 템플릿 저장소가 소유하며, 현재 프로젝트에서 추가하거나 바꾼 판단만 이 파일의 관리 섹션 밖 또는 다른 `.harness/project/*` 문서에 기록합니다.',
+  ]
+
+  if (requiredStack?.id || requiredStack?.repo) {
+    lines.push('')
+    lines.push('### 요구 스택 하네스')
+    lines.push(`- id: ${requiredStack.id ? `\`${requiredStack.id}\`` : 'TBD'}`)
+    lines.push(`- repo: ${requiredStack.repo ?? 'TBD'}`)
+    lines.push(`- range: ${requiredStack.range ?? requiredStack.ref ?? requiredStack.minVersion ?? 'TBD'}`)
+  }
+
+  if (docs.length > 0) {
+    lines.push('')
+    lines.push('### 템플릿 개발 가이드')
+    for (const doc of docs) {
+      lines.push(`- \`${doc}\``)
+    }
+  }
+
+  lines.push('')
+  lines.push('### 해석 원칙')
+  lines.push('- 스택 일반 기준은 `stack-preset-rules.md`에서 확인합니다.')
+  lines.push('- 템플릿 코드가 전제하는 계약은 위 템플릿 개발 가이드를 따릅니다.')
+  lines.push('- 현재 프로젝트의 도메인, 예외, 운영 선택은 `domain-rules.md`, `architecture-rules.md`, `workflow-rules.md` 또는 이 파일의 관리 섹션 밖에 기록합니다.')
+  lines.push('- 템플릿 계약과 프로젝트 로컬룰이 충돌하면 `decision-log.md`에 선택 이유를 남깁니다.')
+
+  return `${lines.join('\n')}\n`
+}
+
 function applyStackLocalRules(stackId, manifest, manifestRoot) {
   const before = readTextIfExists(stackPresetRulesPath)
   const current = before ?? '# 스택 프리셋 로컬 규칙\n\n'
@@ -437,7 +642,41 @@ function applyStackLocalRules(stackId, manifest, manifestRoot) {
   }
 }
 
+function applyTemplateContract(templateId, manifest, templateSnapshot) {
+  const before = readTextIfExists(templateContractPath)
+  const current = before ?? '# 템플릿 사용 계약\n\n'
+  const generated = renderTemplateContract(templateId, manifest, templateSnapshot)
+  const next = upsertGeneratedSection(current, generated, templateContractStart, templateContractEnd)
+
+  fs.mkdirSync(path.dirname(templateContractPath), { recursive: true })
+  fs.writeFileSync(templateContractPath, next)
+
+  return {
+    path: toPosix(templateContractRel),
+    existed: before !== null,
+    content: before,
+  }
+}
+
 function restoreStackLocalRules(snapshot) {
+  if (!snapshot?.path) {
+    return
+  }
+
+  const abs = path.join(repoRoot, snapshot.path)
+  if (snapshot.existed) {
+    fs.mkdirSync(path.dirname(abs), { recursive: true })
+    fs.writeFileSync(abs, snapshot.content ?? '')
+    return
+  }
+
+  if (fs.existsSync(abs)) {
+    fs.unlinkSync(abs)
+    removeEmptyParents(abs)
+  }
+}
+
+function restoreTemplateContract(snapshot) {
   if (!snapshot?.path) {
     return
   }
@@ -465,7 +704,7 @@ function adapterLocal(manifest, context) {
     throw new Error(`local source 경로가 존재하지 않습니다: ${scaffoldRel}`)
   }
 
-  const files = listScaffoldFiles(scaffoldRoot)
+  const files = listScaffoldFiles(scaffoldRoot, manifest)
   const copied = []
 
   for (const rel of files) {
@@ -522,7 +761,7 @@ function adapterTiged(manifest) {
       }
     }
 
-    const files = listScaffoldFiles(sourceRoot).filter((rel) => rel !== packageMergeRel)
+    const files = listScaffoldFiles(sourceRoot, manifest).filter((rel) => rel !== packageMergeRel)
     const copied = []
 
     for (const rel of files) {
@@ -553,6 +792,7 @@ const SOURCE_ADAPTERS = {
 function commandStatus() {
   const profile = readProfile()
   const marker = readMarker()
+  const templateMarker = readTemplateMarker()
   const lock = readLock()
 
   console.log('Stack status')
@@ -577,29 +817,130 @@ function commandStatus() {
 
   if (!marker) {
     console.log('  applied: no')
+  } else {
+    console.log('  applied: yes')
+    console.log(`  appliedStack: ${marker.stackId}`)
+    console.log(`  appliedAt: ${marker.appliedAt}`)
+    if (marker.manifestPath) {
+      console.log(`  manifestPath: ${marker.manifestPath}`)
+    }
+    const sourceType = marker.source?.type ?? 'unknown'
+    const copiedCount = marker.copiedFiles?.length ?? 0
+    console.log(`  source.type: ${sourceType}`)
+    console.log(`  stackType: ${sourceType === 'none' ? 'rules-only' : 'rules-and-scaffold'}`)
+    console.log(`  copiedFiles: ${copiedCount}`)
+    if (sourceType === 'none') {
+      console.log('  reason: 이 스택은 프로젝트 기준 문서만 적용하고 scaffold 파일은 복사하지 않습니다.')
+      console.log('  templateHint: scaffold가 필요하면 npm run templates:list')
+    }
+
+    if (profile.activeStack !== marker.stackId) {
+      console.log('')
+      console.log(`  WARNING: activeStack(${profile.activeStack})과 적용된 스택(${marker.stackId})이 다릅니다.`)
+    }
+  }
+
+  if (templateMarker || lock.scaffoldTemplate) {
+    console.log('')
+    console.log('Scaffold template')
+    if (lock.scaffoldTemplate) {
+      console.log(`  template: ${lock.scaffoldTemplate.id ?? 'unknown'} ${lock.scaffoldTemplate.version ?? 'unknown'}${lock.scaffoldTemplate.ref ? ` (${lock.scaffoldTemplate.ref})` : ''}`)
+      if (lock.scaffoldTemplate.requiredStackHarness?.id) {
+        console.log(`  requiredStack: ${lock.scaffoldTemplate.requiredStackHarness.id}`)
+      }
+      if (lock.scaffoldTemplate.guideRoot) {
+        console.log(`  guideRoot: ${lock.scaffoldTemplate.guideRoot}`)
+      }
+    }
+
+    if (templateMarker) {
+      console.log(`  appliedAt: ${templateMarker.appliedAt}`)
+      console.log(`  copiedFiles: ${templateMarker.copiedFiles?.length ?? 0}`)
+      console.log(`  contract: ${templateMarker.templateContractBackup?.path ?? templateContractRel}`)
+    }
+  }
+}
+
+function validateTemplateRequirements(manifest, profile, lock) {
+  const required = manifest.requiredStackHarness
+  if (!required?.id) {
     return
   }
 
-  console.log('  applied: yes')
-  console.log(`  appliedStack: ${marker.stackId}`)
-  console.log(`  appliedAt: ${marker.appliedAt}`)
-  if (marker.manifestPath) {
-    console.log(`  manifestPath: ${marker.manifestPath}`)
-  }
-  const sourceType = marker.source?.type ?? 'unknown'
-  const copiedCount = marker.copiedFiles?.length ?? 0
-  console.log(`  source.type: ${sourceType}`)
-  console.log(`  stackType: ${sourceType === 'none' ? 'rules-only' : 'rules-and-scaffold'}`)
-  console.log(`  copiedFiles: ${copiedCount}`)
-  if (sourceType === 'none') {
-    console.log('  reason: 이 스택은 프로젝트 기준 문서만 적용하고 scaffold 파일은 복사하지 않습니다.')
-    console.log('  templateHint: scaffold가 필요하면 npm run templates:list')
+  const activeStackId = lock.stackHarness?.id ?? profile.activeStack ?? 'none'
+  if (activeStackId === required.id) {
+    return
   }
 
-  if (profile.activeStack !== marker.stackId) {
-    console.log('')
-    console.log(`  WARNING: activeStack(${profile.activeStack})과 적용된 스택(${marker.stackId})이 다릅니다.`)
+  console.error('템플릿 요구 스택과 현재 프로젝트 스택이 맞지 않습니다.')
+  console.error(`  required: ${required.id}`)
+  console.error(`  current: ${activeStackId}`)
+  if (required.repo) {
+    console.error('')
+    console.error('먼저 맞는 스택 하네스를 설치하세요.')
+    console.error(`  npx -y git+${required.repo}${required.ref ? `#${required.ref}` : ''} init`)
   }
+  process.exit(1)
+}
+
+function commandApplyTemplate(templateId, manifest, context, profile) {
+  const existing = readTemplateMarker()
+
+  if (existing) {
+    console.error(`이미 scaffold 템플릿이 적용되어 있습니다 (templateId=${existing.templateId}). 먼저 npm run template:reset 실행 후 다시 시도하세요.`)
+    process.exit(1)
+  }
+
+  const lockBefore = readLock()
+  validateTemplateRequirements(manifest, profile, lockBefore)
+
+  const sourceType = manifest.source?.type ?? 'local'
+  const adapter = SOURCE_ADAPTERS[sourceType]
+
+  if (!adapter) {
+    console.error(`알 수 없는 source.type: ${sourceType}. 지원: ${Object.keys(SOURCE_ADAPTERS).join(', ')}`)
+    process.exit(1)
+  }
+
+  console.log(`Applying scaffold template '${templateId}' (source.type=${sourceType})...`)
+  const result = adapter(manifest, context)
+  const copiedFiles = result.copied
+  const packageBackup = mergePackageJson(result.packageMergeData)
+  const templateSnapshot = snapshotTemplateAsset(templateId, manifest, context)
+  const templateContractBackup = applyTemplateContract(templateId, manifest, templateSnapshot)
+  const scaffoldTemplate = buildTemplateMetadata(templateId, manifest, context, templateSnapshot)
+  const lock = updateHarnessLockForTemplate(scaffoldTemplate)
+
+  writeTemplateMarker({
+    templateId,
+    appliedAt: new Date().toISOString(),
+    manifestPath: templateSnapshot.manifestPath,
+    sourceManifestPath: toPosix(path.relative(repoRoot, context.manifestPath)),
+    source: manifest.source,
+    copiedFiles,
+    packageJsonBackup: packageBackup,
+    templateContractBackup,
+    templateSnapshot,
+    scaffoldTemplate,
+  })
+
+  console.log(`Applied scaffold template. ${copiedFiles.length} file(s) copied.`)
+  console.log('')
+  console.log('Template contract bridge')
+  console.log(`  - ${templateContractRel}`)
+  console.log(`  - ${templateSnapshot.manifestPath}`)
+  if (scaffoldTemplate.guideRoot) {
+    console.log(`  - guideRoot: ${scaffoldTemplate.guideRoot}`)
+  }
+  if (lock.scaffoldTemplate?.version) {
+    console.log(`harness lock: template=${lock.scaffoldTemplate.version}`)
+  }
+  console.log('다음 단계:')
+  console.log('  1. 템플릿 개발 가이드 확인')
+  console.log(`     ${scaffoldTemplate.guideRoot ?? '템플릿 README'}`)
+  console.log(`  2. ${templateContractRel} 확인`)
+  console.log('  3. npm install')
+  console.log('  4. npm run harness:check')
 }
 
 function commandApply() {
@@ -613,19 +954,29 @@ function commandApply() {
     process.exit(1)
   }
 
+  const context = readManifest(stackId, profile)
+  const manifest = context.manifest
+  const isTemplate = isTemplateManifest(manifest)
+  stackId = isTemplate
+    ? manifest.id
+    : stackId && stackId !== 'none'
+      ? stackId
+      : manifest.id
+
+  if (!stackId) {
+    console.error('프리셋 manifest에 id가 없습니다.')
+    process.exit(1)
+  }
+
+  if (isTemplate) {
+    commandApplyTemplate(stackId, manifest, context, profile)
+    return
+  }
+
   const existing = readMarker()
 
   if (existing) {
     console.error(`이미 스택이 적용되어 있습니다 (stackId=${existing.stackId}). 먼저 npm run stack:reset 실행 후 다시 시도하세요.`)
-    process.exit(1)
-  }
-
-  const context = readManifest(stackId, profile)
-  const manifest = context.manifest
-  stackId = stackId && stackId !== 'none' ? stackId : manifest.id
-
-  if (!stackId) {
-    console.error('프리셋 manifest에 id가 없습니다.')
     process.exit(1)
   }
 
@@ -689,6 +1040,37 @@ function commandApply() {
   }
 }
 
+function commandTemplateStatus() {
+  const marker = readTemplateMarker()
+  const lock = readLock()
+
+  console.log('Scaffold template status')
+  if (!marker && !lock.scaffoldTemplate) {
+    console.log('  applied: no')
+    return
+  }
+
+  if (lock.scaffoldTemplate) {
+    console.log(`  template: ${lock.scaffoldTemplate.id ?? 'unknown'} ${lock.scaffoldTemplate.version ?? 'unknown'}${lock.scaffoldTemplate.ref ? ` (${lock.scaffoldTemplate.ref})` : ''}`)
+    if (lock.scaffoldTemplate.guideRoot) {
+      console.log(`  guideRoot: ${lock.scaffoldTemplate.guideRoot}`)
+    }
+    if (lock.scaffoldTemplate.manifestPath) {
+      console.log(`  manifestPath: ${lock.scaffoldTemplate.manifestPath}`)
+    }
+    if (lock.scaffoldTemplate.requiredStackHarness?.id) {
+      console.log(`  requiredStack: ${lock.scaffoldTemplate.requiredStackHarness.id}`)
+    }
+  }
+
+  if (marker) {
+    console.log('  applied: yes')
+    console.log(`  appliedAt: ${marker.appliedAt}`)
+    console.log(`  copiedFiles: ${marker.copiedFiles?.length ?? 0}`)
+    console.log(`  contract: ${marker.templateContractBackup?.path ?? templateContractRel}`)
+  }
+}
+
 function removeEmptyParents(absPath) {
   let dir = path.dirname(absPath)
 
@@ -736,8 +1118,45 @@ function commandReset() {
   console.log('node_modules는 자동으로 정리하지 않습니다. 필요 시 수동으로 npm install 또는 rm -rf node_modules를 수행하세요.')
 }
 
+function commandTemplateReset() {
+  const marker = readTemplateMarker()
+
+  if (!marker) {
+    console.log('적용된 scaffold 템플릿이 없습니다.')
+    return
+  }
+
+  let removed = 0
+
+  for (const rel of marker.copiedFiles ?? []) {
+    const abs = path.join(repoRoot, rel)
+
+    if (fs.existsSync(abs)) {
+      fs.unlinkSync(abs)
+      removed += 1
+      removeEmptyParents(abs)
+    }
+  }
+
+  restorePackageJson(marker.packageJsonBackup)
+  restoreTemplateContract(marker.templateContractBackup)
+  if (marker.templateSnapshot?.root) {
+    fs.rmSync(path.join(repoRoot, marker.templateSnapshot.root), { recursive: true, force: true })
+    removeEmptyParents(path.join(repoRoot, marker.templateSnapshot.root))
+  }
+  clearTemplateLock()
+  deleteTemplateMarker()
+
+  console.log(`Template reset complete. ${removed} file(s) removed. package.json도 적용 전 상태로 복원했습니다.`)
+  console.log('node_modules는 자동으로 정리하지 않습니다. 필요 시 수동으로 npm install 또는 rm -rf node_modules를 수행하세요.')
+}
+
 try {
-  if (isStatus) {
+  if (isTemplateStatus) {
+    commandTemplateStatus()
+  } else if (isTemplateReset) {
+    commandTemplateReset()
+  } else if (isStatus) {
     commandStatus()
   } else if (isReset) {
     commandReset()

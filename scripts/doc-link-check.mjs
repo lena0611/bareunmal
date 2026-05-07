@@ -70,7 +70,9 @@ const activeScaffoldRoot = readActiveScaffoldRoot()
 // 런타임에만 생성되는 마커/산출물 경로. 문서가 참조해도 실제 파일 부재를 broken으로 보지 않습니다.
 const dynamicArtifactPaths = new Set([
   '.harness/.stack-applied.json',
+  '.harness/.template-applied.json',
   '.github/.stack-applied.json',
+  '.github/.template-applied.json',
   '.claude/settings.local.json',
   'CLAUDE.local.md',
   '.harness/session/absorb-report.md',
@@ -84,7 +86,9 @@ const dynamicArtifactPaths = new Set([
 
 const dynamicArtifactPrefixes = [
   '.harness/stacks/.applied/',
+  '.harness/templates/.applied/',
   '.github/stacks/.applied/',
+  '.github/templates/.applied/',
 ]
 
 function toPosix(p) {

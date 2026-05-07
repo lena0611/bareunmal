@@ -47,9 +47,10 @@ npx -y git+<stack-harness-repo-url>#<tag> init
 2. 기존 프로젝트의 package stack과 이미 적용된 하네스 스택이 선택한 스택 하네스와 맞는지 검사합니다.
 3. 맞지 않으면 설치를 시작하기 전에 중단하고, 조회 가능한 후보 중 맞는 스택 하네스가 있으면 추천합니다.
 4. 선택한 스택 기준을 `.harness/project/stack-preset-rules.md`에 프로젝트 로컬룰로 기록합니다.
-5. `.harness/harness-lock.json`에 실제 설치된 공통 하네스와 스택 하네스의 repo, ref, version을 기록합니다.
-6. 현재 프로젝트를 진단하고 `.harness/session/absorb-report.md`를 생성합니다.
-7. `harness:check`로 문서 링크, 기준 동기화, 스택 적용 상태를 확인합니다.
+5. 필요한 scaffold 템플릿을 별도로 적용하면 `.harness/project/template-contract.md`에 템플릿 사용 계약 브리지를 기록합니다.
+6. `.harness/harness-lock.json`에 실제 설치된 공통 하네스, 스택 하네스, scaffold 템플릿의 repo, ref, version을 기록합니다.
+7. 현재 프로젝트를 진단하고 `.harness/session/absorb-report.md`를 생성합니다.
+8. `harness:check`로 문서 링크, 기준 동기화, 스택 적용 상태를 확인합니다.
 
 자동 진단이나 검사를 끄고 싶으면 `--no-doctor`, `--no-check` 옵션을 사용합니다.
 
@@ -81,6 +82,14 @@ npm run templates:list
 
 템플릿 적용 방식은 각 템플릿 저장소의 README와 manifest 계약을 기준으로 확인합니다.
 
+공통 하네스가 설치된 상태에서 템플릿을 직접 적용하는 관리자/고급 흐름은 다음 명령을 사용합니다.
+
+```bash
+npm run template:apply -- --preset-git <template-repo-url> --ref <tag-or-branch>
+```
+
+템플릿의 전체 개발 가이드는 템플릿 저장소가 소유하고, 적용 프로젝트에는 `.harness/project/template-contract.md` 브리지만 생성됩니다. 프로젝트별 예외나 추가 규칙은 `domain-rules.md`, `architecture-rules.md`, `workflow-rules.md`에 남깁니다.
+
 ### 5. 검증과 커밋 차단 연결
 
 개발 중에는 다음 명령으로 현재 기준과 프로젝트 상태를 확인합니다.
@@ -102,7 +111,7 @@ AI 에이전트 작업에서는 hook 선택 여부와 별개로 하네스 검증
 `harness-seed` 직접 설치는 공통 기준 관리자, 스택 하네스 관리자, 또는 예외적으로 스택 기준 없이 공통 기준만 운영하는 프로젝트를 위한 고급 흐름입니다.
 
 ```bash
-npx -y git+https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git#v0.2.14 init
+npx -y git+https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git#v0.2.15 init
 ```
 
 하네스시드는 계속 개선되므로 `main`, `master` 같은 움직이는 브랜치를 따라가며 최신 변경을 빠르게 받는 방식도 가능합니다. 다만 팀 프로젝트에서는 하네스 변경이 언제 들어왔는지 추적할 수 있도록 릴리스 태그인 `vX.Y.Z`를 고정해 주입하는 것을 권장합니다. 최신 버전으로 올릴 때는 스택 하네스의 새 태그로 다시 `init`을 실행하고, 생성된 변경분과 `harness:doctor`, `harness:check` 결과를 함께 확인합니다.
@@ -116,7 +125,7 @@ npx -y git+https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git#v0.2
 | `.harness/install-manifest.json` | 공통 하네스가 어떤 파일을 설치/갱신했는지 추적하는 설치 manifest |
 | `.harness/harness-lock.json` | 현재 프로젝트에 설치된 공통 하네스와 스택 하네스의 repo, ref, version을 기록하는 잠금 파일 |
 
-스택 하네스의 `manifest.json`은 자신이 요구하는 공통 하네스를 `baseHarness`로 명시합니다. 예를 들어 스택 하네스 `v0.1.5`이 공통 하네스 `v0.2.14` 이상을 요구하면, 스택 하네스 `init`은 해당 공통 하네스를 먼저 설치하거나 업데이트합니다.
+스택 하네스의 `manifest.json`은 자신이 요구하는 공통 하네스를 `baseHarness`로 명시합니다. 예를 들어 스택 하네스 `v0.1.6`이 공통 하네스 `v0.2.15` 이상을 요구하면, 스택 하네스 `init`은 해당 공통 하네스를 먼저 설치하거나 업데이트합니다.
 
 업데이트는 보통 다음처럼 진행합니다.
 
@@ -300,8 +309,11 @@ npm run harness:check -- --verbose
 | `npm run stack:list` | `standards:list` alias |
 | `npm run templates:list` | 원격 템플릿 후보 조회 |
 | `npm run stack:status` | 활성 스택, 적용 상태, 공통/스택 하네스 버전 확인 |
-| `npm run stack:apply` | 선택한 스택 기준을 로컬룰로 적용하고, 포함된 scaffold가 있으면 함께 적용 |
-| `npm run stack:reset` | 적용된 스택 기준 관리 섹션과 scaffold 산출물 제거 |
+| `npm run stack:apply` | 선택한 스택 기준을 로컬룰로 적용 |
+| `npm run stack:reset` | 적용된 스택 기준 관리 섹션과 스택 산출물 제거 |
+| `npm run template:status` | 적용된 scaffold 템플릿, 계약 브리지, 복사 파일 상태 확인 |
+| `npm run template:apply` | 선택한 scaffold 템플릿을 적용하고 `template-contract.md` 브리지 생성 |
+| `npm run template:reset` | 적용된 scaffold 템플릿 산출물과 계약 브리지 되돌림 |
 
 ## 스택 기준과 템플릿
 
@@ -342,8 +354,10 @@ GITLAB_TOKEN=<private-token> npm run templates:list
 현재 등록된 템플릿 후보 예시는 다음 저장소입니다. 실제 적용 방법은 해당 템플릿 저장소의 README와 manifest 계약을 먼저 확인합니다.
 
 ```bash
-npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/stacks/cloud-front-admin-template.git --ref <tag-or-branch>
+npm run template:apply -- --preset-git https://git.smartscore.kr/ai-standard/stacks/cloud-front-admin-template.git --ref <tag-or-branch>
 ```
+
+scaffold 템플릿의 개발 가이드는 프로젝트 로컬룰 전체로 복사하지 않습니다. 템플릿을 적용하면 `.harness/project/template-contract.md`가 생성되어 템플릿 저장소의 가이드와 현재 프로젝트 하네스를 연결합니다. 현재 프로젝트에서 템플릿 계약을 다르게 해석하거나 예외를 두면 관리 섹션 밖 또는 다른 `.harness/project/*` 문서에 기록합니다.
 
 권장 그룹 구조는 다음과 같습니다.
 
@@ -422,7 +436,7 @@ npm run harness:check
 - `.harness-seed-mode`를 유지합니다.
 - 하네스 본체 변경 후 `npm run harness:check:strict`를 실행합니다.
 - seed-mode에서는 `harness:check`가 init smoke test를 함께 실행합니다.
-- 배포는 태그 기준으로 합니다. 예: `v0.2.14`.
+- 배포는 태그 기준으로 합니다. 예: `v0.2.15`.
 - 사내 GitLab처럼 보호 브랜치를 쓰는 저장소에는 fast-forward 가능한 배포 커밋으로 반영합니다.
 
 ## AI 에이전트 기준점

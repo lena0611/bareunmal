@@ -13,12 +13,14 @@
 3. `.harness/harness-lock.json`에서 실제 설치된 일반 하네스와 스택 하네스의 repo, ref, version을 확인합니다.
 4. `.harness/session/absorb-report.md`에서 기존 프로젝트 기준, 스타일 출처, 버전 상태, 충돌 후보를 확인합니다.
 5. `npm run hooks:install`로 로컬 hook을 연결합니다.
-6. scaffold가 필요하면 `npm run templates:list`로 별도 템플릿 후보를 확인합니다.
-7. scaffold가 함께 적용되었으면 `npm install` 후 `npm run harness:check`로 lint/test/build까지 검증합니다.
-8. 새 스택 하네스가 필요하면 `.harness/stacks/authoring-guide.md`를 먼저 보고 외부 프리셋 저장소를 만듭니다. 기본 계약은 `package.json bin + scripts/init.mjs + manifest.json + policies.json + instructions/`입니다. scaffold가 있는 경우에만 `scaffold/ + package.merge.json`을 추가합니다.
-9. `policy-registry.json`은 일반 개발 기준만 유지합니다. 스택-특화 기준은 스택의 `policies.json`으로만 둡니다.
-10. `policy-harness.mjs`의 framework-specific 블록은 새 `checksKey`를 원할 때만 분기 확장합니다.
-11. `project-charter.md`, `scope-contract.md`를 새 도메인 정보로 채웁니다.
+6. scaffold가 필요하면 `npm run templates:list`로 별도 템플릿 후보를 확인하고 `template:apply`로 적용합니다.
+7. scaffold 템플릿이 적용되었으면 `.harness/project/template-contract.md`에서 템플릿 사용 계약 브리지를 확인합니다.
+8. scaffold가 함께 적용되었으면 `npm install` 후 `npm run harness:check`로 lint/test/build까지 검증합니다.
+9. 새 스택 하네스가 필요하면 `.harness/stacks/authoring-guide.md`를 먼저 보고 외부 프리셋 저장소를 만듭니다. 기본 계약은 `package.json bin + scripts/init.mjs + manifest.json + policies.json + instructions/`입니다.
+10. 새 scaffold 템플릿이 필요하면 `kind=scaffold-template`, `requiredStackHarness`, `template.guideRoot`, `source` 계약을 가진 별도 저장소로 둡니다.
+11. `policy-registry.json`은 일반 개발 기준만 유지합니다. 스택-특화 기준은 스택의 `policies.json`으로만 둡니다.
+12. `policy-harness.mjs`의 framework-specific 블록은 새 `checksKey`를 원할 때만 분기 확장합니다.
+13. `project-charter.md`, `scope-contract.md`를 새 도메인 정보로 채웁니다.
 
 ## Node 런타임 계약
 - 기준 Node는 `.nvmrc`의 `22.14.0`입니다.
@@ -30,7 +32,8 @@
 - `local`: manifest 기준 상대 경로의 `scaffold/` 폴더에서 직접 복사. 현재 기본.
 - `tiged`: 외부 원격 저장소에서 `npx tiged`로 scaffold를 가져오기.
 - `none`: scaffold 파일 복사 없이 instruction만 로컬룰로 정착.
-- 외부 프리셋 연결: 일반 프로젝트 개발자는 스택 하네스의 `npx ... init`을 사용합니다. 관리자/고급 흐름에서는 `npm run stack:apply -- --preset-path <preset-dir>` 또는 `profile.json`의 `stackManifest`를 직접 사용할 수 있습니다.
+- 외부 스택 기준 연결: 일반 프로젝트 개발자는 스택 하네스의 `npx ... init`을 사용합니다. 관리자/고급 흐름에서는 `npm run stack:apply -- --preset-path <preset-dir>` 또는 `profile.json`의 `stackManifest`를 직접 사용할 수 있습니다.
+- 외부 scaffold 템플릿 연결: `npm run template:apply -- --preset-path <template-dir>` 또는 `npm run template:apply -- --preset-git <repo-url> --ref <tag-or-branch>`를 사용합니다.
 - 분리 시점: 스택을 다른 저장소에서 공유해야 하는 시점. 본체에 새 프리셋을 계속 추가하지 않습니다.
 - 전환 방법: 스택 `manifest.json`의 `source` 섹션을 `{ "type": "tiged", "ref": "owner/repo#tag-or-branch" }`로 바꾸면 됩니다 (인터페이스 동일).
 

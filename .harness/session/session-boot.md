@@ -18,15 +18,16 @@
 9. `../project/local-methodology.md`
 10. `../project/standards-layers.md`
 11. `../project/stack-preset-rules.md`
-12. `../project/bootstrap.md`
-13. `../policy/README.md`
-14. `../policy/sync-protocol.md`
-15. `../policy/enforcement-ladder.md`
-16. `../policy/automation-coverage.md`
-17. `../documentation/README.md`
-18. `../documentation/indexing-rules.md`
-19. `../style/style-evolution.md`
-20. `../stacks/README.md` (활성 스택 메타 확인용)
+12. `../project/template-contract.md`
+13. `../project/bootstrap.md`
+14. `../policy/README.md`
+15. `../policy/sync-protocol.md`
+16. `../policy/enforcement-ladder.md`
+17. `../policy/automation-coverage.md`
+18. `../documentation/README.md`
+19. `../documentation/indexing-rules.md`
+20. `../style/style-evolution.md`
+21. `../stacks/README.md` (활성 스택 메타 확인용)
 
 ## 3. 작업 시작 전 체크
 - `ai-standard-guiding-policy.md`의 위배 여부를 먼저 확인합니다.

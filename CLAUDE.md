@@ -15,13 +15,14 @@
 10. `.harness/project/local-methodology.md`
 11. `.harness/project/standards-layers.md`
 12. `.harness/project/stack-preset-rules.md`
-13. `.harness/project/domain-rules.md`
-14. `.harness/project/architecture-rules.md`
-15. `.harness/project/workflow-rules.md`
-16. `.harness/project/bootstrap.md`
-17. `.harness/policy/README.md`
-18. `.harness/documentation/README.md`
-19. `.harness/stacks/README.md`
+13. `.harness/project/template-contract.md`
+14. `.harness/project/domain-rules.md`
+15. `.harness/project/architecture-rules.md`
+16. `.harness/project/workflow-rules.md`
+17. `.harness/project/bootstrap.md`
+18. `.harness/policy/README.md`
+19. `.harness/documentation/README.md`
+20. `.harness/stacks/README.md`
 
 ## 기준
 - 하네스 본체는 `.harness/`에 있습니다.

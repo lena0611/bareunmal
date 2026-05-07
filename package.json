@@ -1,6 +1,6 @@
 {
   "name": "harness-seed",
-  "version": "0.2.14",
+  "version": "0.2.15",
   "type": "module",
   "engines": {
     "node": ">=20.19.0 || >=22.13.0"
@@ -40,6 +40,9 @@
     "templates:list": "npm run node:check --silent && node scripts/list-templates.mjs",
     "stack:apply": "npm run node:check --silent && node scripts/apply-stack.mjs",
     "stack:reset": "npm run node:check --silent && node scripts/apply-stack.mjs --reset",
-    "stack:status": "npm run node:check --silent && node scripts/apply-stack.mjs --status"
+    "stack:status": "npm run node:check --silent && node scripts/apply-stack.mjs --status",
+    "template:apply": "npm run node:check --silent && node scripts/apply-stack.mjs --template",
+    "template:reset": "npm run node:check --silent && node scripts/apply-stack.mjs --template-reset",
+    "template:status": "npm run node:check --silent && node scripts/apply-stack.mjs --template-status"
   }
 }

@@ -20,8 +20,8 @@ function printManualFallback() {
   console.log('  https://git.smartscore.kr/ai-standard/stacks/cloud-front-admin-template')
   console.log('')
   console.log('다른 템플릿을 알고 있다면 직접 지정할 수 있습니다.')
-  console.log('  npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>')
-  console.log('  npm run stack:apply -- --preset-path <local-preset-dir>')
+  console.log('  npm run template:apply -- --preset-git <repo-url> --ref <tag-or-branch>')
+  console.log('  npm run template:apply -- --preset-path <local-preset-dir>')
 }
 
 async function main() {
@@ -60,7 +60,7 @@ async function main() {
     const ref = project.tag_list?.[0] ?? project.default_branch ?? '<tag-or-branch>'
     console.log(`- ${name}`)
     console.log(`  repo: ${repo}`)
-    console.log(`  apply: npm run stack:apply -- --preset-git ${repo} --ref ${ref}`)
+    console.log(`  apply: npm run template:apply -- --preset-git ${repo} --ref ${ref}`)
   }
 }
 
