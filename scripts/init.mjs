@@ -586,6 +586,32 @@ function hasNodeScriptsOverride(content) {
   return content.includes('scripts/**/*.mjs') && content.includes('globals.node');
 }
 
+function hasHarnessBackupIgnore(content) {
+  return content.includes('.harness-backup');
+}
+
+function insertHarnessBackupIgnore(content) {
+  const pattern = /globalIgnores\(\s*\[([\s\S]*?)\]\s*\)/m;
+
+  if (!pattern.test(content)) {
+    return null;
+  }
+
+  return content.replace(pattern, (full, entries) => {
+    if (entries.includes('.harness-backup')) {
+      return full;
+    }
+
+    if (!entries.includes('\n')) {
+      const separator = entries.trim() ? ', ' : '';
+      return `globalIgnores([${entries}${separator}'**/.harness-backup/**'])`;
+    }
+
+    const trimmed = entries.replace(/\s*$/, '');
+    return `globalIgnores([${trimmed},\n  '**/.harness-backup/**',\n])`;
+  });
+}
+
 function insertNodeScriptsOverride(content) {
   const block = `  {
     files: ['scripts/**/*.mjs', '.harness/**/scripts/**/*.mjs'],
@@ -609,7 +635,7 @@ function insertNodeScriptsOverride(content) {
   return lines.join('\n');
 }
 
-function patchEslintNodeScriptsOverride(target, opts) {
+function patchEslintConfigForHarness(target, opts) {
   const rel = findEslintConfig(target);
   if (!rel) {
     return { status: 'none', message: '대상 없음' };
@@ -617,26 +643,62 @@ function patchEslintNodeScriptsOverride(target, opts) {
 
   const abs = join(target, rel);
   const content = readFileSync(abs, 'utf8');
-  if (hasNodeScriptsOverride(content)) {
-    return { status: 'already', message: `${rel} 이미 Node scripts override 있음` };
+  let next = content;
+  const applied = [];
+  const already = [];
+  const manual = [];
+
+  if (hasHarnessBackupIgnore(next)) {
+    already.push('.harness-backup ignore');
+  } else {
+    const withBackupIgnore = insertHarnessBackupIgnore(next);
+    if (withBackupIgnore) {
+      next = withBackupIgnore;
+      applied.push('.harness-backup ignore');
+    } else {
+      manual.push('.harness-backup ignore');
+    }
   }
 
-  if (!hasGlobalsImport(content)) {
-    return { status: 'manual', message: `${rel} globals import 없음, 수동 확인 필요` };
+  if (hasNodeScriptsOverride(next)) {
+    already.push('Node scripts override');
+  } else if (!hasGlobalsImport(next)) {
+    manual.push('Node scripts override');
+  } else {
+    const withNodeScriptsOverride = insertNodeScriptsOverride(next);
+    if (withNodeScriptsOverride && withNodeScriptsOverride !== next) {
+      next = withNodeScriptsOverride;
+      applied.push('Node scripts override');
+    } else {
+      manual.push('Node scripts override');
+    }
   }
 
-  const next = insertNodeScriptsOverride(content);
-  if (!next || next === content) {
-    return { status: 'manual', message: `${rel} 자동 삽입 위치 확인 필요` };
-  }
-
-  if (!opts.dryRun) {
+  if (next !== content && !opts.dryRun) {
     writeFileSync(abs, next);
   }
 
+  if (manual.length > 0 && applied.length === 0) {
+    return { status: 'manual', message: `${rel} ${manual.join(', ')} 수동 확인 필요` };
+  }
+
+  if (manual.length > 0) {
+    return {
+      status: 'partial',
+      message: `${rel} ${applied.join(', ')} ${opts.dryRun ? '추가 예정' : '추가'}, ${manual.join(', ')} 수동 확인 필요`,
+    };
+  }
+
+  if (applied.length > 0) {
+    return {
+      status: opts.dryRun ? 'dry-run' : 'updated',
+      message: `${rel} ${applied.join(', ')} ${opts.dryRun ? '추가 예정' : '추가'}`,
+    };
+  }
+
   return {
-    status: opts.dryRun ? 'dry-run' : 'updated',
-    message: `${rel} Node scripts override ${opts.dryRun ? '추가 예정' : '추가'}`,
+    status: 'already',
+    message: `${rel} 이미 ${already.join(' 및 ')} 있음`,
   };
 }
 
@@ -765,7 +827,7 @@ function main() {
     const installed = installFiles(sourceRoot, TARGET, files, opts, recognizedManifest);
     const pkg = mergePackageJson(sourceRoot, TARGET, opts);
     const gitignoreAdded = mergeGitignore(TARGET, opts);
-    const eslintPatch = patchEslintNodeScriptsOverride(TARGET, opts);
+    const eslintPatch = patchEslintConfigForHarness(TARGET, opts);
     ensureExecutable(TARGET, opts);
     const writtenManifest = writeInstallManifest(sourceRoot, TARGET, files, installed.copiedFiles, opts);
     const writtenLock = writtenManifest ? writeHarnessLock(TARGET, writtenManifest, opts) : null;

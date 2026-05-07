@@ -59,7 +59,33 @@ function eslintConfigLikelyMissesNodeScriptsOverride() {
   return !mentionsScripts || !mentionsNodeGlobals
 }
 
-function printEslintNodeScriptsHint(output = '') {
+function eslintConfigLikelyMissesHarnessBackupIgnore() {
+  const configPath = findExisting(['eslint.config.js', 'eslint.config.mjs'])
+  if (!configPath || !fs.existsSync(path.join(repoRoot, '.harness-backup'))) {
+    return false
+  }
+
+  return !readTextIfExists(configPath).includes('.harness-backup')
+}
+
+function printEslintHarnessHint(output = '') {
+  const backupIssue = output.includes('.harness-backup') || eslintConfigLikelyMissesHarnessBackupIgnore()
+  if (backupIssue) {
+    console.error('')
+    console.error('설치 후 검증 실패: ESLint 백업 폴더 검사 대상 포함')
+    console.error('')
+    console.error('원인 후보:')
+    console.error('- 하네스 업데이트 과정에서 .harness-backup/<timestamp>/ 복구용 백업이 생성되었습니다.')
+    console.error('- 현재 ESLint 설정이 .harness-backup/**을 ignore하지 않아 백업된 과거 scripts/*.mjs까지 검사했습니다.')
+    console.error('')
+    console.error('권장 조치:')
+    console.error("- eslint.config.js 또는 eslint.config.mjs의 globalIgnores에 '**/.harness-backup/**'을 추가하세요.")
+    console.error('- 다음 하네스 init부터는 이 ignore가 자동 보정됩니다.')
+    console.error('')
+    console.error('하네스 설치 자체가 실패한 것은 아니며, 백업 폴더가 검증 대상에 들어간 상태입니다.')
+    return
+  }
+
   const likelyNodeGlobalIssue = /'process' is not defined|process is not defined|no-undef/.test(output) || eslintConfigLikelyMissesNodeScriptsOverride()
   if (!likelyNodeGlobalIssue) {
     return
@@ -91,7 +117,7 @@ function runNpmScript(scriptName) {
 
   if (result.status !== 0) {
     if (scriptName === 'lint') {
-      printEslintNodeScriptsHint(`${result.stdout ?? ''}\n${result.stderr ?? ''}`)
+      printEslintHarnessHint(`${result.stdout ?? ''}\n${result.stderr ?? ''}`)
     } else {
       console.error('')
       console.error(`설치 후 검증 실패: npm run ${scriptName}`)

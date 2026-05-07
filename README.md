@@ -102,7 +102,7 @@ AI 에이전트 작업에서는 hook 선택 여부와 별개로 하네스 검증
 `harness-seed` 직접 설치는 공통 기준 관리자, 스택 하네스 관리자, 또는 예외적으로 스택 기준 없이 공통 기준만 운영하는 프로젝트를 위한 고급 흐름입니다.
 
 ```bash
-npx -y git+https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git#v0.2.13 init
+npx -y git+https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git#v0.2.14 init
 ```
 
 하네스시드는 계속 개선되므로 `main`, `master` 같은 움직이는 브랜치를 따라가며 최신 변경을 빠르게 받는 방식도 가능합니다. 다만 팀 프로젝트에서는 하네스 변경이 언제 들어왔는지 추적할 수 있도록 릴리스 태그인 `vX.Y.Z`를 고정해 주입하는 것을 권장합니다. 최신 버전으로 올릴 때는 스택 하네스의 새 태그로 다시 `init`을 실행하고, 생성된 변경분과 `harness:doctor`, `harness:check` 결과를 함께 확인합니다.
@@ -116,7 +116,7 @@ npx -y git+https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git#v0.2
 | `.harness/install-manifest.json` | 공통 하네스가 어떤 파일을 설치/갱신했는지 추적하는 설치 manifest |
 | `.harness/harness-lock.json` | 현재 프로젝트에 설치된 공통 하네스와 스택 하네스의 repo, ref, version을 기록하는 잠금 파일 |
 
-스택 하네스의 `manifest.json`은 자신이 요구하는 공통 하네스를 `baseHarness`로 명시합니다. 예를 들어 스택 하네스 `v0.1.4`이 공통 하네스 `v0.2.13` 이상을 요구하면, 스택 하네스 `init`은 해당 공통 하네스를 먼저 설치하거나 업데이트합니다.
+스택 하네스의 `manifest.json`은 자신이 요구하는 공통 하네스를 `baseHarness`로 명시합니다. 예를 들어 스택 하네스 `v0.1.5`이 공통 하네스 `v0.2.14` 이상을 요구하면, 스택 하네스 `init`은 해당 공통 하네스를 먼저 설치하거나 업데이트합니다.
 
 업데이트는 보통 다음처럼 진행합니다.
 
@@ -422,7 +422,7 @@ npm run harness:check
 - `.harness-seed-mode`를 유지합니다.
 - 하네스 본체 변경 후 `npm run harness:check:strict`를 실행합니다.
 - seed-mode에서는 `harness:check`가 init smoke test를 함께 실행합니다.
-- 배포는 태그 기준으로 합니다. 예: `v0.2.13`.
+- 배포는 태그 기준으로 합니다. 예: `v0.2.14`.
 - 사내 GitLab처럼 보호 브랜치를 쓰는 저장소에는 fast-forward 가능한 배포 커밋으로 반영합니다.
 
 ## AI 에이전트 기준점
