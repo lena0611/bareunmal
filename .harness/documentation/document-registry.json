@@ -2,19 +2,15 @@
   "version": 1,
   "groups": [
     {
+      "id": "harness-root",
+      "index": ".harness/README.md",
+      "children": []
+    },
+    {
       "id": "agent-entrypoints",
       "index": "CLAUDE.md",
       "children": [
         "AGENTS.md"
-      ]
-    },
-    {
-      "id": "copilot-instructions",
-      "index": ".github/copilot-instructions.md",
-      "children": [
-        ".github/copilot-instructions/coding-conventions.md",
-        ".github/copilot-instructions/project-setup.md",
-        ".github/copilot-instructions/development-workflow.md"
       ]
     },
     {

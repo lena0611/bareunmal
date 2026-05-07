@@ -195,7 +195,7 @@ function snapshotStackStandard(stackId, manifest, context) {
   const sourceRel = sourcePath ? toPosix(sourcePath) : null
   const packageMergeRel = manifest.source?.packageMerge ? toPosix(manifest.source.packageMerge) : null
 
-  copyDirectoryExcluding(context.manifestRoot, snapshotRoot, (rel, entry) => {
+  copyDirectoryExcluding(context.manifestRoot, snapshotRoot, (rel) => {
     if ([...excludedSnapshotPaths].some((excluded) => rel === excluded || rel.startsWith(`${excluded}/`))) {
       return true
     }
@@ -586,8 +586,15 @@ function commandStatus() {
   if (marker.manifestPath) {
     console.log(`  manifestPath: ${marker.manifestPath}`)
   }
-  console.log(`  source.type: ${marker.source?.type ?? 'unknown'}`)
-  console.log(`  files: ${marker.copiedFiles?.length ?? 0}`)
+  const sourceType = marker.source?.type ?? 'unknown'
+  const copiedCount = marker.copiedFiles?.length ?? 0
+  console.log(`  source.type: ${sourceType}`)
+  console.log(`  stackType: ${sourceType === 'none' ? 'rules-only' : 'rules-and-scaffold'}`)
+  console.log(`  copiedFiles: ${copiedCount}`)
+  if (sourceType === 'none') {
+    console.log('  reason: 이 스택은 프로젝트 기준 문서만 적용하고 scaffold 파일은 복사하지 않습니다.')
+    console.log('  templateHint: scaffold가 필요하면 npm run templates:list')
+  }
 
   if (profile.activeStack !== marker.stackId) {
     console.log('')
@@ -656,7 +663,17 @@ function commandApply() {
 
   console.log(`Applied. ${copiedFiles.length} file(s) copied.`)
   if (sourceType === 'none') {
-    console.log('rules-only 스택 기준입니다. scaffold 파일 복사는 수행하지 않았습니다.')
+    console.log('')
+    console.log('Rules-only stack applied')
+    console.log('  적용된 것:')
+    console.log(`  - ${manifest.title ?? stackId} 개발 기준`)
+    console.log(`  - ${stackPresetRulesRel}`)
+    console.log(`  - ${stackSnapshot.manifestPath}`)
+    console.log('  복사하지 않는 것:')
+    console.log('  - 업무 코드 scaffold 파일')
+    console.log('  - UI, API, 상태, batch 등 스택별 예제 파일')
+    console.log('  scaffold 템플릿이 필요하면: npm run templates:list')
+    console.log('')
   }
   console.log(`stackManifest: ${stackSnapshot.manifestPath}`)
   if (lock.baseHarness?.version || stackHarness.version) {

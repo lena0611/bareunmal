@@ -4,27 +4,30 @@
 
 ## 읽기 순서
 1. `.harness/policy/ai-standard-guiding-policy.md`
-2. `.harness/session/README.md`
-3. `.harness/session/session-start-alert.md`
-4. `.harness/session/project-memory.md`
-5. `.harness/session/active-context.md`
-6. `.harness/project/project-charter.md`
-7. `.harness/project/local-methodology.md`
-8. `.harness/project/standards-layers.md`
-9. `.harness/project/stack-preset-rules.md`
-10. `.harness/project/domain-rules.md`
-11. `.harness/project/architecture-rules.md`
-12. `.harness/project/workflow-rules.md`
-13. `.harness/project/bootstrap.md`
-14. `.harness/policy/README.md`
-15. `.harness/documentation/README.md`
-16. `.harness/stacks/README.md`
+2. `.harness/README.md`
+3. `.harness/session/README.md`
+4. `.harness/session/session-start-alert.md`
+5. `.harness/session/project-memory.md`
+6. `.harness/session/active-context.md`
+7. `.harness/session/decision-log.md`
+8. `.harness/session/developer-input-queue.md`
+9. `.harness/project/project-charter.md`
+10. `.harness/project/local-methodology.md`
+11. `.harness/project/standards-layers.md`
+12. `.harness/project/stack-preset-rules.md`
+13. `.harness/project/domain-rules.md`
+14. `.harness/project/architecture-rules.md`
+15. `.harness/project/workflow-rules.md`
+16. `.harness/project/bootstrap.md`
+17. `.harness/policy/README.md`
+18. `.harness/documentation/README.md`
+19. `.harness/stacks/README.md`
 
 ## 기준
 - 하네스 본체는 `.harness/`에 있습니다.
-- `.github/`는 GitHub Copilot, GitHub Actions, GitHub template용 어댑터입니다.
+- 플랫폼별 파일은 하네스 본체 밖의 어댑터입니다.
 - `.claude/`는 Claude Code hooks, agents, slash command용 어댑터입니다.
-- `AGENTS.md`와 `.github/copilot-instructions.md`는 이 파일을 가리키는 보조 진입점입니다.
+- `AGENTS.md`는 이 파일을 가리키는 보조 진입점입니다.
 - 개발 기준, 세션, 문서, 스택 기준은 `.harness/`를 단일 진실 출처로 봅니다.
 
 ## 작업 원칙

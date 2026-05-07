@@ -568,6 +568,78 @@ function mergeGitignore(target, opts) {
   return missing.length;
 }
 
+function findEslintConfig(target) {
+  for (const rel of ['eslint.config.js', 'eslint.config.mjs']) {
+    if (existsSync(join(target, rel))) {
+      return rel;
+    }
+  }
+
+  return null;
+}
+
+function hasGlobalsImport(content) {
+  return /import\s+globals\s+from\s+['"]globals['"]/.test(content);
+}
+
+function hasNodeScriptsOverride(content) {
+  return content.includes('scripts/**/*.mjs') && content.includes('globals.node');
+}
+
+function insertNodeScriptsOverride(content) {
+  const block = `  {
+    files: ['scripts/**/*.mjs', '.harness/**/scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+`;
+  const lines = content.split('\n');
+  const preferredIndex = lines.findIndex((line) => /^\s*js\.configs\.recommended,?\s*$/.test(line));
+  const defineConfigIndex = lines.findIndex((line) => line.includes('defineConfig(['));
+  const insertIndex = preferredIndex >= 0 ? preferredIndex : defineConfigIndex >= 0 ? defineConfigIndex + 1 : -1;
+
+  if (insertIndex < 0) {
+    return null;
+  }
+
+  lines.splice(insertIndex, 0, block.replace(/\n$/, ''));
+  return lines.join('\n');
+}
+
+function patchEslintNodeScriptsOverride(target, opts) {
+  const rel = findEslintConfig(target);
+  if (!rel) {
+    return { status: 'none', message: '대상 없음' };
+  }
+
+  const abs = join(target, rel);
+  const content = readFileSync(abs, 'utf8');
+  if (hasNodeScriptsOverride(content)) {
+    return { status: 'already', message: `${rel} 이미 Node scripts override 있음` };
+  }
+
+  if (!hasGlobalsImport(content)) {
+    return { status: 'manual', message: `${rel} globals import 없음, 수동 확인 필요` };
+  }
+
+  const next = insertNodeScriptsOverride(content);
+  if (!next || next === content) {
+    return { status: 'manual', message: `${rel} 자동 삽입 위치 확인 필요` };
+  }
+
+  if (!opts.dryRun) {
+    writeFileSync(abs, next);
+  }
+
+  return {
+    status: opts.dryRun ? 'dry-run' : 'updated',
+    message: `${rel} Node scripts override ${opts.dryRun ? '추가 예정' : '추가'}`,
+  };
+}
+
 function ensureExecutable(target, opts) {
   if (opts.dryRun) return;
   for (const dir of [join(target, '.githooks'), join(target, '.claude', 'hooks')]) {
@@ -693,6 +765,7 @@ function main() {
     const installed = installFiles(sourceRoot, TARGET, files, opts, recognizedManifest);
     const pkg = mergePackageJson(sourceRoot, TARGET, opts);
     const gitignoreAdded = mergeGitignore(TARGET, opts);
+    const eslintPatch = patchEslintNodeScriptsOverride(TARGET, opts);
     ensureExecutable(TARGET, opts);
     const writtenManifest = writeInstallManifest(sourceRoot, TARGET, files, installed.copiedFiles, opts);
     const writtenLock = writtenManifest ? writeHarnessLock(TARGET, writtenManifest, opts) : null;
@@ -705,6 +778,7 @@ function main() {
         (pkg.skipped.length ? `, 기존 scripts 보존 ${pkg.skipped.length}개 (${pkg.skipped.join(', ')})` : ''),
     );
     console.log(`.gitignore: harness entry ${gitignoreAdded}개 추가`);
+    console.log(`eslint config: ${eslintPatch.message}`);
     console.log(`install manifest: ${opts.dryRun ? 'dry-run' : `${Object.keys(writtenManifest.managedFiles).length}개 managed file 기록`}`);
     console.log(`harness lock: ${opts.dryRun ? 'dry-run' : `${writtenLock.baseHarness.version} (${writtenLock.baseHarness.ref ?? writtenLock.baseHarness.source.type})`}`);
     console.log(`doctor: ${diagnostics.doctor}`);

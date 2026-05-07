@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process'
+import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -14,7 +15,15 @@ const stacksRoot = path.join(harnessRoot, 'stacks')
 
 const args = process.argv.slice(2)
 const mode = args[0] ?? 'guard'
-const strictMode = args.includes('--strict')
+const strictMode = args.includes('--strict') || (() => {
+  try {
+    return JSON.parse(fs.readFileSync(profilePath, 'utf8'))?.harnessMode === 'strict'
+  } catch {
+    return false
+  }
+})()
+const verboseMode = args.includes('--verbose') || args.includes('--all-files')
+const showBaseline = args.includes('--show-baseline') || verboseMode
 
 function readProfile() {
   if (!fs.existsSync(profilePath)) {
@@ -106,6 +115,22 @@ function toPosixPath(filePath) {
   return filePath.split(path.sep).join('/')
 }
 
+function sha256(absPath) {
+  return crypto.createHash('sha256').update(fs.readFileSync(absPath)).digest('hex')
+}
+
+function readJsonFile(absPath, fallback = null) {
+  if (!fs.existsSync(absPath)) {
+    return fallback
+  }
+
+  try {
+    return JSON.parse(fs.readFileSync(absPath, 'utf8'))
+  } catch {
+    return fallback
+  }
+}
+
 function escapeRegExp(value) {
   return value.replace(/[|\\{}()[\]^$+?.]/g, '\\$&')
 }
@@ -149,10 +174,6 @@ function walkDirectory(directoryPath) {
   }
 
   return files
-}
-
-function readText(relativePath) {
-  return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8')
 }
 
 function readRegistry() {
@@ -256,39 +277,6 @@ function isIgnoredPolicyChange(filePath) {
   )
 }
 
-function resolveImport(importerPath, specifier) {
-  if (specifier.startsWith('@/')) {
-    return toPosixPath(path.posix.normalize(`src/${specifier.slice(2)}`))
-  }
-
-  if (specifier.startsWith('./') || specifier.startsWith('../')) {
-    const importerDir = path.posix.dirname(importerPath)
-    return toPosixPath(path.posix.normalize(path.posix.join(importerDir, specifier)))
-  }
-
-  return specifier
-}
-
-function getImports(relativePath) {
-  const content = readText(relativePath)
-  const imports = []
-  const importPattern =
-    /\bimport\s+(?:type\s+)?(?:[^'";]+?\s+from\s+)?['"]([^'"]+)['"]|\bexport\s+[^'";]+?\s+from\s+['"]([^'"]+)['"]/g
-
-  for (const match of content.matchAll(importPattern)) {
-    const specifier = match[1] ?? match[2]
-
-    if (specifier) {
-      imports.push({
-        specifier,
-        resolved: resolveImport(relativePath, specifier),
-      })
-    }
-  }
-
-  return imports
-}
-
 function collectViolations() {
   const stack = readActiveStack()
   const violations = []
@@ -311,20 +299,220 @@ function formatFileList(files) {
   return files.map((filePath) => `  - ${filePath}`).join('\n')
 }
 
-function isHarnessBootstrapChange(filePath) {
+function formatFileSummary(files) {
+  if (files.length === 0) {
+    return '  - 없음'
+  }
+
+  if (showBaseline) {
+    return formatFileList(files)
+  }
+
+  const groups = new Map()
+
+  for (const filePath of files) {
+    const key = filePath.includes('/')
+      ? `${filePath.split('/')[0]}/**`
+      : filePath
+    groups.set(key, (groups.get(key) ?? 0) + 1)
+  }
+
+  return [...groups.entries()]
+    .map(([key, count]) => `  - ${key} (${count} files)`)
+    .join('\n')
+}
+
+function readInstallManifest() {
+  return readJsonFile(path.join(harnessRoot, 'install-manifest.json'), {})
+}
+
+function readStackMarker() {
+  return readJsonFile(path.join(harnessRoot, '.stack-applied.json'), {})
+}
+
+function isUnmodifiedManagedHarnessFile(filePath, manifest) {
+  const managed = manifest?.managedFiles?.[filePath]
+  const absPath = path.join(repoRoot, filePath)
+  if (!managed?.sha256 || !fs.existsSync(absPath) || !fs.statSync(absPath).isFile()) {
+    return false
+  }
+
+  try {
+    return sha256(absPath) === managed.sha256
+  } catch {
+    return false
+  }
+}
+
+function isGeneratedHarnessFile(filePath) {
   return (
-    filePath.startsWith('.github/') ||
-    filePath.startsWith('.harness/') ||
-    filePath.startsWith('.githooks/') ||
-    filePath.startsWith('scripts/') ||
-    filePath === '.nvmrc' ||
-    filePath === '.gitignore' ||
-    filePath === 'AGENTS.md' ||
-    filePath === 'CLAUDE.md' ||
-    filePath === '.harness/.stack-applied.json' ||
-    filePath === '.github/.stack-applied.json' ||
+    filePath === `${harnessRootRel}/install-manifest.json` ||
+    filePath === `${harnessRootRel}/harness-lock.json` ||
+    filePath === `${harnessRootRel}/.stack-applied.json` ||
+    filePath === `${harnessRootRel}/session/absorb-report.md` ||
+    filePath.startsWith(`${harnessRootRel}/stacks/.applied/`)
+  )
+}
+
+function isTrackedInGit(filePath) {
+  try {
+    runGit(['ls-files', '--error-unmatch', filePath])
+    return true
+  } catch {
+    return false
+  }
+}
+
+function isInitialInstallConfigFile(filePath, manifest) {
+  return Boolean(
+    manifest?.installedAt &&
+    ['package.json', 'package-lock.json', '.gitignore'].includes(filePath) &&
+    !isTrackedInGit(filePath),
+  )
+}
+
+function isHarnessBaselineFile(filePath, manifest, marker) {
+  if (isUnmodifiedManagedHarnessFile(filePath, manifest)) {
+    return true
+  }
+
+  if (isInitialInstallConfigFile(filePath, manifest)) {
+    return true
+  }
+
+  const copiedStackFiles = new Set(marker?.copiedFiles ?? [])
+  if (copiedStackFiles.has(filePath)) {
+    return true
+  }
+
+  return false
+}
+
+function isLocalHarnessFile(filePath) {
+  return (
+    filePath === `${harnessRootRel}/README.md` ||
+    filePath.startsWith(`${harnessRootRel}/project/`) ||
+    filePath.startsWith(`${harnessRootRel}/session/`) ||
+    filePath.startsWith(`${harnessRootRel}/policy/`) ||
+    filePath.startsWith(`${harnessRootRel}/documentation/`) ||
+    filePath.startsWith(`${harnessRootRel}/style/`) ||
+    filePath.startsWith(`${harnessRootRel}/stacks/`)
+  )
+}
+
+function isConfigFile(filePath) {
+  return (
     filePath === 'package.json' ||
-    filePath === 'package-lock.json'
+    filePath === 'package-lock.json' ||
+    filePath.endsWith('.config.js') ||
+    filePath.endsWith('.config.mjs') ||
+    filePath.endsWith('.config.ts') ||
+    ['.gitignore', '.editorconfig', '.env.example', 'tsconfig.json', 'jsconfig.json', 'eslint.config.js', 'eslint.config.mjs'].includes(filePath)
+  )
+}
+
+function isFeatureSourceFile(filePath) {
+  return /^(src|app|lib|packages|apps|pkg|internal|test|tests|spec|__tests__)\//.test(filePath)
+}
+
+function isHarnessScriptFile(filePath) {
+  return (
+    filePath.startsWith('scripts/') ||
+    filePath === 'CLAUDE.md' ||
+    filePath === 'AGENTS.md'
+  )
+}
+
+function groupChangedFiles(changedFiles) {
+  const manifest = readInstallManifest()
+  const marker = readStackMarker()
+  const groups = {
+    feature: [],
+    localHarness: [],
+    harnessScripts: [],
+    config: [],
+    generated: [],
+    baseline: [],
+    other: [],
+  }
+
+  for (const filePath of changedFiles) {
+    if (isGeneratedHarnessFile(filePath)) {
+      groups.generated.push(filePath)
+    } else if (isHarnessBaselineFile(filePath, manifest, marker)) {
+      groups.baseline.push(filePath)
+    } else if (isFeatureSourceFile(filePath)) {
+      groups.feature.push(filePath)
+    } else if (isLocalHarnessFile(filePath)) {
+      groups.localHarness.push(filePath)
+    } else if (isHarnessScriptFile(filePath)) {
+      groups.harnessScripts.push(filePath)
+    } else if (isConfigFile(filePath)) {
+      groups.config.push(filePath)
+    } else {
+      groups.other.push(filePath)
+    }
+  }
+
+  return groups
+}
+
+function printChangedFileGroups(changedFiles) {
+  const groups = groupChangedFiles(changedFiles)
+  const userChangeCount = groups.feature.length + groups.localHarness.length + groups.harnessScripts.length + groups.config.length + groups.other.length
+  const baselineCount = groups.baseline.length + groups.generated.length
+
+  console.log('Changed files summary:')
+  console.log(`  user project changes: ${userChangeCount}`)
+  console.log(`  harness baseline/generated changes: ${baselineCount}`)
+  console.log('')
+
+  console.log('Feature source changes')
+  console.log(formatFileList(groups.feature))
+  console.log('')
+
+  console.log('Local harness updates')
+  console.log(formatFileList(groups.localHarness))
+  console.log('')
+
+  console.log('Harness script/entrypoint changes')
+  console.log(formatFileList(groups.harnessScripts))
+  console.log('')
+
+  console.log('Config changes')
+  console.log(formatFileList(groups.config))
+  console.log('')
+
+  if (groups.other.length > 0) {
+    console.log('Other project changes')
+    console.log(formatFileList(groups.other))
+    console.log('')
+  }
+
+  console.log('Harness baseline changes')
+  console.log(formatFileSummary(groups.baseline))
+  console.log('')
+
+  if (groups.generated.length > 0) {
+    console.log('Harness generated/lock files')
+    console.log(formatFileSummary(groups.generated))
+    console.log('')
+  }
+
+  if (!showBaseline && baselineCount > 0) {
+    console.log('전체 하네스 baseline 파일을 보려면 --show-baseline 또는 --verbose 옵션을 사용하세요.')
+    console.log('')
+  }
+
+  return groups
+}
+
+function isInformationalSyncGap(changedGroups, harnessMode) {
+  const sourceChangeCount = changedGroups.feature.length + changedGroups.harnessScripts.length + changedGroups.other.length
+  return sourceChangeCount === 0 && (
+    harnessMode === 'bootstrap' ||
+    changedGroups.baseline.length > 0 ||
+    changedGroups.generated.length > 0
   )
 }
 
@@ -332,8 +520,11 @@ function runImpact() {
   const registry = readRegistry()
   const trackedFiles = getAllTrackedFiles()
   const changedFiles = getChangedFiles()
+  const profile = readProfile()
+  const harnessMode = profile.harnessMode ?? 'bootstrap'
 
   console.log('Policy impact analysis')
+  console.log(`Harness mode: ${harnessMode}${strictMode ? ' (strict)' : ''}`)
   console.log('')
 
   if (changedFiles.length === 0) {
@@ -341,15 +532,8 @@ function runImpact() {
     return
   }
 
-  if (!strictMode && changedFiles.length > 20 && changedFiles.every(isHarnessBootstrapChange)) {
-    console.log(`Harness bootstrap changes detected (${changedFiles.length} files).`)
-    console.log('상세 정책 영향 목록은 생략합니다. CI/릴리스 검증에서는 --strict로 전체 영향을 확인하세요.')
-    return
-  }
-
-  console.log('Changed files:')
-  console.log(formatFileList(changedFiles))
-  console.log('')
+  const changedGroups = printChangedFileGroups(changedFiles)
+  const baselineOnly = changedGroups.feature.length + changedGroups.harnessScripts.length + changedGroups.other.length === 0 && (changedGroups.baseline.length > 0 || changedGroups.generated.length > 0)
 
   const policyTriggered = []
   const codeTriggered = []
@@ -391,7 +575,7 @@ function runImpact() {
 
     for (const item of policyTriggered) {
       console.log(`- ${item.title}`)
-      console.log(formatFileList(item.files))
+      console.log(baselineOnly && !showBaseline ? formatFileSummary(item.files) : formatFileList(item.files))
     }
 
     console.log('')
@@ -402,7 +586,7 @@ function runImpact() {
 
     for (const item of codeTriggered) {
       console.log(`- ${item.title}`)
-      console.log(formatFileList(item.documents))
+      console.log(baselineOnly && !showBaseline ? formatFileSummary(item.documents) : formatFileList(item.documents))
     }
 
     console.log('')
@@ -414,19 +598,29 @@ function runImpact() {
 
   if (syncGaps.length > 0) {
     console.log('')
-    console.log('SYNC GAP detected (한쪽만 변경되어 정책-코드 동기화가 무너질 수 있음):')
+    const informational = !strictMode && isInformationalSyncGap(changedGroups, harnessMode)
+    console.log(informational
+      ? 'SYNC GAP notice (초기 설치/스택 적용 직후라면 정상일 수 있음):'
+      : strictMode
+        ? 'SYNC GAP error (strict 모드에서는 기준-코드 불일치를 실패로 봅니다):'
+        : 'SYNC GAP warning (한쪽만 변경되어 기준-코드 동기화가 무너질 수 있음):')
 
     for (const gap of syncGaps) {
       const sideLabel = gap.side === 'document-only' ? '문서만 변경됨' : '소스만 변경됨'
       console.log(`- [${gap.id}] ${gap.title} — ${sideLabel}`)
       console.log('  documents:')
-      console.log(formatFileList(gap.documents))
+      console.log(informational && !showBaseline ? formatFileSummary(gap.documents) : formatFileList(gap.documents))
       console.log('  ownedAreas:')
-      console.log(formatFileList(gap.ownedAreas))
+      console.log(informational && !showBaseline ? formatFileSummary(gap.ownedAreas) : formatFileList(gap.ownedAreas))
     }
 
     console.log('')
-    console.log('해결: 반대편을 함께 갱신하거나, 의도적이라면 waiver/decision-log에 기록하세요.')
+    if (informational) {
+      console.log('안내: 설치 baseline 또는 rules-only 스택 기준이 처음 추가된 상황이면 정상입니다.')
+      console.log('업무 기능 변경 중이라면 관련 코드, decision-log, waiver 반영 여부를 확인하세요.')
+    } else {
+      console.log('해결: 반대편을 함께 갱신하거나, 의도적이라면 waiver/decision-log에 기록하세요.')
+    }
 
     if (strictMode) {
       process.exitCode = 1

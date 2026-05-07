@@ -7,6 +7,26 @@
 - 앞으로 추가될 기능이 어떤 기준 아래에서 설계되어야 하는지 고정합니다.
 - 새 세션에서 도메인 의사결정을 다시 추론하지 않도록 합니다.
 
+## 수정 가이드
+
+자주 직접 수정하는 문서:
+- `project-charter.md`
+- `scope-contract.md`
+- `domain-rules.md`
+- `architecture-rules.md`
+- `workflow-rules.md`
+- `../session/decision-log.md`
+- `../session/active-context.md`
+
+자동 생성 또는 하네스 관리 파일:
+- `../install-manifest.json`
+- `../harness-lock.json`
+- `../.stack-applied.json`
+- `../stacks/.applied/**`
+- `../session/absorb-report.md`
+
+자동 관리 파일은 직접 고치기보다 `harness:doctor`, `stack:apply`, `harness:update` 같은 명령을 다시 실행합니다.
+
 ## 읽기 순서
 1. [프로젝트 하네스 작성 가이드](./project-harness-guide.md)
 2. [프로젝트 시작 인터뷰 (Bootstrap)](./bootstrap.md)

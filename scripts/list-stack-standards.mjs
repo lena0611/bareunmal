@@ -22,11 +22,10 @@ function printManualFallback() {
   console.log('  HARNESS_STACK_STANDARD_GROUP=ai-standard/harnesses')
   console.log('  GITLAB_TOKEN=<private-token>   # 비공개 그룹이거나 API 권한이 필요하면 설정')
   console.log('')
-  console.log('현재 예정된 스택 하네스 후보 예시:')
-  console.log('  npx -y git+https://git.smartscore.kr/ai-standard/harnesses/vue3-vite-pinia-router.git#v0.1.3 init')
+  console.log('스택 하네스 후보가 조회되면 다음 형식으로 설치하세요.')
+  console.log('  npx -y git+<stack-harness-repo-url>#<tag> init')
   console.log('')
   console.log('공통 하네스가 이미 설치된 관리자/고급 흐름에서는 스택 기준을 직접 지정할 수 있습니다.')
-  console.log('  npm run stack:apply -- --preset-git https://git.smartscore.kr/ai-standard/harnesses/vue3-vite-pinia-router.git --ref v0.1.3')
   console.log('  npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>')
   console.log('  npm run stack:apply -- --preset-path <local-standard-dir>')
 }

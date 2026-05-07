@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -14,13 +14,92 @@ const markerPath = path.join(harnessRoot, '.stack-applied.json')
 const lockPath = path.join(harnessRoot, 'harness-lock.json')
 const profilePath = path.join(harnessRoot, harnessRoot.endsWith('.harness') ? 'policy/profile.json' : 'policy-harness/profile.json')
 const stackApplied = fs.existsSync(markerPath)
-const strictMode = forwardedArgs.includes('--strict')
+const strictMode = forwardedArgs.includes('--strict') || (() => {
+  try {
+    return JSON.parse(fs.readFileSync(profilePath, 'utf8'))?.harnessMode === 'strict'
+  } catch {
+    return false
+  }
+})()
 
 function run(command, args) {
   execFileSync(command, args, {
     cwd: repoRoot,
     stdio: 'inherit',
   })
+}
+
+function findExisting(paths) {
+  return paths.find((rel) => fs.existsSync(path.join(repoRoot, rel))) ?? null
+}
+
+function hasNodeHarnessScripts() {
+  const scriptsDir = path.join(repoRoot, 'scripts')
+  if (!fs.existsSync(scriptsDir)) {
+    return false
+  }
+
+  return fs.readdirSync(scriptsDir).some((name) => name.endsWith('.mjs'))
+}
+
+function readTextIfExists(rel) {
+  const abs = path.join(repoRoot, rel)
+  return fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : ''
+}
+
+function eslintConfigLikelyMissesNodeScriptsOverride() {
+  const configPath = findExisting(['eslint.config.js', 'eslint.config.mjs', '.eslintrc', '.eslintrc.js'])
+  if (!configPath || !hasNodeHarnessScripts()) {
+    return false
+  }
+
+  const content = readTextIfExists(configPath)
+  const mentionsScripts = /scripts\/\*\*|scripts\/|scripts:\s/.test(content)
+  const mentionsNodeGlobals = /globals\.node|nodeBuiltin|env\s*:\s*{[^}]*node\s*:\s*true|sourceType\s*:\s*['"]script['"]/.test(content)
+  return !mentionsScripts || !mentionsNodeGlobals
+}
+
+function printEslintNodeScriptsHint(output = '') {
+  const likelyNodeGlobalIssue = /'process' is not defined|process is not defined|no-undef/.test(output) || eslintConfigLikelyMissesNodeScriptsOverride()
+  if (!likelyNodeGlobalIssue) {
+    return
+  }
+
+  console.error('')
+  console.error('설치 후 검증 실패: ESLint 환경 충돌 후보')
+  console.error('')
+  console.error('원인 후보:')
+  console.error('- 하네스가 추가한 scripts/*.mjs는 Node 환경 파일입니다.')
+  console.error('- 현재 ESLint 설정이 scripts/*.mjs에 Node globals를 적용하지 않을 수 있습니다.')
+  console.error('')
+  console.error('권장 조치:')
+  console.error('- eslint.config.js 또는 eslint.config.mjs에 scripts/**/*.mjs용 Node globals override를 추가하세요.')
+  console.error('- 예: files: ["scripts/**/*.mjs"], languageOptions.globals에 Node globals 적용')
+  console.error('')
+  console.error('하네스 설치 자체가 실패한 것은 아니며, 설치 후 프로젝트 lint 환경 조정이 필요한 상태일 수 있습니다.')
+}
+
+function runNpmScript(scriptName) {
+  const result = spawnSync('npm', ['run', scriptName], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+
+  if (result.stdout) process.stdout.write(result.stdout)
+  if (result.stderr) process.stderr.write(result.stderr)
+
+  if (result.status !== 0) {
+    if (scriptName === 'lint') {
+      printEslintNodeScriptsHint(`${result.stdout ?? ''}\n${result.stderr ?? ''}`)
+    } else {
+      console.error('')
+      console.error(`설치 후 검증 실패: npm run ${scriptName}`)
+      console.error('하네스 설치 파일과 별개로, 적용 프로젝트의 검증 명령이 실패했습니다.')
+    }
+
+    process.exit(result.status ?? 1)
+  }
 }
 
 function readJson(absPath, fallback = null) {
@@ -133,13 +212,13 @@ const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf
 const scripts = pkg.scripts || {}
 
 if (scripts.lint) {
-  run('npm', ['run', 'lint'])
+  runNpmScript('lint')
 }
 
 if (scripts.test) {
-  run('npm', ['run', 'test'])
+  runNpmScript('test')
 }
 
 if (scripts.build) {
-  run('npm', ['run', 'build'])
+  runNpmScript('build')
 }

@@ -15,7 +15,7 @@
 
 하네스시드 본체는 특정 스택 기준이나 scaffold 템플릿을 포함하지 않습니다. 실제 프로젝트 개발자는 보통 스택 하네스의 `init`을 실행하고, 필요한 경우 별도 템플릿 저장소에서 scaffold를 적용합니다.
 
-새 스택 하네스를 만들어야 한다면 먼저 [스택 하네스 작성 가이드](./authoring-guide.md)를 봅니다. 백엔드 API, 배치, 모바일, 라이브러리 패키지처럼 Vue3 외의 스택도 같은 계약으로 만들 수 있습니다.
+새 스택 하네스를 만들어야 한다면 먼저 [스택 하네스 작성 가이드](./authoring-guide.md)를 봅니다. API, 배치, 모바일, 라이브러리 패키지, 운영 도구처럼 서로 다른 스택도 같은 계약으로 만들 수 있습니다.
 
 ## 스택 하네스 후보 조회
 사내 GitLab에서는 `ai-standard/harnesses` 하위 저장소를 스택 하네스 후보로 조회합니다.
@@ -30,10 +30,10 @@ npm run standards:list
 GITLAB_TOKEN=<private-token> npm run standards:list
 ```
 
-현재 예정된 스택 하네스 후보 예시:
+스택 하네스 후보가 조회되면 각 후보의 설치 명령을 확인합니다.
 
 ```bash
-npx -y git+https://git.smartscore.kr/ai-standard/harnesses/vue3-vite-pinia-router.git#v0.1.3 init
+npx -y git+<stack-harness-repo-url>#<tag> init
 ```
 
 기본 조회 대상:
@@ -87,9 +87,9 @@ npm run templates:list
 ai-standard
 ├── harnesses
 │   ├── harness-seed
-│   └── vue3-vite-pinia-router
+│   └── <stack-harness>
 ├── stacks
-│   └── cloud-front-admin-template
+│   └── <scaffold-template>
 ├── agents
 │   └── ai-standard-cli
 ├── policies
@@ -132,8 +132,8 @@ my-stack-preset/
   },
   "baseHarness": {
     "repo": "https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git",
-    "ref": "v0.2.12",
-    "minVersion": "0.2.12"
+    "ref": "v0.2.13",
+    "minVersion": "0.2.13"
   },
   "compatibility": {
     "allowEmptyProject": true,
@@ -168,8 +168,8 @@ my-stack-preset/
   },
   "baseHarness": {
     "repo": "https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git",
-    "ref": "v0.2.12",
-    "minVersion": "0.2.12"
+    "ref": "v0.2.13",
+    "minVersion": "0.2.13"
   },
   "compatibility": {
     "allowEmptyProject": true,

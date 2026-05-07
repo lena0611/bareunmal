@@ -28,7 +28,7 @@
 
 ## 소스 어댑터 (`source.type`)
 - `local`: manifest 기준 상대 경로의 `scaffold/` 폴더에서 직접 복사. 현재 기본.
-- `tiged`: 외부 GitHub 저장소에서 `npx tiged`로 scaffold를 가져오기.
+- `tiged`: 외부 원격 저장소에서 `npx tiged`로 scaffold를 가져오기.
 - `none`: scaffold 파일 복사 없이 instruction만 로컬룰로 정착.
 - 외부 프리셋 연결: 일반 프로젝트 개발자는 스택 하네스의 `npx ... init`을 사용합니다. 관리자/고급 흐름에서는 `npm run stack:apply -- --preset-path <preset-dir>` 또는 `profile.json`의 `stackManifest`를 직접 사용할 수 있습니다.
 - 분리 시점: 스택을 다른 저장소에서 공유해야 하는 시점. 본체에 새 프리셋을 계속 추가하지 않습니다.
@@ -41,7 +41,6 @@
 - 적용 프로젝트는 `.harness/harness-lock.json`으로 실제 설치된 일반/스택 하네스 ref와 version을 기록합니다.
 - 적용 후 패치나 마이너 업데이트 후보는 `npm run harness:outdated`로 확인하고, 반영하려면 `npm run harness:update`를 실행합니다. 기본 전략은 현재 설치 버전의 SemVer caret 범위 안에서 최신 태그를 다시 선택하는 방식입니다.
 - 여러 소비 프로젝트에 업데이트 MR을 만드는 자동화는 향후 `ai-standard-cli`가 담당합니다. 이식 대상 프로젝트 안에서는 outdated 확인과 update 실행까지만 다룹니다.
-- GitHub 저장소를 직접 쓰는 개인 환경에서는 `github:<owner>/<repo>#vX.Y.Z` 형식도 사용할 수 있습니다.
 - 사내 GitLab처럼 방화벽 내부 저장소를 쓰는 환경에서는 `git+https://git.example.com/group/my-stack-harness.git#vX.Y.Z` 형식이 가장 명시적입니다.
 - npm publish로 전환할 때는 현재 `bin.harness-seed`, `files`, `engines`, `.nvmrc` 구조를 그대로 사용할 수 있습니다. publish 전에는 패키지명을 확정하고 `npm pack --dry-run`으로 포함 파일을 확인합니다.
 

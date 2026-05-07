@@ -75,12 +75,12 @@ function cleanInstallCreatesExpectedFiles() {
 
   const manifest = JSON.parse(read(target, '.harness/install-manifest.json'))
   assert(manifest.tool === 'harness-seed', 'install manifest should identify harness-seed')
-  assert(manifest.version === '0.2.12', 'install manifest should record package version')
-  assert(manifest.source.packageVersion === '0.2.12', 'install manifest should record source package version')
+  assert(manifest.version === '0.2.13', 'install manifest should record package version')
+  assert(manifest.source.packageVersion === '0.2.13', 'install manifest should record source package version')
   assert(manifest.managedFiles['scripts/guard.mjs'], 'install manifest should record managed files')
 
   const lock = JSON.parse(read(target, '.harness/harness-lock.json'))
-  assert(lock.baseHarness.version === '0.2.12', 'harness lock should record base harness version')
+  assert(lock.baseHarness.version === '0.2.13', 'harness lock should record base harness version')
 
   const profile = JSON.parse(read(target, '.harness/policy/profile.json'))
   assert(profile.activeStack === 'none', 'clean install should default to stack-agnostic mode')
@@ -93,6 +93,51 @@ function cleanInstallCreatesExpectedFiles() {
   const report = read(target, '.harness/session/absorb-report.md')
   assert(report.includes('## Standards Layers'), 'doctor report should include standards layers')
   assert(report.includes('## Conflict Candidates'), 'doctor report should include conflict candidates')
+}
+
+function initAddsEslintNodeScriptsOverride() {
+  const target = makeTarget()
+  writeJson(target, 'package.json', {
+    name: 'eslint-target',
+    private: true,
+    type: 'module',
+    scripts: {
+      lint: 'eslint .',
+    },
+    devDependencies: {
+      globals: '^16.5.0',
+    },
+  })
+  fs.writeFileSync(path.join(target, 'eslint.config.js'), `import { defineConfig, globalIgnores } from 'eslint/config'
+import globals from 'globals'
+import js from '@eslint/js'
+
+export default defineConfig([
+  {
+    name: 'app/files-to-lint',
+    files: ['**/*.{vue,js,mjs,jsx}'],
+  },
+
+  globalIgnores(['**/dist/**', '**/coverage/**']),
+
+  {
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+    },
+  },
+
+  js.configs.recommended,
+])
+`)
+
+  const output = runInit(target, '--no-doctor', '--no-check')
+  const config = read(target, 'eslint.config.js')
+
+  assert(output.includes('eslint config: eslint.config.js Node scripts override 추가'), 'init should report eslint node scripts override')
+  assert(config.includes("files: ['scripts/**/*.mjs', '.harness/**/scripts/**/*.mjs']"), 'init should add scripts mjs override')
+  assert(config.includes('...globals.node'), 'init should add node globals')
 }
 
 function reinstallPreservesProjectOwnedFiles() {
@@ -205,8 +250,8 @@ function makePreset() {
     },
     baseHarness: {
       repo: 'https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git',
-      ref: 'v0.2.12',
-      minVersion: '0.2.12',
+      ref: 'v0.2.13',
+      minVersion: '0.2.13',
     },
     framework: {
       runtime: 'demo',
@@ -341,7 +386,7 @@ function stackApplySupportsExternalPresetPath() {
   assert(lock.stackHarness.repo === 'https://example.test/external-demo.git', 'harness lock should record stack repository')
   assert(lock.stackHarness.ref === 'v9.8.7', 'harness lock should record stack ref')
   assert(lock.stackHarness.manifestPath === '.harness/stacks/.applied/external-demo/manifest.json', 'harness lock should record stack manifest snapshot')
-  assert(lock.stackHarness.requiredBaseHarness.ref === 'v0.2.12', 'harness lock should record required base harness ref')
+  assert(lock.stackHarness.requiredBaseHarness.ref === 'v0.2.13', 'harness lock should record required base harness ref')
 
   const updatePlan = run('npm', ['run', 'harness:update', '--', '--dry-run'], { cwd: target })
   assert(updatePlan.includes('npx -y git+https://example.test/external-demo.git#semver:^9.8.7 init'), 'harness update dry-run should target compatible stack range')
@@ -473,6 +518,7 @@ insert_final_newline = true
 
 const tests = [
   cleanInstallCreatesExpectedFiles,
+  initAddsEslintNodeScriptsOverride,
   reinstallPreservesProjectOwnedFiles,
   forceOverwritesProjectOwnedFiles,
   dryRunDoesNotWriteFiles,

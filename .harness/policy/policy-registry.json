@@ -18,8 +18,7 @@
         "scripts/apply-stack.mjs",
         "scripts/outdated-harness.mjs",
         "scripts/update-harness.mjs",
-        "scripts/guard.mjs",
-        ".github/workflows/policy-guard.yml"
+        "scripts/guard.mjs"
       ],
       "checks": []
     },

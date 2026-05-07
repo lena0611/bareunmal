@@ -121,8 +121,6 @@ function detectBuildFiles() {
     'docker-compose.yml',
     'turbo.json',
     'nx.json',
-    'vite.config.ts',
-    'vitest.config.ts',
     'tsconfig.json',
   ])
 }
@@ -155,9 +153,34 @@ function detectQualityFiles() {
     'ruff.toml',
     'pytest.ini',
     'jest.config.js',
-    'vitest.config.ts',
     'playwright.config.ts',
   ])
+}
+
+function hasNodeHarnessScripts() {
+  const scriptsDir = path.join(repoRoot, 'scripts')
+  if (!fs.existsSync(scriptsDir)) return false
+  return fs.readdirSync(scriptsDir).some((name) => name.endsWith('.mjs'))
+}
+
+function detectEslintNodeScriptsAdvice() {
+  const configRel = listExisting(['eslint.config.js', 'eslint.config.mjs', '.eslintrc', '.eslintrc.js'])[0]
+  if (!configRel || !hasNodeHarnessScripts()) {
+    return []
+  }
+
+  const content = readText(configRel) ?? ''
+  const mentionsScripts = /scripts\/\*\*|scripts\//.test(content)
+  const mentionsNodeGlobals = /globals\.node|env\s*:\s*{[^}]*node\s*:\s*true|sourceType\s*:\s*['"]script['"]/.test(content)
+
+  if (mentionsScripts && mentionsNodeGlobals) {
+    return [`${configRel}: scripts/**/*.mjs Node 환경 override 후보가 감지되었습니다.`]
+  }
+
+  return [
+    `${configRel}: scripts/**/*.mjs용 Node 환경 override를 확인하세요.`,
+    '하네스가 추가한 scripts/*.mjs는 Node 환경 파일입니다. lint가 `process is not defined` 또는 `no-undef`로 실패하면 Node globals override가 필요할 수 있습니다.',
+  ]
 }
 
 function detectStyleGuideFiles() {
@@ -494,7 +517,7 @@ function buildHarnessVersionStatus(profile) {
 }
 
 function detectBridgeCandidates() {
-  return listExisting(['CLAUDE.md', 'AGENTS.md', '.github/copilot-instructions.md'])
+  return listExisting(['CLAUDE.md', 'AGENTS.md'])
     .filter((rel) => {
       const content = fs.readFileSync(path.join(repoRoot, rel), 'utf8')
       return !content.includes('.harness/project/local-methodology.md')
@@ -599,11 +622,30 @@ function buildConflictCandidates({ profile, pkg, testRoots, styleGuideFiles, sty
     conflicts.push('회사 공통 기준은 검증 흐름을 요구하지만 테스트 루트나 test script가 없습니다. 검증 전략을 선택하세요.')
   }
 
+  const eslintAdvice = detectEslintNodeScriptsAdvice()
+  if (eslintAdvice.length > 1) {
+    conflicts.push('ESLint 설정이 하네스 Node 스크립트(scripts/*.mjs)에 Node globals를 적용하지 않을 수 있습니다.')
+  }
+
   if (bridgeCandidates.length > 0) {
     conflicts.push('기존 에이전트 진입점이 하네스 기준 계층을 읽지 않습니다. Bridge Section Candidates를 적용할지 선택하세요.')
   }
 
   return conflicts
+}
+
+function renderTestStrategyOptions(pkg, testRoots) {
+  if (testRoots.length > 0 || (pkg && pkg.scripts.some((name) => name.includes('test')))) {
+    return '- 테스트 루트 또는 test script가 감지되었습니다. 현재 검증 전략을 `workflow-rules.md`에 맞게 유지하세요.'
+  }
+
+  return `테스트 전략이 없습니다. 다음 중 하나를 선택해 \`.harness/project/workflow-rules.md\` 또는 \`.harness/session/decision-log.md\`에 기록하세요.
+
+1. 초기 단계: lint + build + 수동 확인
+2. 단위 테스트: 프로젝트 스택에 맞는 unit test 도구 도입
+3. 통합 테스트: API, 저장소, 외부 연동 경계 검증
+4. E2E 테스트: 주요 사용자/운영 흐름 검증
+5. 테스트 보류: 사유와 재검토 조건을 decision-log에 기록`
 }
 
 function buildReport() {
@@ -618,6 +660,7 @@ function buildReport() {
   const buildFiles = detectBuildFiles()
   const ciFiles = detectCi()
   const qualityFiles = detectQualityFiles()
+  const eslintNodeScriptsAdvice = detectEslintNodeScriptsAdvice()
   const styleGuideFiles = detectStyleGuideFiles()
   const styleRuleDraft = buildStyleRuleDraft(styleGuideFiles)
   const stylePresetCandidates = renderStylePresetCandidates(styleGuideFiles)
@@ -680,6 +723,7 @@ function buildReport() {
 - branch: ${branch}
 - workingTree: ${dirty ? 'dirty' : 'clean'}
 - activeStack: ${profile.activeStack ?? 'none'}
+- harnessMode: ${profile.harnessMode ?? 'bootstrap'}
 
 ## Package
 ${pkg ? `- name: ${pkg.name}
@@ -701,6 +745,9 @@ ${formatList(ciFiles)}
 
 ### Quality Files
 ${formatList(qualityFiles)}
+
+### ESLint Node Scripts Advice
+${formatList(eslintNodeScriptsAdvice, '- ESLint Node scripts 충돌 후보 없음')}
 
 ### Style Sources
 ${formatList(styleGuideFiles)}
@@ -734,6 +781,9 @@ ${formatList(styleRuleDraft)}
 
 ## Suggested Verification Commands
 ${formatList(suggestedCommands.map((name) => `npm run ${name}`))}
+
+## Test Strategy Options
+${renderTestStrategyOptions(pkg, testRoots)}
 
 ${stylePresetCandidates}
 

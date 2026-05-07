@@ -146,7 +146,7 @@ function listMarkdownFiles() {
     )
   }
 
-  for (const rel of ['AGENTS.md', 'CLAUDE.md', '.github/copilot-instructions.md']) {
+  for (const rel of ['AGENTS.md', 'CLAUDE.md']) {
     if (fs.existsSync(path.join(repoRoot, rel))) {
       markdownFiles.push(rel)
     }

@@ -9,10 +9,10 @@ policy 하네스는 개발 기준 문서를 "참고 자료"가 아니라 "코드
 - 자동화할 수 없는 판단은 `active-context.md`나 `decision-log.md`에 남깁니다.
 
 ## 담당 범위
-- `.github/copilot-instructions/`
 - `.harness/policy/`
-- `src/`
-- `.github/workflows/policy-guard.yml`
+- 업무 코드
+- 기준 검증 스크립트
+- 프로젝트가 사용하는 CI 설정
 
 ## 성공 기준
 - 기준 변경과 코드 변경 중 어느 쪽에서 시작해도 반대편 검토가 자동으로 떠야 합니다.

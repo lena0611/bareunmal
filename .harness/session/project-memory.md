@@ -49,7 +49,7 @@
 - `npm run policy:guard` / `policy:guard:strict`
 - `npm run docs:check` / `docs:check:strict`
 - `npm run standards:list` / `stack:status` / `stack:apply` / `stack:reset`
-- `main` 푸시 시 GitHub Actions(`policy-guard.yml`)가 `--strict`로 실행
+- CI에서는 `npm run harness:check:strict`를 기준으로 실행
 
 ## 운영 장치 원칙
 - 하네스는 방향과 읽기 순서를 제공.
