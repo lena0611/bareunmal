@@ -9,10 +9,13 @@ dist/
 .package-json.hash
 .vite.pid
 .idea/
+outputs/
 
 # 동적 산출물 / 백업
 .harness/.stack-applied.json
 .harness/session/absorb-report.md
+.harness/session/task-context.md
+.harness/generated/
 .harness-backup/
 CLAUDE.local.md
 .harness/project/personal-methodology.local.md

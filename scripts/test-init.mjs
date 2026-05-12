@@ -58,6 +58,8 @@ function cleanInstallCreatesExpectedFiles() {
   assert(exists(target, 'scripts/list-templates.mjs'), 'clean install should copy template listing script')
   assert(exists(target, 'scripts/outdated-harness.mjs'), 'clean install should copy harness outdated script')
   assert(exists(target, 'scripts/update-harness.mjs'), 'clean install should copy harness update script')
+  assert(exists(target, 'scripts/sync-context.mjs'), 'clean install should copy harness sync script')
+  assert(exists(target, 'scripts/build-context.mjs'), 'clean install should copy harness context script')
   assert(!exists(target, 'scripts/init.mjs'), 'clean install should not copy seed-only init entrypoint')
   assert(!exists(target, '.nvmrc'), 'clean install should not create project runtime contract')
   assert(exists(target, '.harness/install-manifest.json'), 'clean install should write install manifest')
@@ -72,21 +74,29 @@ function cleanInstallCreatesExpectedFiles() {
   assert(pkg.scripts['absorb:report'], 'clean install should merge absorb report script')
   assert(pkg.scripts['harness:outdated'], 'clean install should merge harness outdated script')
   assert(pkg.scripts['harness:update'], 'clean install should merge harness update script')
+  assert(pkg.scripts['harness:sync'], 'clean install should merge harness sync script')
+  assert(pkg.scripts['harness:context'], 'clean install should merge harness context script')
   assert(pkg.scripts['standards:list'], 'clean install should merge stack standard listing script')
   assert(pkg.scripts['template:apply'], 'clean install should merge template apply script')
   assert(exists(target, '.harness/project/template-contract.md'), 'clean install should copy template contract bridge')
 
   const manifest = JSON.parse(read(target, '.harness/install-manifest.json'))
   assert(manifest.tool === 'harness-seed', 'install manifest should identify harness-seed')
-  assert(manifest.version === '0.2.16', 'install manifest should record package version')
-  assert(manifest.source.packageVersion === '0.2.16', 'install manifest should record source package version')
+  assert(manifest.version === '0.2.17', 'install manifest should record package version')
+  assert(manifest.source.packageVersion === '0.2.17', 'install manifest should record source package version')
   assert(manifest.managedFiles['scripts/guard.mjs'], 'install manifest should record managed files')
+  assert(manifest.managedFiles['scripts/sync-context.mjs'], 'install manifest should record sync context script')
 
   const lock = JSON.parse(read(target, '.harness/harness-lock.json'))
-  assert(lock.baseHarness.version === '0.2.16', 'harness lock should record base harness version')
+  assert(lock.baseHarness.version === '0.2.17', 'harness lock should record base harness version')
 
   const profile = JSON.parse(read(target, '.harness/policy/profile.json'))
   assert(profile.activeStack === 'none', 'clean install should default to stack-agnostic mode')
+
+  run('npm', ['run', 'harness:sync'], { cwd: target })
+  run('npm', ['run', 'harness:context', '--', 'context smoke'], { cwd: target })
+  assert(exists(target, '.harness/generated/project-map.md'), 'harness sync should generate project map')
+  assert(exists(target, '.harness/session/task-context.md'), 'harness context should generate task context')
 
   const status = fs.statSync(path.join(target, '.claude/hooks/statusline.sh'))
   assert((status.mode & 0o111) !== 0, 'Claude hook should be executable')
@@ -319,8 +329,8 @@ function makePreset() {
     },
     baseHarness: {
       repo: 'https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git',
-      ref: 'v0.2.16',
-      minVersion: '0.2.16',
+      ref: 'v0.2.17',
+      minVersion: '0.2.17',
     },
     framework: {
       runtime: 'demo',
@@ -513,7 +523,7 @@ function stackApplySupportsExternalPresetPath() {
   assert(lock.stackHarness.repo === 'https://example.test/external-demo.git', 'harness lock should record stack repository')
   assert(lock.stackHarness.ref === 'v9.8.7', 'harness lock should record stack ref')
   assert(lock.stackHarness.manifestPath === '.harness/stacks/.applied/external-demo/manifest.json', 'harness lock should record stack manifest snapshot')
-  assert(lock.stackHarness.requiredBaseHarness.ref === 'v0.2.16', 'harness lock should record required base harness ref')
+  assert(lock.stackHarness.requiredBaseHarness.ref === 'v0.2.17', 'harness lock should record required base harness ref')
 
   const updatePlan = run('npm', ['run', 'harness:update', '--', '--dry-run'], { cwd: target })
   assert(updatePlan.includes('npx -y git+https://example.test/external-demo.git#semver:^9.8.7 init'), 'harness update dry-run should target compatible stack range')

@@ -516,6 +516,21 @@ function isInformationalSyncGap(changedGroups, harnessMode) {
   )
 }
 
+function printProjectRuleCandidateReminder(changedGroups) {
+  const sourceChangeCount = changedGroups.feature.length + changedGroups.harnessScripts.length + changedGroups.config.length + changedGroups.other.length
+  const localHarnessChangeCount = changedGroups.localHarness.length
+
+  if (sourceChangeCount === 0 && localHarnessChangeCount === 0) {
+    return
+  }
+
+  console.log('Project rule candidate check:')
+  console.log('- 이번 변경에서 반복되는 도메인 규칙, 구조 결정, 검증/리뷰 절차가 생겼는지 확인하세요.')
+  console.log('- 확정 가능한 내용은 .harness/project/domain-rules.md, architecture-rules.md, workflow-rules.md에 기록합니다.')
+  console.log('- 확신이 없거나 팀 선택이 필요하면 .harness/session/developer-input-queue.md에 질문으로 남기고, 선택 이유는 decision-log.md에 남깁니다.')
+  console.log('')
+}
+
 function runImpact() {
   const registry = readRegistry()
   const trackedFiles = getAllTrackedFiles()
@@ -533,6 +548,7 @@ function runImpact() {
   }
 
   const changedGroups = printChangedFileGroups(changedFiles)
+  printProjectRuleCandidateReminder(changedGroups)
   const baselineOnly = changedGroups.feature.length + changedGroups.harnessScripts.length + changedGroups.other.length === 0 && (changedGroups.baseline.length > 0 || changedGroups.generated.length > 0)
 
   const policyTriggered = []

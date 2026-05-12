@@ -21,8 +21,9 @@
 16. `.harness/project/workflow-rules.md`
 17. `.harness/project/bootstrap.md`
 18. `.harness/policy/README.md`
-19. `.harness/documentation/README.md`
-20. `.harness/stacks/README.md`
+19. `.harness/policy/context-protocol.md`
+20. `.harness/documentation/README.md`
+21. `.harness/stacks/README.md`
 
 ## 기준
 - 하네스 본체는 `.harness/`에 있습니다.
@@ -34,6 +35,8 @@
 ## 작업 원칙
 - 모든 작업은 먼저 `.harness/policy/ai-standard-guiding-policy.md` 위배 여부를 확인합니다.
 - 작업 전 `npm run harness:check` 또는 최소 `npm run policy:impact`로 영향 범위를 확인합니다.
+- 큰 작업이나 생소한 영역은 `npm run harness:sync` 후 `npm run harness:context -- "<작업 설명>"`로 작업별 읽을거리 후보를 먼저 만듭니다.
 - 개발 기준 문서, 스택 문서, `src/`를 변경하면 관련 반대편 문서/코드도 함께 검토합니다.
+- 코드 변경 후에는 도메인, 아키텍처, 워크플로우 로컬룰로 승격할 반복 패턴이나 검증 기준이 생겼는지 반드시 점검합니다.
 - 에이전트 작업에서는 로컬 git hook 설치 여부와 무관하게 기준 계층을 따르고 완료 전 검사를 실행 대상으로 둡니다.
 - 새 프로젝트 방향이 비어 있으면 구현보다 `.harness/project/bootstrap.md` 인터뷰를 먼저 진행합니다.

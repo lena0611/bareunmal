@@ -13,8 +13,9 @@
 8. [프로젝트 하네스](../project/README.md)
 9. [프로젝트 시작 인터뷰 (Bootstrap)](../project/bootstrap.md)
 10. [정책 하네스](../policy/README.md)
-11. [문서 하네스](../documentation/README.md)
-12. [스택 프리셋 목록](../stacks/README.md)
+11. [컨텍스트 합성 프로토콜](../policy/context-protocol.md)
+12. [문서 하네스](../documentation/README.md)
+13. [스택 프리셋 목록](../stacks/README.md)
 
 ## 목적
 - 새 세션에서 짧은 시간 안에 현재 프로젝트 상태를 파악합니다.
@@ -25,6 +26,7 @@
 - 장기적으로 유지되는 사실은 `project-memory.md`에 기록합니다.
 - 최근 상태, 다음 작업, 확인이 필요한 항목은 `active-context.md`에 기록합니다.
 - 중요한 구조 결정이나 방향 변경은 `decision-log.md`에 남깁니다.
+- 큰 작업이나 생소한 영역은 `harness:sync`로 생성 컨텍스트를 최신화하고 `harness:context`로 이번 작업의 읽을거리 후보를 만듭니다.
 - 새 세션 시작 시에는 항상 `session-boot.md`의 순서를 따릅니다.
 - 새 세션 시작 시에는 항상 `session-start-alert.md`를 최우선으로 읽습니다.
 - 사용자가 `세션종료`라고 말하면 그 세션의 미결 사항과 다음 세션 상기 사항을 `next-session-reminder.md`에 정리합니다.

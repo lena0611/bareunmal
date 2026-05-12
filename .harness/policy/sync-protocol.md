@@ -9,10 +9,11 @@
 
 ## 기본 실행 순서
 1. `npm run policy:impact`
-2. `npm run policy:check`
-3. 필요 시 관련 기준 문서와 영향 영역을 함께 수정
-4. `npm run docs:check`로 문서 링크와 레지스트리 일관성 확인
-5. 최종 확인은 `npm run harness:check` (CI에서는 `npm run harness:check:strict`)
+2. 작업 범위가 크거나 생소하면 `npm run harness:sync` 후 `npm run harness:context -- "<작업 설명>"`로 관련 읽을거리 후보 생성
+3. `npm run policy:check`
+4. 필요 시 관련 기준 문서와 영향 영역을 함께 수정
+5. `npm run docs:check`로 문서 링크와 레지스트리 일관성 확인
+6. 최종 확인은 `npm run harness:check` (CI에서는 `npm run harness:check:strict`)
 
 ## SYNC GAP 처리
 - `policy:impact` 출력에 `SYNC GAP detected` 블록이 보이면 한쪽(문서 또는 소스)만 변경된 상태라는 뜻입니다.
@@ -33,8 +34,15 @@
 ## 해석 원칙
 - `policy:impact`는 "어디를 다시 봐야 하는지" 알려줍니다.
 - `policy:check`는 "지금 바로 위반인지"를 알려줍니다.
+- `harness:sync`와 `harness:context`는 "이번 작업에서 무엇을 먼저 읽을지"를 좁혀주는 보조 장치입니다.
 - `policy:impact`가 출력한 영역이 넓더라도, 검토 대상에서 제외하지 않습니다.
 - 자동 검사로 다 잡히지 않는 항목은 `automation-coverage.md`와 `waivers.json` 기준으로 추가 판단합니다.
+
+## 생성 컨텍스트
+- `.harness/generated/**`는 실제 코드와 문서를 훑어 만든 재생성 산출물입니다.
+- `.harness/session/task-context.md`는 작업 설명을 기준으로 만든 읽을거리 후보입니다.
+- 두 산출물은 git 추적 대상이 아니며, 기준 문서나 실제 코드를 대신하지 않습니다.
+- 생성 컨텍스트와 원본 문서가 충돌하면 원본 문서와 실제 코드를 우선합니다.
 
 ## 어댑터와 설치 스크립트
 - `.harness/`는 단일 진실 출처입니다. 도구별 어댑터는 하네스 본체 밖에 둡니다.

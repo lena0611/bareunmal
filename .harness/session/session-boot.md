@@ -22,16 +22,18 @@
 13. `../project/bootstrap.md`
 14. `../policy/README.md`
 15. `../policy/sync-protocol.md`
-16. `../policy/enforcement-ladder.md`
-17. `../policy/automation-coverage.md`
-18. `../documentation/README.md`
-19. `../documentation/indexing-rules.md`
-20. `../style/style-evolution.md`
-21. `../stacks/README.md` (활성 스택 메타 확인용)
+16. `../policy/context-protocol.md`
+17. `../policy/enforcement-ladder.md`
+18. `../policy/automation-coverage.md`
+19. `../documentation/README.md`
+20. `../documentation/indexing-rules.md`
+21. `../style/style-evolution.md`
+22. `../stacks/README.md` (활성 스택 메타 확인용)
 
 ## 3. 작업 시작 전 체크
 - `ai-standard-guiding-policy.md`의 위배 여부를 먼저 확인합니다.
 - 새 작업이 공통 기준, 스택 기준, 프로젝트 로컬룰 중 어느 계층의 영향을 받는지 먼저 판단합니다.
+- 큰 작업이나 낯선 영역이면 `harness:sync`와 `harness:context`로 작업별 읽을거리 후보를 먼저 만듭니다.
 - 업무 판단, 단순 변환, 외부 연동, 검증 책임이 어느 모듈에 속하는지 먼저 정합니다.
 - `developer-input-queue.md`에 `open` 항목이 있으면 개발자 입력이 필요한지 먼저 확인합니다.
 - 문서를 추가하거나 확장한다면 먼저 인덱스 문서로 둘지, 세부 문서로 둘지 역할을 결정합니다.

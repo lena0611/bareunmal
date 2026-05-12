@@ -1,0 +1,61 @@
+# 컨텍스트 합성 프로토콜
+
+AI 에이전트에게 모든 문서를 한 번에 주입하지 않습니다. 항상 읽어야 하는 최소 기준, 작업에 따라 찾아 읽을 기준, 실제 변경을 수행하는 도구를 분리합니다.
+
+## 목적
+
+- 프롬프트가 길어져도 핵심 기준이 묻히지 않게 합니다.
+- 작업과 무관한 기술스택, 템플릿, 프로젝트 문서를 과도하게 읽지 않게 합니다.
+- 회사 공통 기준, 스택 기준, 프로젝트 로컬룰, 개인룰의 우선순위를 유지합니다.
+- 자동 생성된 색인이나 요약을 진실 출처로 오해하지 않게 합니다.
+
+## 기본 구분
+
+| 구분 | 역할 | 예시 |
+| --- | --- | --- |
+| Always-on 기준 | 모든 작업에서 먼저 읽는 최소 운영 기준 | `CLAUDE.md`, `ai-standard-guiding-policy.md`, `session-start-alert.md` |
+| 작업별 컨텍스트 | 이번 요청과 관련된 기준만 골라 읽는 문서 | `domain-rules.md`, `architecture-rules.md`, 활성 스택 기준 |
+| 생성 컨텍스트 | 프로젝트 구조를 훑어 만든 재생성 가능한 보조 자료 | `.harness/generated/project-map.md`, `.harness/generated/import-map.md` |
+| 실행 도구 | 실제 검증, 적용, 업데이트를 수행하는 명령 | `harness:doctor`, `harness:sync`, `harness:check` |
+
+## 우선순위
+
+1. 회사 공통 기준
+2. 선택한 스택 하네스 기준
+3. 프로젝트 로컬 기준
+4. 개인 기준
+5. 생성 컨텍스트
+
+개인 기준과 생성 컨텍스트는 상위 기준을 덮어쓸 수 없습니다. 충돌하면 상위 기준을 우선하고, 예외가 필요하면 `decision-log.md` 또는 `waivers.json`에 남깁니다.
+
+## 진실 출처
+
+| 항목 | 진실 출처 | 검증 |
+| --- | --- | --- |
+| 공통 운영 원칙 | `.harness/policy/*.md` | `npm run docs:check`, `npm run harness:check` |
+| 프로젝트 로컬룰 | `.harness/project/*.md` | `npm run policy:guard`, 코드/설정과의 SYNC GAP 확인 |
+| 세션 상태 | `.harness/session/*.md` | 세션 시작 시 읽기 순서와 미해결 항목 확인 |
+| 프로젝트 구조 요약 | 실제 코드와 설정 파일 | `npm run harness:sync`로 재생성 |
+| 작업별 읽을거리 | 실제 문서와 생성 컨텍스트의 조합 | `npm run harness:context -- "<작업>"`로 재생성 |
+
+`.harness/generated/**`와 `.harness/session/task-context.md`는 재생성 산출물입니다. 사람이 직접 편집해 기준으로 삼지 않습니다.
+
+## 작업 흐름
+
+1. 새 세션은 `CLAUDE.md`의 읽기 순서를 먼저 따릅니다.
+2. 큰 작업이나 생소한 영역을 다룰 때 `npm run harness:sync`로 프로젝트 맵을 최신화합니다.
+3. `npm run harness:context -- "<작업 설명>"`으로 이번 작업의 읽을거리 후보를 생성합니다.
+4. 후보 문서를 실제로 읽고, 상충되는 기준이 있으면 상위 계층을 우선합니다.
+5. 코드나 기준을 바꾼 뒤 `npm run harness:check`를 실행합니다.
+6. 반복 패턴이 드러나면 `.harness/project/domain-rules.md`, `architecture-rules.md`, `workflow-rules.md` 중 맞는 곳에 로컬룰 후보로 승격합니다.
+
+## 금지
+
+- 생성 컨텍스트를 원본 문서보다 우선하지 않습니다.
+- 외부 검색 결과나 개인 메모로 프로젝트 로컬룰을 자동 덮어쓰지 않습니다.
+- 검증 없이 side effect가 있는 작업을 에이전트 추론만으로 실행하지 않습니다.
+- 벡터 색인이나 요약 파일을 저장소의 단일 진실 출처로 취급하지 않습니다.
+
+## 확장 방향
+
+초기 단계에서는 로컬 파일 기반 색인과 키워드 매칭만 사용합니다. 중앙 검색 서버나 벡터 DB는 여러 저장소의 공통 정책 검색, 감사 로그, 접근 제어가 필요해질 때 별도 인프라로 확장합니다.

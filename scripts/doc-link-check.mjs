@@ -76,6 +76,7 @@ const dynamicArtifactPaths = new Set([
   '.claude/settings.local.json',
   'CLAUDE.local.md',
   '.harness/session/absorb-report.md',
+  '.harness/session/task-context.md',
   '.harness/install-manifest.json',
   '.harness/harness-lock.json',
   // npx init 진입점은 사용자 프로젝트에 복사하지 않는다. 시드 결정 로그의
@@ -87,6 +88,7 @@ const dynamicArtifactPaths = new Set([
 const dynamicArtifactPrefixes = [
   '.harness/stacks/.applied/',
   '.harness/templates/.applied/',
+  '.harness/generated/',
   '.github/stacks/.applied/',
   '.github/templates/.applied/',
 ]
@@ -140,7 +142,7 @@ function listMarkdownFiles() {
   const markdownFiles = walk(harnessRoot)
     .filter((f) => f.endsWith('.md'))
     .map((f) => toPosix(path.relative(repoRoot, f)))
-    .filter((rel) => !rel.includes('/scaffold/') && !rel.includes('/.applied/'))
+    .filter((rel) => !rel.includes('/scaffold/') && !rel.includes('/.applied/') && !rel.startsWith('.harness/generated/'))
 
   if (fs.existsSync(path.join(repoRoot, '.claude'))) {
     markdownFiles.push(

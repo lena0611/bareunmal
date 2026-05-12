@@ -134,8 +134,8 @@ my-stack-preset/
   },
   "baseHarness": {
     "repo": "https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git",
-    "ref": "v0.2.16",
-    "minVersion": "0.2.16"
+    "ref": "v0.2.17",
+    "minVersion": "0.2.17"
   },
   "compatibility": {
     "allowEmptyProject": true,
@@ -170,8 +170,8 @@ my-stack-preset/
   },
   "baseHarness": {
     "repo": "https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git",
-    "ref": "v0.2.16",
-    "minVersion": "0.2.16"
+    "ref": "v0.2.17",
+    "minVersion": "0.2.17"
   },
   "compatibility": {
     "allowEmptyProject": true,

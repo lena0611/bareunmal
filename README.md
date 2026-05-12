@@ -111,7 +111,7 @@ AI 에이전트 작업에서는 hook 선택 여부와 별개로 하네스 검증
 `harness-seed` 직접 설치는 공통 기준 관리자, 스택 하네스 관리자, 또는 예외적으로 스택 기준 없이 공통 기준만 운영하는 프로젝트를 위한 고급 흐름입니다.
 
 ```bash
-npx -y git+https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git#v0.2.16 init
+npx -y git+https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git#v0.2.17 init
 ```
 
 하네스시드는 계속 개선되므로 `main`, `master` 같은 움직이는 브랜치를 따라가며 최신 변경을 빠르게 받는 방식도 가능합니다. 다만 팀 프로젝트에서는 하네스 변경이 언제 들어왔는지 추적할 수 있도록 릴리스 태그인 `vX.Y.Z`를 고정해 주입하는 것을 권장합니다. 최신 버전으로 올릴 때는 스택 하네스의 새 태그로 다시 `init`을 실행하고, 생성된 변경분과 `harness:doctor`, `harness:check` 결과를 함께 확인합니다.
@@ -125,7 +125,7 @@ npx -y git+https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git#v0.2
 | `.harness/install-manifest.json` | 공통 하네스가 어떤 파일을 설치/갱신했는지 추적하는 설치 manifest |
 | `.harness/harness-lock.json` | 현재 프로젝트에 설치된 공통 하네스와 스택 하네스의 repo, ref, version을 기록하는 잠금 파일 |
 
-스택 하네스의 `manifest.json`은 자신이 요구하는 공통 하네스를 `baseHarness`로 명시합니다. 예를 들어 스택 하네스 `v0.1.7`이 공통 하네스 `v0.2.16` 이상을 요구하면, 스택 하네스 `init`은 해당 공통 하네스를 먼저 설치하거나 업데이트합니다.
+스택 하네스의 `manifest.json`은 자신이 요구하는 공통 하네스를 `baseHarness`로 명시합니다. 예를 들어 스택 하네스 `v0.1.7`이 공통 하네스 `v0.2.17` 이상을 요구하면, 스택 하네스 `init`은 해당 공통 하네스를 먼저 설치하거나 업데이트합니다.
 
 업데이트는 보통 다음처럼 진행합니다.
 
@@ -232,6 +232,19 @@ npm run harness:update -- --range ^1.0.0
 
 이 흐름에서 하네스가 하는 일은 프로젝트 도메인 규칙을 임의로 발명하는 것이 아닙니다. 기존 코드, 반복 패턴, 사용자 확인을 근거로 프로젝트의 기억을 `.harness/project/*`에 쌓아 다음 작업부터 에이전트가 추측 대신 로컬 기준을 따르게 만드는 것입니다.
 
+## 작업별 컨텍스트 합성
+
+하네스는 모든 기준 문서를 프롬프트에 한꺼번에 넣는 방식을 권장하지 않습니다. 항상 읽어야 하는 최소 기준은 `CLAUDE.md`와 세션 하네스에 두고, 실제 작업마다 필요한 기준은 로컬에서 다시 합성합니다.
+
+```bash
+npm run harness:sync
+npm run harness:context -- "예약 버그 원인 분석과 수정"
+```
+
+`harness:sync`는 현재 프로젝트의 구조, import, 스크립트, 감지된 패턴을 `.harness/generated/**` 아래에 재생성합니다. `harness:context`는 작업 설명을 기준으로 `.harness/session/task-context.md`에 먼저 읽을 문서 후보를 남깁니다.
+
+이 산출물은 원본이 아닙니다. 진실 출처는 실제 코드, 설정 파일, `.harness/project/*.md`, `.harness/policy/*.md`입니다. 생성 컨텍스트와 원본이 충돌하면 원본을 우선하고, 기준 충돌이나 예외는 `decision-log.md` 또는 `waivers.json`에 남깁니다.
+
 ## 설치 후 먼저 볼 것
 
 `init`은 설치가 끝나면 기본적으로 현재 프로젝트를 진단하고, 하네스 설치 상태를 검사합니다. 그래서 일반적인 설치에서는 아래 명령을 따로 실행하지 않아도 됩니다. 프로젝트 상태를 다시 확인하고 싶을 때 같은 명령을 다시 실행합니다.
@@ -297,6 +310,8 @@ npm run harness:check -- --verbose
 | `npm run harness:doctor` | 현재 프로젝트 진단 리포트 생성 |
 | `npm run harness:check` | Node, 기준 영향도, 문서 링크, 버전, seed test, lint/test/build를 순서대로 실행하는 통합 검사 |
 | `npm run harness:check:strict` | CI/릴리스용 엄격 검사 |
+| `npm run harness:sync` | 프로젝트 맵, import 맵, 감지 패턴을 `.harness/generated/**`로 재생성 |
+| `npm run harness:context -- "<작업>"` | 작업 설명을 기준으로 `.harness/session/task-context.md` 읽을거리 후보 생성 |
 | `npm run policy:guard` | 개발 기준의 영향 분석과 위반 검사 |
 | `npm run docs:check` | 문서 레지스트리, 링크, 코드 경로 검사 |
 | `npm run absorb:report` | `harness:doctor` 호환 alias |
@@ -438,7 +453,7 @@ npm run harness:check
 - `.harness-seed-mode`를 유지합니다.
 - 하네스 본체 변경 후 `npm run harness:check:strict`를 실행합니다.
 - seed-mode에서는 `harness:check`가 init smoke test를 함께 실행합니다.
-- 배포는 태그 기준으로 합니다. 예: `v0.2.16`.
+- 배포는 태그 기준으로 합니다. 예: `v0.2.17`.
 - 사내 GitLab처럼 보호 브랜치를 쓰는 저장소에는 fast-forward 가능한 배포 커밋으로 반영합니다.
 
 ## AI 에이전트 기준점
@@ -463,5 +478,6 @@ npm run harness:check
 - 프로젝트 하네스 작성 가이드: `.harness/project/project-harness-guide.md`
 - 새 프로젝트 인터뷰: `.harness/project/bootstrap.md`
 - 개발 기준 동기화 모델: `.harness/policy/sync-protocol.md`
+- 작업별 컨텍스트 합성: `.harness/policy/context-protocol.md`
 - 스택 기준 구조: `.harness/stacks/README.md`
 - 스택 하네스 작성 가이드: `.harness/stacks/authoring-guide.md`

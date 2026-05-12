@@ -12,6 +12,8 @@
         ".harness/policy/**",
         ".harness/session/**",
         "scripts/policy-harness.mjs",
+        "scripts/sync-context.mjs",
+        "scripts/build-context.mjs",
         "scripts/doc-link-check.mjs",
         "scripts/test-init.mjs",
         "scripts/absorb-project.mjs",

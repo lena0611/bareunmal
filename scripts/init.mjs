@@ -49,6 +49,8 @@ const INSTALL_ITEMS = [
   '.github/workflows',
   'scripts/apply-stack.mjs',
   'scripts/guard.mjs',
+  'scripts/sync-context.mjs',
+  'scripts/build-context.mjs',
   'scripts/install-hooks.mjs',
   'scripts/policy-harness.mjs',
   'scripts/doc-link-check.mjs',
