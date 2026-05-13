@@ -9,6 +9,8 @@ import { fileURLToPath } from 'node:url'
 const __filename = fileURLToPath(import.meta.url)
 const repoRoot = path.resolve(path.dirname(__filename), '..')
 const nodeBin = process.execPath
+const packageVersion = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8')).version
+const packageRef = `v${packageVersion}`
 
 function run(command, args, options = {}) {
   return execFileSync(command, args, {
@@ -82,13 +84,13 @@ function cleanInstallCreatesExpectedFiles() {
 
   const manifest = JSON.parse(read(target, '.harness/install-manifest.json'))
   assert(manifest.tool === 'harness-seed', 'install manifest should identify harness-seed')
-  assert(manifest.version === '0.2.18', 'install manifest should record package version')
-  assert(manifest.source.packageVersion === '0.2.18', 'install manifest should record source package version')
+  assert(manifest.version === packageVersion, 'install manifest should record package version')
+  assert(manifest.source.packageVersion === packageVersion, 'install manifest should record source package version')
   assert(manifest.managedFiles['.harness/bin/guard.mjs'], 'install manifest should record managed files')
   assert(manifest.managedFiles['.harness/bin/sync-context.mjs'], 'install manifest should record sync context script')
 
   const lock = JSON.parse(read(target, '.harness/harness-lock.json'))
-  assert(lock.baseHarness.version === '0.2.18', 'harness lock should record base harness version')
+  assert(lock.baseHarness.version === packageVersion, 'harness lock should record base harness version')
 
   const profile = JSON.parse(read(target, '.harness/policy/profile.json'))
   assert(profile.activeStack === 'none', 'clean install should default to stack-agnostic mode')
@@ -352,8 +354,8 @@ function makePreset() {
     },
     baseHarness: {
       repo: 'https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git',
-      ref: 'v0.2.18',
-      minVersion: '0.2.18',
+      ref: packageRef,
+      minVersion: packageVersion,
     },
     framework: {
       runtime: 'demo',
@@ -546,7 +548,7 @@ function stackApplySupportsExternalPresetPath() {
   assert(lock.stackHarness.repo === 'https://example.test/external-demo.git', 'harness lock should record stack repository')
   assert(lock.stackHarness.ref === 'v9.8.7', 'harness lock should record stack ref')
   assert(lock.stackHarness.manifestPath === '.harness/stacks/.applied/external-demo/manifest.json', 'harness lock should record stack manifest snapshot')
-  assert(lock.stackHarness.requiredBaseHarness.ref === 'v0.2.18', 'harness lock should record required base harness ref')
+  assert(lock.stackHarness.requiredBaseHarness.ref === packageRef, 'harness lock should record required base harness ref')
 
   const updatePlan = run('npm', ['run', 'harness:update', '--', '--dry-run'], { cwd: target })
   assert(updatePlan.includes('npx -y git+https://example.test/external-demo.git#semver:^9.8.7 init'), 'harness update dry-run should target compatible stack range')
