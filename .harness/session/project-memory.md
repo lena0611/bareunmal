@@ -41,6 +41,11 @@
 - `harness:update`는 `.harness/harness-lock.json`의 스택 하네스 repo/version을 읽고 기본 `compatible` 전략으로 같은 SemVer caret 범위의 최신 태그를 다시 실행.
 - harness 스크립트는 충돌 시 항상 우선 (스택이 덮어쓰지 못함).
 
+## 시각 자료 갱신
+- `docs/assets/agent-development-flow.png`는 에이전트 개발 전 사고 흐름의 현재 스냅샷입니다.
+- 에이전트 진입 흐름, 기준 우선순위, 충돌 해석, 검증 절차가 바뀌면 README 설명과 이 이미지를 함께 갱신합니다.
+- `ai-standard/docs`에도 같은 이미지가 있으므로 원문 정책 쪽 자산도 함께 갱신합니다.
+
 ## 핵심 검증 명령
 - `npm run harness:doctor`: 현재 프로젝트 진단 리포트 생성
 - `npm run harness:check`: 통합 검사. policy + docs + (스택 적용 시) lint+test+build

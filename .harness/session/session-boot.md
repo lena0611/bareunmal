@@ -1,36 +1,40 @@
 # 세션 부트 가이드
 
-새 세션은 아래 순서로 컨텍스트를 복구합니다.
+새 세션은 아래 구분으로 컨텍스트를 복구합니다.
 
 ## 1. 빠른 사실 확인
 - 저장소 목적과 실행 명령은 `README.md`에서 확인합니다.
 - 코드 생성 규칙과 아키텍처 규칙은 `CLAUDE.md`, 프로젝트 하네스, 활성 스택 instructions에서 확인합니다. `AGENTS.md`는 같은 기준을 가리키는 보조 진입점입니다.
 
-## 2. 하네스 읽기
+## 2. 항상 읽는 최소 기준
 1. `../policy/ai-standard-guiding-policy.md`
 2. `session-start-alert.md`
-3. `project-memory.md`
-4. `active-context.md`
-5. `decision-log.md`
-6. `developer-input-queue.md`
-7. `../project/README.md`
-8. `../project/project-charter.md`
-9. `../project/local-methodology.md`
-10. `../project/standards-layers.md`
-11. `../project/stack-preset-rules.md`
-12. `../project/template-contract.md`
-13. `../project/bootstrap.md`
-14. `../policy/README.md`
-15. `../policy/sync-protocol.md`
-16. `../policy/context-protocol.md`
-17. `../policy/enforcement-ladder.md`
-18. `../policy/automation-coverage.md`
-19. `../documentation/README.md`
-20. `../documentation/indexing-rules.md`
-21. `../style/style-evolution.md`
-22. `../stacks/README.md` (활성 스택 메타 확인용)
+3. `active-context.md`
 
-## 3. 작업 시작 전 체크
+## 3. 세션 재개 시 추가 확인
+- `project-memory.md`
+- `decision-log.md`
+- `developer-input-queue.md`
+
+## 4. 작업별로 골라 읽는 기준
+- `../project/README.md`
+- `../project/project-charter.md`
+- `../project/local-methodology.md`
+- `../project/standards-layers.md`
+- `../project/stack-preset-rules.md`
+- `../project/template-contract.md`
+- `../project/bootstrap.md`
+- `../policy/README.md`
+- `../policy/sync-protocol.md`
+- `../policy/context-protocol.md`
+- `../policy/enforcement-ladder.md`
+- `../policy/automation-coverage.md`
+- `../documentation/README.md`
+- `../documentation/indexing-rules.md`
+- `../style/style-evolution.md`
+- `../stacks/README.md` (활성 스택 메타 확인용)
+
+## 5. 작업 시작 전 체크
 - `ai-standard-guiding-policy.md`의 위배 여부를 먼저 확인합니다.
 - 새 작업이 공통 기준, 스택 기준, 프로젝트 로컬룰 중 어느 계층의 영향을 받는지 먼저 판단합니다.
 - 큰 작업이나 낯선 영역이면 `harness:sync`와 `harness:context`로 작업별 읽을거리 후보를 먼저 만듭니다.
@@ -41,14 +45,14 @@
 - 강제 강도와 예외 허용 범위가 애매하면 사용자에게 먼저 확인합니다.
 - 스타일 drift가 보이면 `style-evolution.md` 기준으로 문서 규칙 또는 lint 규칙 승격을 검토합니다.
 
-## 4. 빠른 점검 명령
+## 6. 빠른 점검 명령
 ```bash
 git --no-pager status --short
 npm run policy:impact
 npm run harness:check
 ```
 
-## 5. 작업 재개 원칙
+## 7. 작업 재개 원칙
 - 현재 진행 상태는 `active-context.md`를 우선 신뢰합니다.
 - 장기 규칙은 `project-memory.md`와 `CLAUDE.md`를 우선 신뢰합니다.
 - 둘이 충돌하면 `active-context.md`에 충돌 사실을 기록하고 최신 코드 기준으로 다시 정리합니다.

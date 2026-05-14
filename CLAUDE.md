@@ -2,28 +2,28 @@
 
 이 파일이 모든 에이전트의 기준 진입점입니다. 사내 표준 에이전트는 Claude입니다.
 
-## 읽기 순서
+## 항상 읽는 최소 기준
 1. `.harness/policy/ai-standard-guiding-policy.md`
-2. `.harness/README.md`
-3. `.harness/session/README.md`
-4. `.harness/session/session-start-alert.md`
-5. `.harness/session/project-memory.md`
-6. `.harness/session/active-context.md`
-7. `.harness/session/decision-log.md`
-8. `.harness/session/developer-input-queue.md`
-9. `.harness/project/project-charter.md`
-10. `.harness/project/local-methodology.md`
-11. `.harness/project/standards-layers.md`
-12. `.harness/project/stack-preset-rules.md`
-13. `.harness/project/template-contract.md`
-14. `.harness/project/domain-rules.md`
-15. `.harness/project/architecture-rules.md`
-16. `.harness/project/workflow-rules.md`
-17. `.harness/project/bootstrap.md`
-18. `.harness/policy/README.md`
-19. `.harness/policy/context-protocol.md`
-20. `.harness/documentation/README.md`
-21. `.harness/stacks/README.md`
+2. `.harness/session/session-start-alert.md`
+3. `.harness/session/active-context.md`
+
+## 세션 재개 시 추가 확인
+- `.harness/session/project-memory.md`
+- `.harness/session/decision-log.md`
+- `.harness/session/developer-input-queue.md`
+
+## 작업별로 골라 읽는 기준
+- `.harness/project/local-methodology.md`
+- `.harness/project/standards-layers.md`
+- `.harness/project/domain-rules.md`
+- `.harness/project/architecture-rules.md`
+- `.harness/project/workflow-rules.md`
+- `.harness/project/stack-preset-rules.md`
+- `.harness/project/template-contract.md`
+- `.harness/project/bootstrap.md`
+- `.harness/policy/context-protocol.md`
+- `.harness/documentation/README.md`
+- `.harness/stacks/README.md`
 
 ## 기준
 - 하네스 본체는 `.harness/`에 있습니다.

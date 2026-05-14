@@ -29,13 +29,8 @@ const task = args
 const alwaysRead = [
   'CLAUDE.md',
   '.harness/policy/ai-standard-guiding-policy.md',
-  '.harness/policy/context-protocol.md',
   '.harness/session/session-start-alert.md',
   '.harness/session/active-context.md',
-  '.harness/session/decision-log.md',
-  '.harness/session/developer-input-queue.md',
-  '.harness/project/local-methodology.md',
-  '.harness/project/stack-preset-rules.md',
 ]
 
 const generatedFiles = [

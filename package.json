@@ -1,6 +1,6 @@
 {
   "name": "harness-seed",
-  "version": "0.2.19",
+  "version": "0.2.20",
   "type": "module",
   "engines": {
     "node": ">=20.19.0"
@@ -16,7 +16,8 @@
     ".githooks",
     "AGENTS.md",
     "CLAUDE.md",
-    "README.md"
+    "README.md",
+    "docs/assets"
   ],
   "scripts": {
     "node:check": "node .harness/bin/check-node-version.mjs",

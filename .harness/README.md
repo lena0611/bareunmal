@@ -31,15 +31,18 @@
 
 자동 생성 파일은 직접 고치기보다 관련 명령을 다시 실행합니다.
 
-## 먼저 볼 문서
+## 항상 읽는 최소 기준
 
 1. `../CLAUDE.md`
-2. `.harness/session/session-start-alert.md`
-3. `.harness/session/project-memory.md`
+2. `.harness/policy/ai-standard-guiding-policy.md`
+3. `.harness/session/session-start-alert.md`
 4. `.harness/session/active-context.md`
-5. `.harness/session/decision-log.md`
-6. `.harness/project/README.md`
-7. `.harness/stacks/README.md`
+
+## 필요할 때 추가로 볼 문서
+
+- 세션 재개: `.harness/session/project-memory.md`, `.harness/session/decision-log.md`, `.harness/session/developer-input-queue.md`
+- 프로젝트 기준 확인: `.harness/project/README.md`, `.harness/project/*.md`
+- 스택/템플릿 기준 확인: `.harness/stacks/README.md`, `.harness/project/stack-preset-rules.md`, `.harness/project/template-contract.md`
 
 ## 컨텍스트 합성
 

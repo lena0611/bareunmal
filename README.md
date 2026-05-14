@@ -10,6 +10,10 @@
 
 하네스시드는 AI 에이전트를 완전한 천재 개발자로 전제하지 않습니다. 빠른 실행력을 가진 불완전한 자동화 도구로 보고, 그 주변에 테스트, 제한, 관찰, 복구, 차단 장치를 깔아 개발 중 발생할 수 있는 피해를 줄이는 것을 목표로 합니다.
 
+![하네스 설치 프로젝트의 에이전트 개발 전 사고 흐름](docs/assets/agent-development-flow.png)
+
+이 이미지는 현재 기준의 스냅샷입니다. 에이전트 진입 흐름, 기준 우선순위, 충돌 해석, 검증 절차가 바뀌면 이미지도 함께 갱신해야 합니다.
+
 ## 목적
 
 - AI 에이전트와 사람이 같은 개발 기준을 읽고 작업하게 합니다.
@@ -242,7 +246,7 @@ npm run harness:update -- --range ^1.0.0
 
 ## 작업별 컨텍스트 합성
 
-하네스는 모든 기준 문서를 프롬프트에 한꺼번에 넣는 방식을 권장하지 않습니다. 항상 읽어야 하는 최소 기준은 `CLAUDE.md`와 세션 하네스에 두고, 실제 작업마다 필요한 기준은 로컬에서 다시 합성합니다.
+하네스는 모든 기준 문서를 프롬프트에 한꺼번에 넣는 방식을 권장하지 않습니다. 항상 읽어야 하는 최소 기준은 `CLAUDE.md`에 짧게 고정하고, 실제 작업마다 필요한 기준은 로컬에서 다시 합성합니다.
 
 ```bash
 npm run harness:sync
@@ -468,17 +472,27 @@ npm run harness:check
 
 사내 표준 에이전트가 Claude라면 `CLAUDE.md`를 기준점으로 둡니다. 다른 에이전트를 쓰더라도 `AGENTS.md`는 같은 기준을 가리키는 보조 진입점입니다.
 
-새 세션은 다음 순서로 읽으면 됩니다.
+새 세션은 모든 문서를 한꺼번에 읽지 않습니다. 먼저 최소 기준을 읽고, 세션 재개나 실제 작업에 필요한 문서만 추가로 엽니다.
+
+항상 읽는 최소 기준:
 
 1. `CLAUDE.md`
-2. `.harness/README.md`
-3. `.harness/session/README.md`
-4. `.harness/session/session-start-alert.md`
-5. `.harness/session/project-memory.md`
-6. `.harness/session/active-context.md`
-7. `.harness/session/decision-log.md`
-8. `.harness/session/developer-input-queue.md`
-9. `.harness/session/next-session-reminder.md`
+2. `.harness/policy/ai-standard-guiding-policy.md`
+3. `.harness/session/session-start-alert.md`
+4. `.harness/session/active-context.md`
+
+세션 재개 시 추가 확인:
+
+- `.harness/session/project-memory.md`
+- `.harness/session/decision-log.md`
+- `.harness/session/developer-input-queue.md`
+
+작업별 기준 후보는 아래 명령으로 생성합니다.
+
+```bash
+npm run harness:sync
+npm run harness:context -- "<작업 설명>"
+```
 
 ## 더 읽을 문서
 
