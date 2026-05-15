@@ -106,6 +106,8 @@ function buildReport() {
 - \`.harness/documentation/guide/index.html\`: 클릭형 개발자 가이드
 
 ## Available Commands
+새 터미널에서 실행한다면 먼저 프로젝트 루트에서 \`nvm use\`를 실행합니다.
+
 ${formatList(availableCommands, '- package.json에 하네스 공개 명령이 아직 연결되지 않았습니다.')}
 
 ## Current Changes
@@ -146,9 +148,10 @@ ${changes.length >= 20 ? '- ... 출력은 20개로 제한됨' : ''}
 - 오래된 판단은 삭제보다 먼저 \`decision-log.md\`에 변경 이유를 남기고 최신 요약을 \`project-memory.md\`나 해당 룰 문서 상단에 둡니다.
 
 ## Next Steps
-1. \`npm run harness:guide -- --open\`으로 현재 상태와 클릭형 가이드를 확인합니다.
-2. \`npm run harness:context -- "<이번 작업>"\`으로 읽을 문서를 좁힙니다.
-3. 작업 후 \`npm run harness:check\`로 기준, 링크, 검증 상태를 확인합니다.
+1. 새 터미널이면 프로젝트 루트에서 \`nvm use\`를 실행합니다.
+2. \`npm run harness:guide -- --open\`으로 현재 상태와 클릭형 가이드를 확인합니다.
+3. \`npm run harness:context -- "<이번 작업>"\`으로 읽을 문서를 좁힙니다.
+4. 작업 후 \`npm run harness:check\`로 기준, 링크, 검증 상태를 확인합니다.
 `
 }
 

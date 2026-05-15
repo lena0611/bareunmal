@@ -158,7 +158,7 @@ npx -y git+https://git.smartscore.kr/ai-standard/harnesses/harness-seed.git#v0.2
 | `.harness/install-manifest.json` | 공통 하네스가 어떤 파일을 설치/갱신했는지 추적하는 설치 manifest |
 | `.harness/harness-lock.json` | 현재 프로젝트에 설치된 공통 하네스와 스택 하네스의 repo, ref, version을 기록하는 잠금 파일 |
 
-스택 하네스의 `manifest.json`은 자신이 요구하는 공통 하네스를 `baseHarness`로 명시합니다. 예를 들어 스택 하네스 `v0.1.9`가 공통 하네스 `v0.2.26` 이상을 요구하면, 스택 하네스 `init`은 해당 공통 하네스를 먼저 설치하거나 업데이트합니다.
+스택 하네스의 `manifest.json`은 자신이 요구하는 공통 하네스를 `baseHarness`로 명시합니다. 예를 들어 스택 하네스 `v0.1.10`이 공통 하네스 `v0.2.27` 이상을 요구하면, 스택 하네스 `init`은 해당 공통 하네스를 먼저 설치하거나 업데이트합니다.
 
 업데이트는 보통 다음처럼 진행합니다.
 

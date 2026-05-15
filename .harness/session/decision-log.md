@@ -140,3 +140,4 @@
 - 하네스가 생성한 `AGENTS.md`처럼 이미 `CLAUDE.md`와 `.harness/`를 가리키는 엔트리포인트는 bridge 후보로 다시 제안하지 않습니다.
 - 설치 직후 자동 검사는 상세 감사 리포트보다 성공/실패 판정이 우선이므로 `--brief` 출력으로 낮추고, 상세 영향도는 개발자가 필요할 때 `harness:impact` 또는 `harness:check -- --verbose`로 확인하게 합니다.
 - `--brief` 검증에서는 lint/test/build 성공 로그를 `OK` 한 줄로 요약하고, 실패했을 때만 원문 출력과 원인 후보를 보여줍니다.
+- 새 터미널에서 기본 Node가 낮게 잡히는 프로젝트를 위해 설치 후 handoff와 다음 단계 안내에 `nvm use` 선행을 명시합니다.

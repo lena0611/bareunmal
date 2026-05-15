@@ -1054,6 +1054,8 @@ function main() {
 하네스 설치 완료
 
 다음 단계:
+  0) 새 터미널이면 프로젝트 루트에서 Node 버전 적용
+       nvm use
   1) 자동 생성된 프로젝트 스캔/인수인계 확인
        .harness/session/project-scan-report.md
        .harness/session/handoff.md
