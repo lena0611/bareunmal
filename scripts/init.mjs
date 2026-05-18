@@ -55,7 +55,6 @@ const INSTALL_ITEMS = [
   '.github/commit-template.txt',
   '.github/copilot-instructions.md',
   '.github/copilot-instructions',
-  '.github/workflows',
   '.githooks',
   'AGENTS.md',
   'CLAUDE.md',
@@ -1295,7 +1294,13 @@ function main() {
     }
 
     console.log(`
-하네스 설치 완료
+공통 하네스 설치 완료
+
+현재 상태:
+  - 공통 개발 기준만 설치되었습니다.
+  - 스택 기준은 아직 적용되지 않았습니다.
+  - 맞는 스택 하네스가 있으면 추가 적용하고, 없으면 공통 기준만으로 운영해도 됩니다.
+  - 다만 공통 기준만 유지한다면 그 이유를 프로젝트 판단 기록에 남기는 것이 좋습니다.
 
 다음 단계:
   0) 새 터미널이면 프로젝트 루트에서 Node 버전 적용
@@ -1305,14 +1310,20 @@ function main() {
   2) 자동 생성된 프로젝트 스캔/인수인계 확인
        .harness/session/project-scan-report.md
        .harness/session/handoff.md
-  3) git hook 활성화
-       npm run hooks:install
-  4) 스택 기준 선택, 필요하면 scaffold 템플릿 후보 조회 후 적용
-       npm run stack:status
+  3) 현재 프로젝트에 맞는 스택 기준이 있는지 확인
        npm run standards:list
+       npm run stack:status
+  4) 맞는 스택 기준이 있으면 해당 스택 하네스의 init 명령을 실행
+       예: npx -y git+https://git.smartscore.kr/ai-standard/harnesses/vue3-vite-pinia-router.git#<tag> init
+  5) 맞는 스택 기준이 없으면 공통 기준만 유지하고 이유를 기록
+       .harness/session/decision-log.md
+       또는 판단이 필요하면 .harness/session/developer-input-queue.md
+  6) 필요하면 scaffold 템플릿 후보 조회 후 적용
        npm run templates:list
        npm run template:apply -- --preset-git <repo-url> --ref <tag-or-branch>
-  5) 작업 중간에 다시 검사
+  7) git hook 활성화
+       npm run hooks:install
+  8) 작업 중간에 다시 검사
        npm run harness:check
 
 문서:

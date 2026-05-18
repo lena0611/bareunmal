@@ -100,6 +100,7 @@ function renderDashboard() {
 
   const guideAbs = path.join(repoRoot, guideRel)
   const lifecycleAbs = path.join(repoRoot, '.harness/documentation/assets/request-lifecycle-flow.svg')
+  const needsStackDecision = activeStack === 'none'
 
   const cards = [
     renderCard('하네스 모드', harnessMode, 'bootstrap / active / maintenance / strict'),
@@ -116,6 +117,26 @@ function renderDashboard() {
     renderCard('test script', scriptLabel(scripts, 'test')),
     renderCard('build script', scriptLabel(scripts, 'build')),
   ].join('\n')
+
+  const stackDecisionPanel = needsStackDecision
+    ? `<section class="panel decision">
+      <h2>스택 기준 없음: 정상 선택 가능</h2>
+      <p>현재는 공통 하네스만 설치된 상태입니다. 맞는 스택 하네스가 있으면 지금 또는 나중에 추가 적용하고, 없거나 스택 독립 프로젝트라면 공통 기준만 유지해도 됩니다. 공통 기준만 유지한다면 이유를 decision-log에 남깁니다.</p>
+      <div class="commands">
+        <code>npm run standards:list</code>
+        <code>npm run stack:status</code>
+        <code>npm run harness:scan</code>
+        <code>npm run harness:handoff</code>
+      </div>
+    </section>`
+    : `<section class="panel decision">
+      <h2>스택 기준 적용됨</h2>
+      <p><strong>${escapeHtml(activeStack)}</strong> 기준이 적용되어 있습니다. 스택 상세는 상태 명령과 프로젝트 로컬룰에서 확인합니다.</p>
+      <div class="commands">
+        <code>npm run stack:status</code>
+        <code>.harness/project/stack-preset-rules.md</code>
+      </div>
+    </section>`
 
   return `<!doctype html>
 <html lang="ko">
@@ -231,6 +252,11 @@ function renderDashboard() {
       margin-top: 14px;
     }
 
+    .decision {
+      border-color: ${needsStackDecision ? 'var(--amber)' : 'var(--green)'};
+      background: ${needsStackDecision ? '#fffbeb' : '#f0fdf4'};
+    }
+
     .commands {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -277,6 +303,8 @@ function renderDashboard() {
     <section class="grid" aria-label="current harness status">
       ${cards}
     </section>
+
+    ${stackDecisionPanel}
 
     <section class="panel">
       <h2>매일 쓰는 진입점</h2>
@@ -334,6 +362,14 @@ function main() {
   console.log('  npm run harness:handoff')
   console.log('  npm run harness:context -- "작업 설명"')
   console.log('  npm run harness:check')
+  const profile = readJson('.harness/policy/profile.json', {})
+  if ((profile.activeStack ?? 'none') === 'none') {
+    console.log('')
+    console.log('Stack decision:')
+    console.log('  현재는 공통 하네스만 설치된 상태입니다.')
+    console.log('  맞는 스택 하네스가 있으면 npm run standards:list 로 후보를 확인하세요.')
+    console.log('  맞는 스택 하네스가 없으면 공통 기준만 유지하고 decision-log에 이유를 남기세요.')
+  }
 
   if (shouldOpen) {
     const opened = openFile(dashboardAbs)

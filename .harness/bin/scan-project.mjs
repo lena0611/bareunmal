@@ -582,7 +582,7 @@ function detectStyleConflicts(styleRuleDraft) {
 function buildStandardsLayerSummary(profile, companyFiles, stackFiles, projectFiles, personalFiles) {
   const activeStack = profile.activeStack || 'none'
   const stackSummary = activeStack === 'none'
-    ? '스택 기준 미선택 (`none`). 예외적으로 공통 기준만 운영하는 상태입니다.'
+    ? '스택 기준 없음 (`none`). 공통 기준 단독 운영 또는 스택 선택 전 상태입니다.'
     : `활성 스택 기준: ${activeStack}`
 
   return [
@@ -598,7 +598,7 @@ function buildConflictCandidates({ profile, pkg, testRoots, styleGuideFiles, sty
   const activeStack = profile.activeStack || 'none'
 
   if (activeStack === 'none') {
-    conflicts.push('스택 기준 미선택: 적용 프로젝트 경험이 공통 기준 직접 사용으로 보일 수 있습니다. 스택 기준을 선택하거나 `none` 유지 사유를 기록하세요.')
+    conflicts.push('스택 기준 없음: 맞는 스택 하네스가 있으면 적용하고, 없거나 스택 독립 프로젝트라면 공통 기준 단독 운영 사유를 decision-log에 기록하세요.')
   }
 
   if (profile.stackManifest && !path.isAbsolute(profile.stackManifest) && !exists(profile.stackManifest)) {

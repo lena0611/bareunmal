@@ -76,6 +76,8 @@ function buildReport() {
   const baseHarness = lock.baseHarness
   const stackHarness = lock.stackHarness
   const template = lock.scaffoldTemplate
+  const activeStack = profile.activeStack ?? 'none'
+  const needsStackDecision = activeStack === 'none'
 
   const availableCommands = [
     scripts.includes('harness:guide') ? '`npm run harness:guide -- --open`' : null,
@@ -86,6 +88,36 @@ function buildReport() {
     scripts.includes('harness:update') ? '`npm run harness:update`' : null,
   ].filter(Boolean)
 
+  const stackDecision = needsStackDecision
+    ? `## Next Decision
+현재는 공통 하네스만 설치된 상태입니다. 이 상태는 정상적인 선택지일 수 있습니다.
+
+선택지는 두 가지입니다.
+
+1. 현재 프로젝트와 맞는 스택 하네스가 있으면 해당 스택 하네스의 \`npx ... init\` 명령을 실행합니다.
+2. 맞는 스택 하네스가 없거나 스택 독립 프로젝트라면 공통 기준만 유지합니다.
+
+판단 순서:
+
+1. \`npm run standards:list\`로 회사가 제공하는 스택 하네스 후보를 확인합니다.
+2. 맞는 후보가 없으면 \`.harness/session/decision-log.md\`에 "공통 기준만 운영" 이유를 남깁니다.
+3. 반복될 프로젝트 유형이라 새 스택 하네스가 필요해 보이면 \`.harness/session/developer-input-queue.md\`에 후보 요청을 남깁니다.
+
+나중에 맞는 스택 하네스가 제공되면 재설치가 아니라 스택 기준 추가 적용으로 진행합니다.
+
+\`\`\`bash
+npm run standards:list
+npx -y git+<stack-harness-repo-url>#<tag> init
+npm run stack:status
+npm run harness:check
+\`\`\`
+`
+    : `## Stack Decision
+선택된 스택 기준: \`${activeStack}\`
+
+스택 기준 상세는 \`.harness/project/stack-preset-rules.md\`와 \`npm run stack:status\`에서 확인합니다.
+`
+
   return `# Harness Handoff
 
 > 설치 또는 업데이트 직후 개발자가 바로 확인할 요약입니다. 이 문서는 런타임 산출물이므로 직접 기준으로 삼지 말고, 필요한 판단은 프로젝트 문서나 decision-log에 옮깁니다.
@@ -94,10 +126,12 @@ function buildReport() {
 - branch: ${branch}
 - workingTree: ${changes.length > 0 ? 'dirty' : 'clean'}
 - harnessMode: ${profile.harnessMode ?? 'bootstrap'}
-- activeStack: ${profile.activeStack ?? 'none'}
+- activeStack: ${activeStack}
 - baseHarness: ${baseHarness ? `${baseHarness.version ?? 'unknown'} (${baseHarness.ref ?? baseHarness.source?.type ?? 'unknown'})` : 'unknown'}
 - stackHarness: ${stackHarness ? `${stackHarness.version ?? 'unknown'} (${stackHarness.ref ?? 'unknown'})` : 'none'}
 - scaffoldTemplate: ${template ? `${template.version ?? 'unknown'} (${template.ref ?? 'unknown'})` : 'none'}
+
+${stackDecision}
 
 ## Read First
 - \`.harness/session/project-scan-report.md\`: 현재 프로젝트 구조, 스택, 스타일, 충돌 후보

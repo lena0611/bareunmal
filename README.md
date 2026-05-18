@@ -436,9 +436,20 @@ npm run harness:check -- --verbose
 
 현재 실제 스택 하네스가 하나뿐이어도 구조는 특정 스택에 묶여 있지 않습니다. API, 배치, 모바일, 라이브러리 패키지, 운영 도구처럼 다른 개발 스택도 같은 방식으로 별도 스택 하네스를 만들 수 있습니다. 새 스택 하네스를 만들 때는 `.harness/stacks/authoring-guide.md`를 기준으로 범위, manifest 계약, compatibility 검사, instruction 작성, 릴리스 절차를 정리합니다.
 
-`none`은 스택 기준을 아직 고르지 않았거나, 예외적으로 공통 기준만 운영하는 내부 상태입니다. 일반 프로젝트 적용 흐름에서는 `harness:scan` 리포트의 충돌 후보를 확인하고 스택 기준 선택 여부를 기록합니다.
+`none`은 스택 기준을 아직 고르지 않았거나, 공통 기준만으로 운영하기로 한 상태입니다. 일반 프로젝트 적용 흐름에서는 `harness:scan` 리포트의 충돌 후보를 확인하고, 맞는 스택 하네스가 없으면 공통 기준 단독 운영 사유를 `decision-log.md`에 기록합니다.
 
 본체에는 특정 스택 기준이나 템플릿을 넣지 않습니다. 스택 기준은 `ai-standard/harnesses` 쪽에서, 실제 scaffold 템플릿은 `ai-standard/stacks` 쪽에서 관리합니다.
+
+공통 기준만으로 운영하던 프로젝트에 나중에 맞는 스택 하네스가 생기면 재설치가 아니라 스택 기준 추가 적용으로 처리합니다. 기존 `.harness/project/*`, `.harness/session/*`, 업무 코드는 보존되고, 스택 하네스의 `init`이 공통 하네스를 업데이트한 뒤 `.harness/project/stack-preset-rules.md`와 `.harness/stacks/.applied/<stack>/`에 선택한 스택 기준을 정착시킵니다.
+
+```bash
+npm run standards:list
+npx -y git+<stack-harness-repo-url>#<tag> init
+npm run stack:status
+npm run harness:check
+```
+
+적용 후에는 `decision-log.md`에 "공통 기준 단독 운영에서 스택 기준 적용으로 전환"한 이유와 적용한 스택 버전을 남깁니다.
 
 스택 하네스 후보는 다음 명령으로 조회합니다.
 

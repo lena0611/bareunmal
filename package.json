@@ -1,6 +1,6 @@
 {
   "name": "harness-seed",
-  "version": "0.2.31",
+  "version": "0.2.32",
   "type": "module",
   "engines": {
     "node": ">=20.19.0"
@@ -24,7 +24,9 @@
     "!.harness/.stack-applied.json",
     "!.harness/.template-applied.json",
     ".claude",
-    ".github",
+    ".github/commit-template.txt",
+    ".github/copilot-instructions.md",
+    ".github/copilot-instructions",
     "scripts",
     ".githooks",
     "AGENTS.md",
