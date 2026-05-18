@@ -1,5 +1,10 @@
 # 결정 로그
 
+## 2026-05-18 - CLI 역할을 부트스트랩/라우터로 축소
+- 소비자 프로젝트에서 프로젝트 로컬 CLI를 일상 명령으로 쓰게 하는 방식은 `npm run harness:*` 대비 실익이 작고, `ai` 명령이 바로 될 것이라는 오해를 만듭니다.
+- `ai-standard-cli`는 최초 설치 시 프로젝트 스택을 감지하고 적절한 하네스 init으로 연결하는 bootstrap/router로 제한합니다.
+- 설치 이후 개발자와 에이전트는 프로젝트에 생성된 `npm run harness:guide`, `npm run harness:check`, `npm run harness:update` 등을 표준 실행면으로 사용합니다.
+
 ## 2026-05-18 - force 덮어쓰기 확인 절차 추가
 - 소비자 프로젝트의 `decision-log.md`, `project-memory.md`, 프로젝트 룰 문서는 하네스 업데이트 중에도 프로젝트 소유 산출물로 보존되어야 합니다.
 - `--force`는 이 보존 원칙을 깨고 프로젝트 소유/출처 미확인 파일까지 덮어쓸 수 있으므로 단독 실행을 중단합니다.
@@ -8,9 +13,10 @@
 - 본체 개발 레포는 소비자 프로젝트와 달리 개발용 `.nvmrc`를 보유하고, npm/버전/lockfile 작업 전 `nvm use`를 먼저 적용합니다.
 
 ## 2026-05-18 - 전역 없는 CLI 사용 방식 정리
+- 후속 결정으로 이 방향은 폐기했습니다. CLI는 devDependency로 남기지 않고, 설치 이후 표준 사용은 `npm run harness:*`로 통일합니다.
 - 소비자 개발자는 전역 설치를 기본으로 하지 않습니다.
-- `npx ... ai-standard-cli.git#<tag> init`은 부트스트랩 명령으로만 쓰고, 초기화 후 CLI는 적용 프로젝트의 devDependency로 남깁니다.
-- 이후 명령은 `ai` 직접 입력이 아니라 `npm exec ai -- <command>`를 표준으로 안내합니다.
+- 당시에는 `npx ... ai-standard-cli.git#<tag> init` 이후 CLI를 적용 프로젝트의 devDependency로 남기는 방안을 검토했습니다.
+- 이후 명령도 프로젝트 로컬 CLI로 감싸는 방향을 검토했지만, 현재 표준에서는 사용하지 않습니다.
 - `ai`만 직접 입력하는 방식은 전역 설치나 PATH 변경이 필요하므로 기본 도입 흐름에서 제외합니다.
 
 ## 2026-05-14 - scan/handoff 공개 명령 정리

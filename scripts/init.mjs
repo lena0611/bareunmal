@@ -1300,20 +1300,20 @@ function main() {
 다음 단계:
   0) 새 터미널이면 프로젝트 루트에서 Node 버전 적용
        nvm use
-  1) 자동 생성된 프로젝트 스캔/인수인계 확인
+  1) 현재 상태를 브라우저로 확인
+       npm run harness:guide -- --open
+  2) 자동 생성된 프로젝트 스캔/인수인계 확인
        .harness/session/project-scan-report.md
        .harness/session/handoff.md
-       로컬 CLI 사용 시: npm exec ai -- guide --open
-  2) git hook 활성화
+  3) git hook 활성화
        npm run hooks:install
-  3) 스택 기준 선택, 필요하면 scaffold 템플릿 후보 조회 후 적용
+  4) 스택 기준 선택, 필요하면 scaffold 템플릿 후보 조회 후 적용
        npm run stack:status
        npm run standards:list
        npm run templates:list
        npm run template:apply -- --preset-git <repo-url> --ref <tag-or-branch>
-  4) 작업 중간에 다시 검사
+  5) 작업 중간에 다시 검사
        npm run harness:check
-       로컬 CLI 사용 시: npm exec ai -- check
 
 문서:
   - CLAUDE.md
