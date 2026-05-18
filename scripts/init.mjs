@@ -1303,7 +1303,7 @@ function main() {
   1) 자동 생성된 프로젝트 스캔/인수인계 확인
        .harness/session/project-scan-report.md
        .harness/session/handoff.md
-       CLI 사용 시: ai guide
+       로컬 CLI 사용 시: npm exec ai -- guide --open
   2) git hook 활성화
        npm run hooks:install
   3) 스택 기준 선택, 필요하면 scaffold 템플릿 후보 조회 후 적용
@@ -1313,7 +1313,7 @@ function main() {
        npm run template:apply -- --preset-git <repo-url> --ref <tag-or-branch>
   4) 작업 중간에 다시 검사
        npm run harness:check
-       CLI 사용 시: ai check
+       로컬 CLI 사용 시: npm exec ai -- check
 
 문서:
   - CLAUDE.md

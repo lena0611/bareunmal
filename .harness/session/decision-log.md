@@ -7,6 +7,12 @@
 - 자동화 환경에서는 `AI_STANDARD_CONFIRM_OVERWRITE_PROJECT_FILES=1`을 사용할 수 있지만, 이 경우에도 백업 생성 여부와 덮어쓰기 대상 목록을 확인해야 합니다.
 - 본체 개발 레포는 소비자 프로젝트와 달리 개발용 `.nvmrc`를 보유하고, npm/버전/lockfile 작업 전 `nvm use`를 먼저 적용합니다.
 
+## 2026-05-18 - 전역 없는 CLI 사용 방식 정리
+- 소비자 개발자는 전역 설치를 기본으로 하지 않습니다.
+- `npx ... ai-standard-cli.git#<tag> init`은 부트스트랩 명령으로만 쓰고, 초기화 후 CLI는 적용 프로젝트의 devDependency로 남깁니다.
+- 이후 명령은 `ai` 직접 입력이 아니라 `npm exec ai -- <command>`를 표준으로 안내합니다.
+- `ai`만 직접 입력하는 방식은 전역 설치나 PATH 변경이 필요하므로 기본 도입 흐름에서 제외합니다.
+
 ## 2026-05-14 - scan/handoff 공개 명령 정리
 - 정식 공개 전 공개 명령을 `harness:scan`, `harness:handoff`, `harness:impact`, `harness:check` 중심으로 정리합니다.
 - `harness:scan`은 프로젝트 구조, 스타일 출처, 기준 계층, 충돌 후보를 `.harness/session/project-scan-report.md`에 남깁니다.
