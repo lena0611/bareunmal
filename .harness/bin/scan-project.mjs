@@ -797,7 +797,7 @@ ${formatList(bridgeCandidates)}
 \`\`\`markdown
 ## Project Harness Bridge
 
-이 프로젝트에서는 기존 개인/전용 룰과 함께 하네스시드 기준을 읽습니다.
+이 프로젝트에서는 기존 개인/전용 룰과 함께 공통 하네스 기준을 읽습니다.
 
 1. \`.harness/project/local-methodology.md\`
 2. \`.harness/project/standards-layers.md\`

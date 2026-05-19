@@ -33,7 +33,7 @@
 - scaffold 템플릿 후보 조회: `npm run templates:list`
 - 원격 scaffold 템플릿 적용: `npm run template:apply -- --preset-git <repo-url> --ref <tag-or-branch>`
 - 다른 스택으로 전환: `npm run stack:reset` → 새 기준 선택 → `npm run stack:apply`
-- 일반 하네스만 쓰고 싶을 때: `activeStack: "none"`으로 설정 (자동 lint/test/build 스킵)
+- 공통 하네스만 쓰고 싶을 때: `activeStack: "none"`으로 설정 (자동 lint/test/build 스킵)
 - 새 스택 기준 추가: 본체가 아니라 별도 스택 기준 저장소를 만들고 `.harness/stacks/README.md`의 외부 프리셋 계약을 따르기
 
 ## 내일 시작용 한 줄

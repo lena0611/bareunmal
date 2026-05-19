@@ -359,7 +359,7 @@ function noBackupRequiresForce() {
   assert(failed, '--no-backup without --force should fail')
 }
 
-function unsupportedProjectNvmrcRequiresExplicitOverride() {
+function unsupportedProjectNvmrcStopsInit() {
   const target = makeTarget()
   fs.writeFileSync(path.join(target, '.nvmrc'), '18.20.0\n')
 
@@ -372,10 +372,8 @@ function unsupportedProjectNvmrcRequiresExplicitOverride() {
   }
 
   assert(failed, 'unsupported existing .nvmrc should stop init by default')
-
-  const output = runInit(target, '--allow-node-mismatch')
-  assert(output.includes('files:'), 'explicit node mismatch override should allow init')
-  assert(read(target, '.nvmrc') === '18.20.0\n', 'existing .nvmrc should be preserved even with mismatch override')
+  assert(!exists(target, '.harness'), 'unsupported existing .nvmrc should not install harness files')
+  assert(read(target, '.nvmrc') === '18.20.0\n', 'existing .nvmrc should be preserved when init stops')
 }
 
 function existingProjectNvmrcIsPreserved() {
@@ -868,7 +866,7 @@ const tests = [
   forceRequiresOverwriteConfirmation,
   dryRunDoesNotWriteFiles,
   noBackupRequiresForce,
-  unsupportedProjectNvmrcRequiresExplicitOverride,
+  unsupportedProjectNvmrcStopsInit,
   existingProjectNvmrcIsPreserved,
   externalHarnessWithoutManifestIsPreserved,
   scanReportSuggestsBridgeCandidates,

@@ -6,7 +6,7 @@
 이 절차는 새 프로젝트뿐 아니라 기존 안정 프로젝트의 유지보수, 마이그레이션, 운영 개선에도 사용할 수 있습니다.
 
 ## 목적
-- 일반 하네스(세션·기준·문서·스타일 동기화 인프라)는 그대로 두고, 프로젝트마다 달라지는 부분(상태, 책임 범위, 운영 기준, 기술 스택 선택)을 한 자리에서 정리합니다.
+- 공통 하네스(세션·기준·문서·스타일 동기화 인프라)는 그대로 두고, 프로젝트마다 달라지는 부분(상태, 책임 범위, 운영 기준, 기술 스택 선택)을 한 자리에서 정리합니다.
 - 입력 결과는 `project-charter.md`, `scope-contract.md`, `.harness/policy/profile.json`에 분산 저장됩니다.
 
 ## 인터뷰 순서
@@ -73,13 +73,13 @@ npm run harness:check
 ```
 
 - 스택 미적용 상태에서도 `npm run harness:check`는 일반 인프라 검사(기준 동기화 + 문서)만 실행하고 lint/test/build는 건너뜁니다.
-- 일반 프로젝트 개발자에게는 스택 하네스의 `npx ... init` 흐름을 우선 안내합니다. 위 `stack:apply` 흐름은 이미 일반 하네스가 설치된 관리자/고급 흐름입니다.
+- 일반 프로젝트 개발자에게는 스택 하네스의 `npx ... init` 흐름을 우선 안내합니다. 위 `stack:apply` 흐름은 이미 공통 하네스가 설치된 관리자/고급 흐름입니다.
 - `source.type=none`인 스택 기준은 파일 복사 없이 `.harness/project/stack-preset-rules.md`만 갱신합니다.
 - 스택을 바꾸고 싶으면 `npm run stack:reset` 으로 먼저 적용을 되돌린 뒤 `activeStack`을 바꾸고 다시 `stack:apply`를 실행합니다.
 - 원격 프리셋을 적용하려면 `npm run stack:apply -- --preset-git <repo-url> --ref <tag-or-branch>`를 사용합니다.
 - 외부 프리셋을 일회성으로 적용하려면 `npm run stack:apply -- --preset-path <preset-dir>`를 사용합니다.
 - scaffold 템플릿은 스택 기준과 분리해 `template:apply`로 적용합니다. 적용 후 템플릿 사용 계약은 `template-contract.md`에 브리지로 남깁니다.
-- `"none"`으로 두면 스택 적용 없이 일반 하네스만 운영됩니다. 이 상태는 예외 또는 전환 중 상태로 보고 `harness:scan`의 충돌 후보를 확인합니다.
+- `"none"`으로 두면 스택 적용 없이 공통 하네스만 운영됩니다. 이 상태는 예외 또는 전환 중 상태로 보고 `harness:scan`의 충돌 후보를 확인합니다.
 
 ### 5. 첫 로컬룰 후보 정착 (선택)
 프로젝트 카드가 채워졌고 스택이 정해졌다면 다음을 이어서 확인합니다.

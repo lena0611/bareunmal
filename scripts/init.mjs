@@ -183,14 +183,8 @@ function checkProjectNodeContract(target, opts) {
   const message = [
     `project node: existing .nvmrc ${value || '(empty)'} is below harness minimum Node 20.19.0.`,
     'Jenkins가 이 버전으로 `nvm use` 후 하네스 검사 또는 빌드를 실행하면 실패할 수 있습니다.',
-    '프로젝트 Node 전환 계획을 먼저 정하거나, 의도적이면 --allow-node-mismatch를 붙여 진행하세요.',
+    '하네스 설치를 중단합니다. 프로젝트 Node를 20.19 이상으로 전환한 뒤 다시 실행하세요.',
   ].join('\n');
-
-  if (opts.allowNodeMismatch) {
-    console.warn(message);
-    console.warn('mode: node mismatch allowed');
-    return;
-  }
 
   console.error(message);
   process.exit(1);
@@ -210,7 +204,6 @@ Options:
   --no-handoff           설치/업데이트 인수인계 요약을 자동 생성하지 않습니다.
   --no-check             설치 후 하네스 기본 검사를 자동 실행하지 않습니다.
   --embedded             스택 하네스 설치 흐름 내부에서 호출될 때 중간 안내를 줄입니다.
-  --allow-node-mismatch  기존 프로젝트 .nvmrc가 하네스 최소 버전보다 낮아도 명시적으로 진행합니다.
   --from-git <repo-url>  동봉본 대신 git 저장소에서 소스를 가져옵니다.
   --ref <ref>            --from-git과 함께 사용할 branch/tag/sha입니다. 기본값: main
   --source-repo <url>    설치 메타데이터에 기록할 공통 하네스 저장소입니다.
@@ -234,7 +227,6 @@ function parseArgs(argv) {
     noHandoff: false,
     noCheck: false,
     embedded: false,
-    allowNodeMismatch: false,
     fromGit: null,
     ref: 'main',
     sourceRepo: null,
@@ -274,9 +266,6 @@ function parseArgs(argv) {
         break;
       case '--embedded':
         opts.embedded = true;
-        break;
-      case '--allow-node-mismatch':
-        opts.allowNodeMismatch = true;
         break;
       case '--from-git': {
         const repo = args[++i];

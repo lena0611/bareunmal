@@ -9,8 +9,8 @@
 
 ## 이식 절차
 1. 기존 프로젝트 루트에서 프로젝트에 맞는 스택 하네스의 `npx -y git+<stack-harness-repo-url>#<tag> init`을 실행합니다. 안정 재현을 위해 `main`/`master` 대신 릴리스 tag를 사용합니다.
-2. 스택 하네스가 내부적으로 일반 하네스를 설치하거나 업데이트하고, 자기 스택 기준을 로컬룰로 정착했는지 확인합니다.
-3. `.harness/harness-lock.json`에서 실제 설치된 일반 하네스와 스택 하네스의 repo, ref, version을 확인합니다.
+2. 스택 하네스가 내부적으로 공통 하네스를 설치하거나 업데이트하고, 자기 스택 기준을 로컬룰로 정착했는지 확인합니다.
+3. `.harness/harness-lock.json`에서 실제 설치된 공통 하네스와 스택 하네스의 repo, ref, version을 확인합니다.
 4. `.harness/session/project-scan-report.md`에서 기존 프로젝트 기준, 스타일 출처, 버전 상태, 충돌 후보를 확인합니다.
 5. `npm run hooks:install`로 로컬 hook을 연결합니다.
 6. scaffold가 필요하면 `npm run templates:list`로 별도 템플릿 후보를 확인하고 `template:apply`로 적용합니다.
@@ -27,7 +27,7 @@
 - `package.json`의 `engines.node`는 `>=20.19.0`로 고정합니다.
 - 하네스 패키지는 소비자 프로젝트에 `.nvmrc`를 주입하지 않습니다.
 - 적용 프로젝트의 `.nvmrc`는 프로젝트/Jenkins 빌드 계약입니다. 하네스 설치나 scaffold 템플릿 적용은 기존 `.nvmrc`를 자동 덮어쓰지 않습니다.
-- 기존 `.nvmrc`가 Node 20.19 이상이면 그대로 사용합니다. 더 낮은 버전이면 설치 전에 중단하고 안내하며, 의도적이면 `--allow-node-mismatch`로 진행할 수 있습니다.
+- 기존 `.nvmrc`가 Node 20.19 이상이면 그대로 사용합니다. 더 낮은 버전이면 설치 전에 중단하고 안내합니다. 하네스 설치 후에도 `harness:scan`, `harness:check`, `harness:update`가 Node 20.19 이상에서 실행되어야 하므로 낮은 Node 프로젝트에는 그대로 적용하지 않습니다.
 - Node 20은 2026-04-30에 EOL이므로 신규 프로젝트는 Jenkins 검증이 준비되는 대로 Node 22/24 전환을 검토합니다.
 - 낮은 Node에서 harness 명령을 실행하면 `.harness/bin/check-node-version.mjs`가 먼저 실패해 문법 에러 대신 업그레이드 안내를 보여줍니다.
 - 각 프리셋이 추가 런타임 제약을 갖는 경우 해당 프리셋의 instruction 또는 manifest에 기록합니다.
@@ -44,7 +44,7 @@
 ## 릴리스와 실행 방식
 - 문서와 샘플에서는 저장소 종류와 무관하게 `<stack-harness-repo-url>` placeholder를 우선 사용합니다.
 - 팀 배포 절차에는 `git+<stack-harness-repo-url>#vX.Y.Z`처럼 tag를 고정합니다.
-- 스택 하네스의 `manifest.json`은 내부에서 사용할 일반 하네스의 `baseHarness.ref`를 고정합니다.
+- 스택 하네스의 `manifest.json`은 내부에서 사용할 공통 하네스의 `baseHarness.ref`를 고정합니다.
 - 적용 프로젝트는 `.harness/harness-lock.json`으로 실제 설치된 일반/스택 하네스 ref와 version을 기록합니다.
 - 적용 후 패치나 마이너 업데이트 후보는 `npm run harness:outdated`로 확인하고, 반영하려면 `npm run harness:update`를 실행합니다. 기본 전략은 현재 설치 버전의 SemVer caret 범위 안에서 최신 태그를 다시 선택하는 방식입니다.
 - 여러 소비 프로젝트에 업데이트 MR을 만드는 자동화는 향후 `ai-standard-cli`가 담당합니다. 이식 대상 프로젝트 안에서는 outdated 확인과 update 실행까지만 다룹니다.

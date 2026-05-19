@@ -28,6 +28,19 @@
 - 소비자 프로젝트의 `decision-log.md`는 하네스 릴리스 노트가 아니라 해당 프로젝트의 기준 충돌, 예외, 아키텍처 선택 이유를 남기는 문서입니다.
 - 하네스 본체 변경 이력은 본체 저장소의 `CHANGELOG.md`와 릴리스 태그를 기준으로 확인합니다.
 
+## 명시적 세션 명령
+
+Claude Code에서는 아래 slash command를 사용합니다. Codex와 Copilot은 같은 명령을 강제 실행하지 못하므로 대상 파일을 직접 읽고 갱신합니다.
+
+| 명령 | 대상 파일 | 목적 |
+| --- | --- | --- |
+| `/reminder` | `.harness/session/next-session-reminder.md` | 다음 세션에서 반드시 떠올릴 항목 정리 |
+| `/memory` | `.harness/session/project-memory.md` | 오래 유지되는 프로젝트 사실 기록 |
+| `/decision` | `.harness/session/decision-log.md` | 구조 결정, 예외, 충돌 해결 이유 기록 |
+| `/harness-scan` | `.harness/session/project-scan-report.md` | 현재 프로젝트 스캔과 로컬 기준 후보 정리 |
+
+Claude Code는 `SessionStart` hook으로 `next-session-reminder.md`를 자동 표시합니다. 다른 에이전트는 `CLAUDE.md`와 이 README의 읽기 순서를 통해 같은 기준을 따라야 합니다.
+
 ## 운영 규칙
 - 장기적으로 유지되는 사실은 `project-memory.md`에 기록합니다.
 - 최근 상태, 다음 작업, 확인이 필요한 항목은 `active-context.md`에 기록합니다.

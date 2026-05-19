@@ -32,7 +32,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 
 ## 3. 하네스 반영
 먼저 `.harness/session/project-scan-report.md`의 자동 감지 결과를 검토합니다. 이후 분석 결과를 다음 파일에 반영합니다.
-- `Bridge Section Candidates`: 기존 개인/전용 룰 파일이 하네스시드 읽기 순서와 연결되어야 하는지 검토
+- `Bridge Section Candidates`: 기존 개인/전용 룰 파일이 공통 하네스 읽기 순서와 연결되어야 하는지 검토
 - `Style Rule Draft`: formatter/linter 설정에서 추출한 스타일 초안을 검토하고 로컬 방법론 승격 여부 판단
 - `Style Preset Candidates`: 로컬 스타일 출처가 없을 때 개발자에게 선택을 요청
 - `.harness/project/project-charter.md`: 목적, 사용자, 목표, 비목표, 제약

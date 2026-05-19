@@ -5,7 +5,7 @@
 ## 현재 상태 (2026-05-06)
 - 저장소가 **일반화 하네스 + 외부 스택 기준 런타임** 구조로 분리되었습니다.
 - 본체에는 특정 스택 기준이나 스택 템플릿을 포함하지 않습니다.
-- root는 일반 하네스 전용입니다.
+- root는 공통 하네스 전용입니다.
 - `npm run standards:list` / `stack:apply` / `stack:reset` / `stack:status` 로 스택 기준 적용을 제어합니다.
 - `npm run templates:list` / `template:apply` / `template:reset` / `template:status` 로 scaffold 템플릿 적용을 제어합니다.
 - 적용 상태는 `.harness/.stack-applied.json` 마커로 기록됩니다 (gitignore — dev 머신/시드 사용자 머신마다 다른 상태).
@@ -20,7 +20,7 @@
 - 에이전트 진행 설명은 원시 내부 추론이 아니라 visible trace 단계와 판단 결과로 요약합니다.
 - 프로젝트 룰이 누적되면 항상 모두 읽지 않고 `harness:context -- "<작업 설명>"`으로 작업별 후보를 좁힙니다.
 
-## 핵심 파일 (일반 하네스)
+## 핵심 파일 (공통 하네스)
 - `.harness/policy/profile.json` — `activeStack` 단일 진실 출처
 - `.harness/policy/policy-registry.json` — stack-agnostic 정책만
 - `.harness/stacks/README.md` — 스택 기준과 scaffold 템플릿 격리 원칙

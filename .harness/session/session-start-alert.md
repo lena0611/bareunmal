@@ -4,6 +4,8 @@
 
 바로 이어서 [`next-session-reminder.md`](./next-session-reminder.md)를 봅니다.
 
+Claude Code에서는 `SessionStart` hook이 `next-session-reminder.md`를 자동으로 보여줍니다. Codex와 Copilot은 같은 hook 강제성이 없으므로 `CLAUDE.md`의 읽기 순서에 따라 직접 확인합니다.
+
 ## 지금 반드시 떠올릴 것
 1. 모든 작업은 `.harness/policy/ai-standard-guiding-policy.md`의 위배 여부를 먼저 확인합니다.
 2. 프로젝트 목적은 아직 `TBD`입니다. 새 기능 전에 `.harness/project/project-charter.md`를 먼저 확인합니다.

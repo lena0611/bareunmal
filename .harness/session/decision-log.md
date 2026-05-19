@@ -1,5 +1,15 @@
 # 결정 로그
 
+## 2026-05-19 - 공통 하네스 용어와 에이전트 세션 명령 정리
+- 사용자-facing 용어는 “공통 하네스”로 통일하고, “하네스시드”는 공통 하네스 설치 저장소/패키지 이름으로 제한합니다.
+- Claude Code는 `SessionStart` hook과 slash command를 통해 `next-session-reminder.md`, `project-memory.md`, `decision-log.md`를 명시적으로 다룹니다.
+- Codex와 Copilot은 동일한 hook 강제성이 없으므로 `CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`에서 읽기 순서와 대상 파일을 안내합니다.
+
+## 2026-05-19 - 낮은 Node 프로젝트의 하네스 설치 중단
+- 하네스 실행 스크립트는 Node 20.19 이상을 기준으로 유지합니다.
+- Node 12 같은 낮은 프로젝트 런타임에서 CLI만 우회 실행해도 설치 이후 `harness:scan`, `harness:check`, `harness:update`가 계속 실패하므로 CommonJS 호환 레이어를 만들지 않습니다.
+- 기존 `.nvmrc`가 하네스 실행 최소 버전보다 낮으면 설치를 중단하고 프로젝트 Node 전환을 먼저 안내합니다.
+
 ## 2026-05-18 - 공통 하네스만 설치된 상태의 다음 선택 안내
 - 러버덕 테스트에서 공통시드만 설치한 개발자가 다음 행동을 알기 어렵다는 문제가 확인되었습니다.
 - 공통 하네스 단독 설치는 실패나 미완료가 아니라 정상 선택 가능한 상태입니다.

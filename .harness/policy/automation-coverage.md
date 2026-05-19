@@ -2,7 +2,7 @@
 
 개발 기준 중 무엇이 자동 검증 가능하고, 무엇이 아직 수동 검토 대상인지 기록합니다.
 
-## 일반 하네스 자동 검증 (스택 무관)
+## 공통 하네스 자동 검증 (스택 무관)
 | Rule | 설명 | 현재 상태 |
 | --- | --- | --- |
 | `doc-registry-consistency` | `document-registry.json`과 실제 .md 파일 집합 일치 | 자동 검사 (`harness:check`, 본체 개발 시 `docs:check`) |

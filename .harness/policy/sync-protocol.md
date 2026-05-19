@@ -48,7 +48,7 @@
 - `.harness/`는 단일 진실 출처입니다. 도구별 어댑터는 하네스 본체 밖에 둡니다.
 - 새 어댑터 문서를 추가하면 `document-registry.json`과 `.harness/bin/doc-link-check.mjs`의 탐색 범위를 함께 확인합니다.
 - `init`은 하네스 소유 파일을 갱신하고 프로젝트 소유 파일을 보존해야 합니다.
-- `init`은 `.harness/install-manifest.json`으로 하네스시드가 관리하는 파일을 식별해야 합니다.
+- `init`은 `.harness/install-manifest.json`으로 공통 하네스 설치기가 관리하는 파일을 식별해야 합니다.
 - manifest가 없는 기존 `.harness/`, `.claude/`, `CLAUDE.md`는 전용 하네스일 수 있으므로 기본 보존하고 `--force`일 때만 덮어씁니다.
 - 프로젝트 소유 파일 예시는 `.harness/project/project-charter.md`, `.harness/project/local-methodology.md`, `.harness/project/stack-preset-rules.md`, `.harness/project/domain-rules.md`, `.harness/project/architecture-rules.md`, `.harness/project/workflow-rules.md`, `.harness/session/active-context.md`, `.harness/policy/profile.json`, `.harness/policy/waivers.json`, `.claude/settings.local.json`입니다.
 - `stack:apply`는 활성 스택 instructions를 `.harness/project/stack-preset-rules.md`에 로컬룰로 반영해야 합니다.
