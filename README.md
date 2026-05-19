@@ -417,13 +417,13 @@ npm run harness:check -- --verbose
 | --- | --- |
 | `npm run harness:guide` | 현재 상태 대시보드와 클릭형 하네스 가이드 위치 출력. `-- --open`으로 브라우저 열기 |
 | `npm run harness:scan` | 현재 프로젝트 스캔 리포트 생성 |
-| `npm run harness:handoff` | 설치/업데이트 직후 볼 요약, 현재 변경 상태, 다음 액션 생성 |
+| `npm run harness:handoff` | 설치/업데이트 후 확인할 일, 현재 변경 상태, 권장 조치 요약 생성 |
 | `npm run harness:impact` | 변경 파일이 어떤 기준과 연결되는지 가볍게 확인 |
-| `npm run harness:check` | Node, 기준 영향도, 문서 링크, 버전, seed test, lint/test/build를 순서대로 실행하는 통합 검사 |
+| `npm run harness:check` | 작업 완료 전 Node, 기준 영향도, 문서 링크, 버전, seed test, lint/test/build를 순서대로 실행하는 통합 검사 |
 | `npm run harness:check:strict` | CI/릴리스용 엄격 검사 |
 | `npm run harness:sync` | 프로젝트 맵, import 맵, 감지 패턴을 `.harness/generated/**`로 재생성 |
 | `npm run harness:context -- "<작업>"` | 에이전트가 작업 설명을 기준으로 `.harness/session/task-context.md`에 판단 컨텍스트 생성 |
-| `npm run hooks:install` | 로컬 git hook 등록 |
+| `npm run hooks:install` | 로컬 git hook과 커밋 템플릿 등록. 이후 `git commit`/`git push` 전에 `harness:check` 자동 실행 |
 | `npm run harness:outdated` | lock 기준으로 같은 major 범위의 업데이트 후보 조회. 파일 수정 없음 |
 | `npm run harness:update` | lock에 기록된 스택 하네스를 다시 실행해 같은 major 범위의 최신 기준으로 업데이트 |
 | `npm run standards:list` | 원격 스택 하네스 후보 조회 |

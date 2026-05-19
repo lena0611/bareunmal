@@ -4,6 +4,12 @@
 
 `CHANGELOG.md`는 하네스 본체 변경 이력입니다. 설치된 소비자 프로젝트의 판단 기록은 `.harness/session/decision-log.md`에 남깁니다.
 
+## 0.2.35 - 2026-05-19
+
+- 가이드 출력의 `Daily entrypoints`를 `Recommended commands`로 바꾸고 각 명령의 실행 시점을 함께 표시했습니다.
+- `harness:handoff`를 설치/업데이트 후 확인할 일과 권장 조치 요약으로 설명했습니다.
+- `hooks:install` 후 commit/push 전에 `harness:check`가 자동 실행된다는 안내를 추가했습니다.
+
 ## 0.2.34 - 2026-05-19
 
 - `harness:context` 출력을 Agent Decision Context로 정리했습니다.

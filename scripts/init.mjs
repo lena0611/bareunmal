@@ -575,9 +575,9 @@ function consumerProjectStateTemplate(rel, context) {
 - 프로젝트 구조 분석 결과는 \`.harness/session/project-scan-report.md\`를 확인합니다.
 - 설치/업데이트 직후 요약은 \`.harness/session/handoff.md\`를 확인합니다.
 
-## 다음 작업 후보
+## 확인할 일
 - \`.harness/project/project-charter.md\`의 TBD 항목을 프로젝트 상황에 맞게 채웁니다.
-- 작업을 시작하기 전에 \`npm run harness:context -- "<작업 설명>"\`으로 읽을 기준을 좁힙니다.
+- 큰 작업이나 낯선 영역이면 에이전트가 \`npm run harness:context -- "<작업 설명>"\`으로 판단 컨텍스트를 만듭니다.
 - 작업 후 \`npm run harness:check\`로 기준, 링크, 검증 상태를 확인합니다.
 `;
 
@@ -1312,7 +1312,8 @@ function main() {
        npm run template:apply -- --preset-git <repo-url> --ref <tag-or-branch>
   7) git hook 활성화
        npm run hooks:install
-  8) 작업 중간에 다시 검사
+       이후 git commit/push 전에 npm run harness:check가 자동 실행됩니다.
+  8) 작업 완료 전 직접 검증
        npm run harness:check
 
 문서:

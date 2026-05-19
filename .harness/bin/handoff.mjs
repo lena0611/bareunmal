@@ -180,11 +180,12 @@ ${changes.length >= 20 ? '- ... 출력은 20개로 제한됨' : ''}
 - 에이전트는 항상 모든 로컬룰을 읽지 않고 \`harness:context -- "<작업 설명>"\`으로 이번 작업의 판단 컨텍스트를 만듭니다.
 - 오래된 판단은 삭제보다 먼저 \`decision-log.md\`에 변경 이유를 남기고 최신 요약을 \`project-memory.md\`나 해당 룰 문서 상단에 둡니다.
 
-## Next Steps
+## 확인할 일
 1. 새 터미널이면 프로젝트 루트에서 \`nvm use\`를 실행합니다.
 2. \`npm run harness:guide -- --open\`으로 현재 상태와 클릭형 가이드를 확인합니다.
 3. 큰 작업이나 낯선 영역이면 에이전트가 \`npm run harness:context -- "<이번 작업>"\`으로 판단 컨텍스트를 만듭니다.
-4. 작업 후 \`npm run harness:check\`로 기준, 링크, 검증 상태를 확인합니다.
+4. \`npm run hooks:install\`을 실행하면 이후 \`git commit\`/\`git push\` 전에 \`harness:check\`가 자동 실행됩니다.
+5. hook을 설치하지 않았거나 커밋 전 미리 보고 싶으면 \`npm run harness:check\`로 직접 검증합니다.
 `
 }
 
