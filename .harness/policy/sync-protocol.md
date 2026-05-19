@@ -9,7 +9,7 @@
 
 ## 기본 실행 순서
 1. 일반 프로젝트에서는 먼저 `npm run harness:impact`로 영향 범위를 봅니다.
-2. 작업 범위가 크거나 생소하면 `npm run harness:sync` 후 `npm run harness:context -- "<작업 설명>"`로 관련 읽을거리 후보를 생성합니다.
+2. 작업 범위가 크거나 생소하면 `npm run harness:sync` 후 `npm run harness:context -- "<작업 설명>"`로 에이전트 판단 컨텍스트를 생성합니다.
 3. 필요 시 관련 기준 문서와 영향 영역을 함께 수정합니다.
 4. 최종 확인은 `npm run harness:check`로 수행합니다. CI에서는 `npm run harness:check:strict`를 사용합니다.
 
@@ -34,13 +34,13 @@
 ## 해석 원칙
 - `harness:impact`는 "어디를 다시 봐야 하는지" 알려줍니다.
 - `policy:check`는 하네스 본체 저장소에서 "지금 바로 위반인지"를 알려줍니다.
-- `harness:sync`와 `harness:context`는 "이번 작업에서 무엇을 먼저 읽을지"를 좁혀주는 보조 장치입니다.
+- `harness:sync`와 `harness:context`는 이번 작업의 판단 기준, 영향 후보, 충돌 우선순위를 좁혀주는 에이전트 보조 장치입니다.
 - `harness:impact`가 출력한 영역이 넓더라도, 검토 대상에서 제외하지 않습니다.
 - 자동 검사로 다 잡히지 않는 항목은 `automation-coverage.md`와 `waivers.json` 기준으로 추가 판단합니다.
 
 ## 생성 컨텍스트
 - `.harness/generated/**`는 실제 코드와 문서를 훑어 만든 재생성 산출물입니다.
-- `.harness/session/task-context.md`는 작업 설명을 기준으로 만든 읽을거리 후보입니다.
+- `.harness/session/task-context.md`는 작업 설명을 기준으로 만든 에이전트 판단 컨텍스트입니다.
 - 두 산출물은 git 추적 대상이 아니며, 기준 문서나 실제 코드를 대신하지 않습니다.
 - 생성 컨텍스트와 원본 문서가 충돌하면 원본 문서와 실제 코드를 우선합니다.
 

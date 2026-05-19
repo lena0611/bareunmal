@@ -18,7 +18,7 @@
 - scaffold 템플릿은 `kind=scaffold-template` manifest로 구분하고, 적용 시 `.harness/project/template-contract.md`에 사용 계약 브리지를 남깁니다.
 - 공개 명령은 `harness:scan`, `harness:handoff`, `harness:impact`, `harness:check` 중심으로 정리합니다.
 - 에이전트 진행 설명은 원시 내부 추론이 아니라 visible trace 단계와 판단 결과로 요약합니다.
-- 프로젝트 룰이 누적되면 항상 모두 읽지 않고 `harness:context -- "<작업 설명>"`으로 작업별 후보를 좁힙니다.
+- 프로젝트 룰이 누적되면 항상 모두 읽지 않고 `harness:context -- "<작업 설명>"`으로 에이전트 판단 컨텍스트를 만듭니다.
 
 ## 핵심 파일 (공통 하네스)
 - `.harness/policy/profile.json` — `activeStack` 단일 진실 출처

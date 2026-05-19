@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename)
 const repoRoot = path.resolve(__dirname, '..', '..')
 const harnessRoot = path.join(repoRoot, '.harness')
 const registryPath = path.join(harnessRoot, 'documentation', 'document-registry.json')
+const contextRegistryPath = path.join(harnessRoot, 'documentation', 'context-registry.json')
 const outputPath = path.join(harnessRoot, 'session', 'task-context.md')
 
 const args = process.argv.slice(2)
@@ -39,6 +40,34 @@ const generatedFiles = [
   '.harness/generated/detected-patterns.md',
 ]
 
+const taskTypeRules = [
+  { type: 'bugfix', keywords: ['버그', '오류', '에러', '실패', '깨짐', '안됨', '수정', '고쳐', 'fix', 'bug'] },
+  { type: 'feature', keywords: ['추가', '생성', '구현', '기능', '신규', '만들', 'feature', 'add'] },
+  { type: 'refactor', keywords: ['리팩터', '리팩토', '정리', '구조 개선', '개선', '분리', 'refactor'] },
+  { type: 'docs', keywords: ['문서', 'readme', '가이드', '설명', 'docs'] },
+  { type: 'review', keywords: ['검토', '리뷰', '살펴', '비교', '확인', 'review'] },
+  { type: 'maintenance', keywords: ['업데이트', '배포', '버전', '태그', '릴리스', '갱신', 'update', 'deploy'] },
+]
+
+const conflictOrder = [
+  '회사 공통 필수 차단 기준',
+  '사용자의 명시 지시',
+  '프로젝트 기준',
+  '템플릿 사용 계약',
+  '스택 기준',
+  '회사 공통 기본 운영 기준',
+  '개인 기준',
+  '에이전트 기본값',
+]
+
+const requiredOutputs = [
+  '영향 범위 분석',
+  '구현 또는 수정 계획',
+  '코드/문서 변경',
+  '검증 결과',
+  '로컬룰 승격 후보',
+]
+
 function toPosix(p) {
   return p.split(path.sep).join('/')
 }
@@ -65,6 +94,14 @@ function readRegistryFiles() {
   }
 
   return [...files].filter((file) => exists(file)).sort()
+}
+
+function readContextRegistry() {
+  if (!exists('.harness/documentation/context-registry.json')) {
+    return { contexts: [] }
+  }
+
+  return JSON.parse(fs.readFileSync(contextRegistryPath, 'utf8'))
 }
 
 function tokenize(value) {
@@ -102,31 +139,127 @@ function scoreFile(rel, tokens) {
   return { score, matched: [...new Set(matched)] }
 }
 
+function detectTaskType(tokens) {
+  const scores = taskTypeRules
+    .map((rule) => {
+      const matched = rule.keywords.filter((keyword) => tokens.some((token) => token.includes(keyword) || keyword.includes(token)))
+      return { type: rule.type, score: matched.length, matched }
+    })
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score || a.type.localeCompare(b.type))
+
+  if (scores.length === 0) {
+    return {
+      type: 'unknown',
+      confidence: 'low',
+      reason: '작업 설명에서 작업 유형 키워드를 찾지 못했습니다.',
+    }
+  }
+
+  const top = scores[0]
+  return {
+    type: top.type,
+    confidence: top.score >= 2 ? 'medium' : 'low',
+    reason: `${top.matched.join(', ')} 키워드 감지`,
+  }
+}
+
+function scoreContextEntry(entry, tokens, taskType) {
+  const relText = String(entry.file ?? '').toLowerCase()
+  const text = [
+    entry.id,
+    entry.title,
+    entry.category,
+    ...(entry.appliesTo ?? []),
+    ...(entry.keywords ?? []),
+  ].join(' ').toLowerCase()
+  let score = 0
+  const matched = []
+
+  if ((entry.taskTypes ?? []).includes(taskType.type)) {
+    score += 8
+    matched.push(`task:${taskType.type}`)
+  }
+
+  for (const token of tokens) {
+    if (relText.includes(token) || text.includes(token)) {
+      score += 4
+      matched.push(token)
+    }
+  }
+
+  if (matched.length === 0) {
+    return { score: 0, matched: [] }
+  }
+
+  if (entry.priority === 'critical') score += 6
+  else if (entry.priority === 'high') score += 4
+  else if (entry.priority === 'medium') score += 2
+
+  return { score, matched: [...new Set(matched)] }
+}
+
+function selectContextEntries(tokens, taskType) {
+  const registry = readContextRegistry()
+  return (registry.contexts ?? [])
+    .filter((entry) => entry.file && exists(entry.file))
+    .map((entry) => ({ ...entry, ...scoreContextEntry(entry, tokens, taskType) }))
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score || String(a.file).localeCompare(String(b.file)))
+}
+
+function uniqueByFile(items) {
+  const seen = new Set()
+  const out = []
+
+  for (const item of items) {
+    if (!item.file || seen.has(item.file)) continue
+    seen.add(item.file)
+    out.push(item)
+  }
+
+  return out
+}
+
 function renderContext() {
   const tokens = tokenize(task)
+  const taskType = detectTaskType(tokens)
   const registryFiles = readRegistryFiles()
   const always = alwaysRead.filter(exists)
-  const candidates = registryFiles
+  const contextEntries = selectContextEntries(tokens, taskType)
+  const keywordCandidates = registryFiles
     .filter((file) => !always.includes(file))
     .map((file) => ({ file, ...scoreFile(file, tokens) }))
     .filter((item) => item.score > 0)
     .sort((a, b) => b.score - a.score || a.file.localeCompare(b.file))
+  const candidates = uniqueByFile([...contextEntries, ...keywordCandidates])
     .slice(0, Number.isFinite(limit) && limit > 0 ? limit : 12)
   const generated = generatedFiles.filter(exists)
 
   const lines = []
-  lines.push('# Task Context')
+  lines.push('# Agent Decision Context')
   lines.push('')
-  lines.push('> 이 파일은 `npm run harness:context`가 생성한 작업별 읽을거리 후보입니다. 진실 출처는 원본 문서와 실제 코드입니다.')
+  lines.push('> 이 파일은 에이전트가 코딩 전에 읽을 판단 컨텍스트입니다. 개발자가 업무 지시 때마다 직접 실행할 필요는 없습니다.')
+  lines.push('> 진실 출처는 원본 문서와 실제 코드이며, 이 파일은 재생성 가능한 보조 산출물입니다.')
   lines.push('')
   lines.push(`- generatedAt: ${new Date().toISOString()}`)
   lines.push(`- task: ${task || '(미지정)'}`)
+  lines.push('')
+  lines.push('## User Request')
+  lines.push('')
+  lines.push(task || '- 작업 설명이 지정되지 않았습니다.')
+  lines.push('')
+  lines.push('## Task Type')
+  lines.push('')
+  lines.push(`- detected: ${taskType.type}`)
+  lines.push(`- confidence: ${taskType.confidence}`)
+  lines.push(`- reason: ${taskType.reason}`)
   lines.push('')
   lines.push('## Always Read')
   lines.push('')
   for (const file of always) lines.push(`- ${file}`)
   lines.push('')
-  lines.push('## Task-Relevant Documents')
+  lines.push('## Relevant Policies')
   lines.push('')
 
   if (tokens.length === 0) {
@@ -135,11 +268,45 @@ function renderContext() {
     lines.push('- 작업 설명과 직접 매칭되는 문서를 찾지 못했습니다. Always Read 문서와 프로젝트 구조를 먼저 확인하세요.')
   } else {
     for (const item of candidates) {
-      const reason = item.matched.length > 0 ? `matched: ${item.matched.join(', ')}` : `score: ${item.score}`
-      lines.push(`- ${item.file} (${reason})`)
+      const meta = [
+        item.category ? `category: ${item.category}` : null,
+        item.priority ? `priority: ${item.priority}` : null,
+        item.matched?.length > 0 ? `matched: ${item.matched.join(', ')}` : null,
+      ].filter(Boolean).join(', ')
+      lines.push(`- ${item.file}${meta ? ` (${meta})` : ''}`)
     }
   }
 
+  lines.push('')
+  lines.push('## Decision Rules')
+  lines.push('')
+  lines.push('- 사용자 명시 지시와 회사 공통 필수 차단 기준을 먼저 확인합니다.')
+  lines.push('- 프로젝트 기준이 스택/템플릿 기준보다 구체적이면 프로젝트 기준을 우선합니다.')
+  lines.push('- 생성 컨텍스트는 기준이 아니며 원본 문서와 실제 코드가 우선합니다.')
+  lines.push('- 불명확한 기준 충돌은 `decision-log.md`, `developer-input-queue.md`, `waivers.json` 중 맞는 곳에 기록합니다.')
+  lines.push('')
+  lines.push('## Impact Candidates')
+  lines.push('')
+  if (candidates.length === 0) {
+    lines.push('- 작업 설명 기준으로 영향 후보를 특정하지 못했습니다. 실제 diff와 `harness:impact`로 확인하세요.')
+  } else {
+    const areas = new Set()
+    for (const item of candidates) {
+      for (const area of item.appliesTo ?? []) areas.add(area)
+    }
+    if (areas.size === 0) {
+      lines.push('- 관련 문서 후보는 있으나 appliesTo 메타데이터가 없습니다. 실제 diff와 `harness:impact`로 확인하세요.')
+    } else {
+      for (const area of [...areas].sort()) lines.push(`- ${area}`)
+    }
+  }
+  lines.push('')
+  lines.push('## Conflict Check')
+  lines.push('')
+  lines.push('기준 충돌 시 아래 순서로 해석합니다.')
+  for (const [index, item] of conflictOrder.entries()) {
+    lines.push(`${index + 1}. ${item}`)
+  }
   lines.push('')
   lines.push('## Generated Context')
   lines.push('')
@@ -150,11 +317,9 @@ function renderContext() {
   }
 
   lines.push('')
-  lines.push('## Operating Notes')
+  lines.push('## Required Output')
   lines.push('')
-  lines.push('- 생성 컨텍스트는 원본 문서와 코드를 대신하지 않습니다.')
-  lines.push('- 개인 기준은 회사/스택/프로젝트 기준을 덮어쓰지 않습니다.')
-  lines.push('- 코드 변경 후 로컬룰 승격 후보와 `npm run harness:check` 실행 여부를 확인합니다.')
+  for (const item of requiredOutputs) lines.push(`- ${item}`)
 
   return `${lines.join('\n')}\n`
 }

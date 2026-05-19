@@ -31,7 +31,7 @@ npm run harness:impact
 npm run harness:check
 ```
 
-아래 명령은 하네스 본체 저장소에서 세부 원인 분석이나 CI 검증이 필요할 때 사용하는 내부 개발 명령입니다. 일반 소비자 프로젝트에는 기본 npm script로 병합하지 않습니다.
+아래 명령은 하네스 본체 저장소에서 세부 원인 분석이나 CI 검증이 필요할 때 사용하는 내부 개발 명령입니다. `harness:sync`와 `harness:context`는 소비자 프로젝트에도 제공되지만, 일반 개발자가 업무 지시 때마다 직접 실행하는 명령이 아니라 에이전트가 큰 작업 전에 판단 컨텍스트를 만들 때 사용하는 보조 명령입니다.
 
 ```bash
 npm run policy:impact
@@ -46,14 +46,14 @@ npm run docs:check
 ## 구성 요소
 - `policy-registry.json`: 개발 기준 문서와 코드 영역의 연결 정보
 - `ai-standard-guiding-policy.md`: `ai-standard` 그룹 전체 작업의 최상위 판단 기준
-- `context-protocol.md`: 항상 읽는 기준, 작업별 컨텍스트, 생성 산출물, 실행 도구의 분리 원칙
+- `context-protocol.md`: 항상 읽는 기준, 에이전트 판단 컨텍스트, 생성 산출물, 실행 도구의 분리 원칙
 - `profile.json`: 활성 프리셋과 프로젝트 모드 프로파일 (`activeStack`, `harnessMode`, 외부 프리셋 manifest)
 - `enforcement-ladder.md`: 강제 강도와 예외 허용 범위 기준
 - `automation-coverage.md`: 자동 검증/수동 검토 범위
 - `waivers.json`: 승인된 예외 기록
 - `.harness/bin/policy-harness.mjs`: 영향 분석 및 위반 검사 (`--strict`로 SYNC GAP을 실패로 취급)
 - `.harness/bin/sync-context.mjs`: 프로젝트 맵, import 맵, 패턴 후보를 `.harness/generated/**`로 재생성
-- `.harness/bin/build-context.mjs`: 작업 설명을 기준으로 `.harness/session/task-context.md` 생성
+- `.harness/bin/build-context.mjs`: 작업 설명을 기준으로 `.harness/session/task-context.md`에 Agent Decision Context 생성
 - `.harness/bin/doc-link-check.mjs`: 문서 레지스트리 일관성과 마크다운 링크/코드 경로 참조 검증
 - CI 설정: 푸시/PR 시 `npm run harness:check:strict` 실행
 
@@ -61,5 +61,5 @@ npm run docs:check
 - 개발 기준 변경은 문서 수정으로 끝내지 않습니다. 영향을 받는 코드 영역을 반드시 다시 봅니다.
 - 소스 변경은 기능 수정으로 끝내지 않습니다. 관련 기준 위반이 없는지 반드시 다시 봅니다.
 - 새 세션은 작업 시작 전에 세션 하네스와 policy 하네스를 함께 읽습니다.
-- 작업별 컨텍스트는 원본 문서와 실제 코드를 대신하지 않는 보조 산출물입니다.
+- 에이전트 판단 컨텍스트는 원본 문서와 실제 코드를 대신하지 않는 보조 산출물입니다.
 - 이 문서는 인덱스 역할을 유지하고, 세부 기준은 하위 문서로 계속 분리합니다.

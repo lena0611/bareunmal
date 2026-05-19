@@ -332,7 +332,6 @@
       <nav class="quick" aria-label="quick commands">
         <code>npm run harness:scan</code>
         <code>npm run harness:handoff</code>
-        <code>npm run harness:context -- "작업 설명"</code>
         <code>npm run harness:check</code>
       </nav>
     </header>
@@ -367,7 +366,7 @@
               </button>
               <button class="node" type="button" data-node="context">
                 <span class="node-title">작업 컨텍스트 <span class="badge tool">Tool</span></span>
-                <span class="node-desc">큰 작업이나 낯선 영역이면 읽을거리 후보를 좁힙니다.</span>
+                <span class="node-desc">큰 작업이나 낯선 영역이면 판단 기준과 충돌 우선순위를 좁힙니다.</span>
               </button>
               <button class="node" type="button" data-node="impact">
                 <span class="node-title">영향/충돌 정리 <span class="badge token">Token</span></span>
@@ -490,9 +489,9 @@
       },
       context: {
         title: '작업 컨텍스트',
-        summary: '큰 작업이나 낯선 영역에서는 모든 문서를 읽지 않고 작업별 읽을거리 후보를 생성합니다.',
-        developer: ['생성된 task-context에서 이번 작업과 관련 있는 기준만 봅니다.'],
-        agent: ['프로젝트 맵과 감지 패턴을 갱신한 뒤 이번 작업의 관련 문서를 좁힙니다.'],
+        summary: '큰 작업이나 낯선 영역에서는 모든 문서를 읽지 않고 에이전트 판단 컨텍스트를 생성합니다.',
+        developer: ['업무 지시 때마다 직접 실행할 필요는 없습니다.', '필요하면 생성된 task-context에서 이번 작업과 관련 있는 기준만 확인합니다.'],
+        agent: ['프로젝트 맵과 감지 패턴을 갱신한 뒤 이번 작업의 관련 기준, 충돌 우선순위, 영향 후보를 좁힙니다.'],
         commands: ['npm run harness:sync', 'npm run harness:context -- "작업 설명"'],
         files: ['.harness/generated/project-map.md', '.harness/generated/detected-patterns.md', '.harness/session/task-context.md'],
         fallback: ['생성 컨텍스트는 원본 기준이 아니므로 최종 판단은 project/policy/session 문서에서 확인합니다.']

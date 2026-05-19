@@ -111,7 +111,7 @@ function renderDashboard() {
     renderCard('변경 파일', changedCount === null ? '확인 불가' : `${changedCount}개`, 'git status --short 기준'),
     renderCard('스캔 리포트', boolLabel(exists('.harness/session/project-scan-report.md')), '.harness/session/project-scan-report.md'),
     renderCard('인수인계 요약', boolLabel(exists('.harness/session/handoff.md')), '.harness/session/handoff.md'),
-    renderCard('작업별 컨텍스트', boolLabel(exists('.harness/session/task-context.md')), '.harness/session/task-context.md'),
+    renderCard('에이전트 판단 컨텍스트', boolLabel(exists('.harness/session/task-context.md')), '.harness/session/task-context.md'),
     renderCard('프로젝트 맵', boolLabel(exists('.harness/generated/project-map.md')), 'npm run harness:sync로 생성'),
     renderCard('lint script', scriptLabel(scripts, 'lint')),
     renderCard('test script', scriptLabel(scripts, 'test')),
@@ -308,13 +308,13 @@ function renderDashboard() {
 
     <section class="panel">
       <h2>매일 쓰는 진입점</h2>
-      <p>전체 문서를 다 읽기보다 현재 상황에 맞는 명령으로 좁혀 봅니다.</p>
+      <p>개발자는 상태 확인과 검증 명령을 주로 사용합니다. 작업별 판단 컨텍스트는 에이전트가 큰 작업 전에 필요할 때 생성합니다.</p>
       <div class="commands">
         <code>npm run harness:scan</code>
         <code>npm run harness:handoff</code>
-        <code>npm run harness:context -- "작업 설명"</code>
         <code>npm run harness:check</code>
       </div>
+      <p>직접 확인이 필요할 때만 <code>npm run harness:context -- "작업 설명"</code>으로 Agent Decision Context를 생성합니다.</p>
     </section>
   </main>
 </body>
@@ -360,8 +360,11 @@ function main() {
   console.log('Daily entrypoints:')
   console.log('  npm run harness:scan')
   console.log('  npm run harness:handoff')
-  console.log('  npm run harness:context -- "작업 설명"')
   console.log('  npm run harness:check')
+  console.log('')
+  console.log('Agent decision context:')
+  console.log('  일반 개발자가 매번 실행할 필요는 없습니다.')
+  console.log('  필요 시 에이전트 또는 고급 사용자가 npm run harness:context -- "작업 설명" 으로 생성합니다.')
   const profile = readJson('.harness/policy/profile.json', {})
   if ((profile.activeStack ?? 'none') === 'none') {
     console.log('')

@@ -20,7 +20,7 @@ Claude Code에서는 `SessionStart` hook이 `next-session-reminder.md`를 자동
 11. 에이전트 작업은 hook 설치 여부와 무관하게 기준 계층을 읽고 완료 전 `npm run harness:check`를 실행 대상으로 둡니다.
 12. 스타일이 반복 패턴으로 굳어지기 시작하면 `.harness/style/style-evolution.md` 기준으로 규칙 승격 후보를 확인합니다.
 13. 코드 변경 후에는 도메인, 아키텍처, 워크플로우 로컬룰로 승격할 후보가 있는지 확인하고, 확신이 없으면 `.harness/session/developer-input-queue.md`에 질문으로 남깁니다.
-14. 큰 작업이나 생소한 영역은 `npm run harness:sync`와 `npm run harness:context -- "<작업 설명>"`로 관련 기준 후보를 먼저 좁힙니다.
+14. 큰 작업이나 생소한 영역은 `npm run harness:sync`와 `npm run harness:context -- "<작업 설명>"`로 에이전트 판단 컨텍스트를 먼저 만듭니다.
 15. 개발자에게 진행 상황을 보일 때는 원시 내부 추론이 아니라 `[harness] request/context/impact/action/decision/verify` 형태의 visible trace로 요약합니다.
 
 ## 방향 유지 장치 원칙

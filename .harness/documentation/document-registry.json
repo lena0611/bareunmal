@@ -85,6 +85,7 @@
         ".harness/documentation/concept-map.md",
         ".harness/documentation/decision-flow.md",
         ".harness/documentation/guide/index.html",
+        ".harness/documentation/context-registry.json",
         ".harness/documentation/indexing-rules.md",
         ".harness/documentation/split-thresholds.md",
         ".harness/documentation/document-registry.json"

@@ -83,7 +83,6 @@ function buildReport() {
     scripts.includes('harness:guide') ? '`npm run harness:guide -- --open`' : null,
     scripts.includes('harness:scan') ? '`npm run harness:scan`' : null,
     scripts.includes('harness:impact') ? '`npm run harness:impact`' : null,
-    scripts.includes('harness:context') ? '`npm run harness:context -- "<작업 설명>"`' : null,
     scripts.includes('harness:check') ? '`npm run harness:check`' : null,
     scripts.includes('harness:update') ? '`npm run harness:update`' : null,
   ].filter(Boolean)
@@ -178,13 +177,13 @@ ${changes.length >= 20 ? '- ... 출력은 20개로 제한됨' : ''}
 ## Local Rule Growth Guard
 - 새 규칙은 한 번의 구현 세부사항이 아니라 반복되는 도메인, 구조, 검증 기준일 때만 승격합니다.
 - 길어진 프로젝트 룰은 인덱스, 세부 문서, 요약으로 나눕니다.
-- 에이전트는 항상 모든 로컬룰을 읽지 않고 \`harness:context -- "<작업 설명>"\`으로 이번 작업 관련 후보만 좁힙니다.
+- 에이전트는 항상 모든 로컬룰을 읽지 않고 \`harness:context -- "<작업 설명>"\`으로 이번 작업의 판단 컨텍스트를 만듭니다.
 - 오래된 판단은 삭제보다 먼저 \`decision-log.md\`에 변경 이유를 남기고 최신 요약을 \`project-memory.md\`나 해당 룰 문서 상단에 둡니다.
 
 ## Next Steps
 1. 새 터미널이면 프로젝트 루트에서 \`nvm use\`를 실행합니다.
 2. \`npm run harness:guide -- --open\`으로 현재 상태와 클릭형 가이드를 확인합니다.
-3. \`npm run harness:context -- "<이번 작업>"\`으로 읽을 문서를 좁힙니다.
+3. 큰 작업이나 낯선 영역이면 에이전트가 \`npm run harness:context -- "<이번 작업>"\`으로 판단 컨텍스트를 만듭니다.
 4. 작업 후 \`npm run harness:check\`로 기준, 링크, 검증 상태를 확인합니다.
 `
 }

@@ -37,7 +37,7 @@ npm run harness:guide
 | `.harness/generated/harness-dashboard.html` | `harness:guide`가 만든 현재 상태 대시보드 |
 | `.harness/session/project-scan-report.md` | `harness:scan`이 생성한 현재 프로젝트 스캔 리포트 |
 | `.harness/session/handoff.md` | `harness:handoff`가 생성한 설치/업데이트 인수인계 요약 |
-| `.harness/session/task-context.md` | `harness:context`가 생성한 작업별 읽을거리 후보 |
+| `.harness/session/task-context.md` | `harness:context`가 생성한 에이전트 판단 컨텍스트 |
 
 자동 생성 파일은 직접 고치기보다 관련 명령을 다시 실행합니다.
 
@@ -56,11 +56,11 @@ npm run harness:guide
 
 ## 컨텍스트 합성
 
-큰 작업이나 낯선 영역을 다룰 때는 모든 문서를 한 번에 읽기보다 작업별 컨텍스트를 합성합니다.
+큰 작업이나 낯선 영역을 다룰 때 에이전트는 모든 문서를 한 번에 읽기보다 작업별 판단 컨텍스트를 합성합니다. 개발자가 업무 지시 때마다 직접 실행할 필요는 없습니다.
 
 ```bash
 npm run harness:sync
 npm run harness:context -- "수정하거나 분석할 작업 설명"
 ```
 
-`harness:sync`는 `.harness/generated/**`를 재생성하고, `harness:context`는 `.harness/session/task-context.md`에 이번 작업에서 먼저 볼 문서 후보를 남깁니다. 두 산출물은 원본 문서와 실제 코드를 대신하지 않습니다.
+`harness:sync`는 `.harness/generated/**`를 재생성하고, `harness:context`는 `.harness/session/task-context.md`에 작업 유형, 관련 기준, 충돌 우선순위, 영향 후보, 검증 요구사항을 남깁니다. 두 산출물은 원본 문서와 실제 코드를 대신하지 않습니다.

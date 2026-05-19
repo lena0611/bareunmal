@@ -328,23 +328,25 @@ npm run harness:update -- --force --confirm-overwrite-project-files
 운영 기간이 길어질수록 프로젝트 룰은 늘어납니다. 하네스는 모든 룰을 매 요청마다 읽는 방식으로 해결하지 않습니다.
 
 1. 항상 읽는 최소 기준은 `CLAUDE.md`, 최상위 정책 참조, 세션 시작 알림, 현재 컨텍스트로 제한합니다.
-2. 작업별로 `npm run harness:context -- "<작업 설명>"`를 실행해 관련 룰 후보만 좁힙니다.
+2. 에이전트는 큰 작업이나 낯선 작업 전에 `harness:context`를 사용해 판단 기준, 충돌 우선순위, 영향 후보를 좁힙니다. 개발자가 업무 지시 때마다 직접 실행할 필요는 없습니다.
 3. 긴 룰 문서는 인덱스와 세부 문서로 나누고, 상단에는 최신 요약과 적용 범위를 둡니다.
 4. 오래된 결정은 삭제하기보다 `decision-log.md`에 변경 이유를 남기고 최신 기준만 프로젝트 룰에 남깁니다.
 5. 한 번뿐인 구현 세부사항은 프로젝트 룰로 승격하지 않습니다.
 
 즉, 프로젝트 룰은 무제한 프롬프트 재료가 아니라 검색 가능한 기준 저장소로 봅니다. 에이전트는 최소 기준을 먼저 읽고, 나머지는 작업 설명과 현재 diff에 맞춰 선택적으로 가져옵니다.
 
-## 작업별 컨텍스트 합성
+## 에이전트 판단 컨텍스트
 
-하네스는 모든 기준 문서를 프롬프트에 한꺼번에 넣는 방식을 권장하지 않습니다. 항상 읽어야 하는 최소 기준은 `CLAUDE.md`에 짧게 고정하고, 실제 작업마다 필요한 기준은 로컬에서 다시 합성합니다.
+하네스는 모든 기준 문서를 프롬프트에 한꺼번에 넣는 방식을 권장하지 않습니다. 항상 읽어야 하는 최소 기준은 `CLAUDE.md`에 짧게 고정하고, 실제 작업마다 필요한 기준은 에이전트가 로컬에서 다시 합성합니다.
 
 ```bash
 npm run harness:sync
 npm run harness:context -- "예약 버그 원인 분석과 수정"
 ```
 
-`harness:sync`는 현재 프로젝트의 구조, import, 스크립트, 감지된 패턴을 `.harness/generated/**` 아래에 재생성합니다. `harness:context`는 작업 설명을 기준으로 `.harness/session/task-context.md`에 먼저 읽을 문서 후보를 남깁니다.
+개발자는 이 명령을 매번 직접 실행하지 않아도 됩니다. 에이전트가 큰 작업, 낯선 영역, 기준 충돌 가능성이 있는 작업에서 코딩 전에 실행합니다.
+
+`harness:sync`는 현재 프로젝트의 구조, import, 스크립트, 감지된 패턴을 `.harness/generated/**` 아래에 재생성합니다. `harness:context`는 작업 설명을 기준으로 `.harness/session/task-context.md`에 `Agent Decision Context`를 남깁니다. 이 문서는 작업 유형, 관련 기준, 충돌 우선순위, 영향 후보, 검증 요구사항을 한곳에 모읍니다.
 
 이 산출물은 원본이 아닙니다. 진실 출처는 실제 코드, 설정 파일, `.harness/project/*.md`, `.harness/policy/*.md`입니다. 생성 컨텍스트와 원본이 충돌하면 원본을 우선하고, 기준 충돌이나 예외는 `decision-log.md` 또는 `waivers.json`에 남깁니다.
 
@@ -420,7 +422,7 @@ npm run harness:check -- --verbose
 | `npm run harness:check` | Node, 기준 영향도, 문서 링크, 버전, seed test, lint/test/build를 순서대로 실행하는 통합 검사 |
 | `npm run harness:check:strict` | CI/릴리스용 엄격 검사 |
 | `npm run harness:sync` | 프로젝트 맵, import 맵, 감지 패턴을 `.harness/generated/**`로 재생성 |
-| `npm run harness:context -- "<작업>"` | 작업 설명을 기준으로 `.harness/session/task-context.md` 읽을거리 후보 생성 |
+| `npm run harness:context -- "<작업>"` | 에이전트가 작업 설명을 기준으로 `.harness/session/task-context.md`에 판단 컨텍스트 생성 |
 | `npm run hooks:install` | 로컬 git hook 등록 |
 | `npm run harness:outdated` | lock 기준으로 같은 major 범위의 업데이트 후보 조회. 파일 수정 없음 |
 | `npm run harness:update` | lock에 기록된 스택 하네스를 다시 실행해 같은 major 범위의 최신 기준으로 업데이트 |
@@ -604,7 +606,7 @@ npm run harness:check
 - `.harness/session/decision-log.md`
 - `.harness/session/developer-input-queue.md`
 
-작업별 기준 후보는 아래 명령으로 생성합니다.
+에이전트 판단 컨텍스트를 수동으로 확인하고 싶을 때만 아래 명령을 실행합니다.
 
 ```bash
 npm run harness:sync
@@ -617,6 +619,6 @@ npm run harness:context -- "<작업 설명>"
 - 프로젝트 하네스 작성 가이드: `.harness/project/project-harness-guide.md`
 - 새 프로젝트 인터뷰: `.harness/project/bootstrap.md`
 - 개발 기준 동기화 모델: `.harness/policy/sync-protocol.md`
-- 작업별 컨텍스트 합성: `.harness/policy/context-protocol.md`
+- 에이전트 판단 컨텍스트: `.harness/policy/context-protocol.md`
 - 스택 기준 구조: `.harness/stacks/README.md`
 - 스택 하네스 작성 가이드: `.harness/stacks/authoring-guide.md`
