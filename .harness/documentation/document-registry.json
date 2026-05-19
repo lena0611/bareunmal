@@ -69,6 +69,7 @@
         ".harness/policy/ai-standard-guiding-policy.md",
         ".harness/policy/enforcement-ladder.md",
         ".harness/policy/policy-steward.md",
+        ".harness/policy/policy-db-readiness.md",
         ".harness/policy/context-protocol.md",
         ".harness/policy/sync-protocol.md",
         ".harness/policy/automation-coverage.md",

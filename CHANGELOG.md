@@ -4,6 +4,12 @@
 
 `CHANGELOG.md`는 하네스 본체 변경 이력입니다. 설치된 소비자 프로젝트의 판단 기록은 `.harness/session/decision-log.md`에 남깁니다.
 
+## 0.2.36 - 2026-05-19
+
+- `policy-registry.json`을 v3로 확장해 원자 정책 단위, 계층, 상태, 심각도, 강제 강도, 예외 가능 여부, 소유자, 출처, 검증 명령을 기록합니다.
+- 정책 DB화 전 점검 문서 `policy-db-readiness.md`를 추가했습니다.
+- `policy:check`와 `harness:check`에서 공통 정책 레지스트리 v3 필수 필드와 enum을 검사합니다.
+
 ## 0.2.35 - 2026-05-19
 
 - 가이드 출력의 `Daily entrypoints`를 `Recommended commands`로 바꾸고 각 명령의 실행 시점을 함께 표시했습니다.

@@ -13,13 +13,14 @@
 ## 읽기 순서
 1. [AI Standard Guiding Policy](./ai-standard-guiding-policy.md)
 2. [기준 담당 가이드](./policy-steward.md)
-3. [컨텍스트 합성 프로토콜](./context-protocol.md)
-4. [동기화 프로토콜](./sync-protocol.md)
-5. [강제 강도 기준](./enforcement-ladder.md)
-6. [자동화 커버리지](./automation-coverage.md)
-7. [Waiver 가이드](./waiver-guidelines.md)
-8. `policy-registry.json`
-9. `waivers.json`
+3. [Policy DB Readiness](./policy-db-readiness.md)
+4. [컨텍스트 합성 프로토콜](./context-protocol.md)
+5. [동기화 프로토콜](./sync-protocol.md)
+6. [강제 강도 기준](./enforcement-ladder.md)
+7. [자동화 커버리지](./automation-coverage.md)
+8. [Waiver 가이드](./waiver-guidelines.md)
+9. `policy-registry.json`
+10. `waivers.json`
 
 ## 실행 명령
 일반 설치 프로젝트는 아래 공개 명령을 먼저 사용합니다.
@@ -44,7 +45,8 @@ npm run docs:check
 ```
 
 ## 구성 요소
-- `policy-registry.json`: 개발 기준 문서와 코드 영역의 연결 정보
+- `policy-registry.json`: 개발 기준 문서와 코드 영역의 연결 정보. v3부터 DB화 전 필수 메타데이터를 포함합니다.
+- `policy-db-readiness.md`: 정책을 DB로 옮기기 전 원자 정책 단위, 필수 필드, weak point 기준
 - `ai-standard-guiding-policy.md`: `ai-standard` 그룹 전체 작업의 최상위 판단 기준
 - `context-protocol.md`: 항상 읽는 기준, 에이전트 판단 컨텍스트, 생성 산출물, 실행 도구의 분리 원칙
 - `profile.json`: 활성 프리셋과 프로젝트 모드 프로파일 (`activeStack`, `harnessMode`, 외부 프리셋 manifest)

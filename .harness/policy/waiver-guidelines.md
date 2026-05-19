@@ -15,6 +15,8 @@
 - `approvedBy`
 - `createdAt`
 - `expiresAt` 또는 `reviewAt`
+- `status` (`active`, `expired`, `revoked`, `superseded`)
+- `linkedDecision` (`decision-log.md` 항목 또는 이슈/티켓)
 
 ## 원칙
 - waiver는 영구 해법이 아닙니다.

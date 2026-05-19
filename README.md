@@ -446,6 +446,8 @@ npm run harness:check -- --verbose
 | `npm run docs:check` | 문서 레지스트리, 링크, 코드 경로 검사 |
 | `npm run docs:check:strict` | 문서 검사 실패를 CI 실패 기준으로 사용 |
 
+정책을 DB화하기 전에는 `.harness/policy/policy-db-readiness.md`와 `policy-registry.json` v3를 기준으로 정책 항목이 원자 단위인지, 소유자/출처/강제 강도/예외 가능 여부/검증 명령을 갖는지 먼저 확인합니다.
+
 ## 스택 기준과 템플릿
 
 공통 하네스 본체는 특정 프레임워크를 전제로 하지 않습니다. 프로젝트에서는 회사 공통 기준을 직접 고르는 대신, 보통 회사 공통 기준을 기반으로 한 스택 하네스를 선택합니다.

@@ -183,7 +183,10 @@ function readRegistry() {
 
   return {
     ...base,
-    policies: [...(base.policies ?? []), ...stack.policies],
+    policies: [
+      ...(base.policies ?? []).map((policy) => ({ ...policy, __origin: 'base' })),
+      ...stack.policies.map((policy) => ({ ...policy, __origin: 'stack' })),
+    ],
   }
 }
 
@@ -280,8 +283,9 @@ function isIgnoredPolicyChange(filePath) {
 }
 
 function collectViolations() {
+  const registry = readRegistry()
   const stack = readActiveStack()
-  const violations = []
+  const violations = validatePolicyRegistry(registry)
   const checksKey = stack.checksKey
 
   if (!checksKey) {
@@ -289,6 +293,123 @@ function collectViolations() {
   }
 
   console.warn(`checksKey='${checksKey}' 는 본체에서 실행하지 않습니다. 프리셋 전용 검사는 해당 스택 기준 또는 템플릿 저장소의 guard에 연결하세요.`)
+
+  return violations
+}
+
+function validatePolicyRegistry(registry) {
+  const violations = []
+  const ids = new Set()
+  const validLayers = new Set(['common', 'stack', 'template', 'project', 'personal'])
+  const validStatuses = new Set(['draft', 'active', 'deprecated', 'superseded', 'experimental'])
+  const validSeverities = new Set(['info', 'warning', 'error', 'blocker'])
+  const validEnforcement = new Set(['inform', 'trigger', 'hook', 'block'])
+
+  for (const policy of registry.policies ?? []) {
+    const requiredBasicFields = ['id', 'title', 'documents', 'ownedAreas']
+
+    for (const field of requiredBasicFields) {
+      if (policy[field] === undefined || policy[field] === null || policy[field] === '') {
+        violations.push({
+          rule: 'policy-registry-schema',
+          file: `${harnessRootRel}/policy/policy-registry.json`,
+          message: `policy '${policy.id ?? '(unknown)'}' missing required field '${field}'`,
+        })
+      }
+    }
+
+    if (policy.id) {
+      if (ids.has(policy.id)) {
+        violations.push({
+          rule: 'policy-registry-schema',
+          file: `${harnessRootRel}/policy/policy-registry.json`,
+          message: `duplicate policy id '${policy.id}'`,
+        })
+      }
+
+      ids.add(policy.id)
+    }
+
+    if (!Array.isArray(policy.documents) || policy.documents.length === 0) {
+      violations.push({
+        rule: 'policy-registry-schema',
+        file: `${harnessRootRel}/policy/policy-registry.json`,
+        message: `policy '${policy.id ?? '(unknown)'}' documents must be a non-empty array`,
+      })
+    }
+
+    if (!Array.isArray(policy.ownedAreas) || policy.ownedAreas.length === 0) {
+      violations.push({
+        rule: 'policy-registry-schema',
+        file: `${harnessRootRel}/policy/policy-registry.json`,
+        message: `policy '${policy.id ?? '(unknown)'}' ownedAreas must be a non-empty array`,
+      })
+    }
+
+    if (registry.version < 3 || policy.__origin !== 'base') {
+      continue
+    }
+
+    const requiredV3Fields = ['layer', 'category', 'status', 'severity', 'enforcement', 'waiverAllowed', 'owner', 'source', 'checks']
+
+    for (const field of requiredV3Fields) {
+      if (policy[field] === undefined || policy[field] === null || policy[field] === '') {
+        violations.push({
+          rule: 'policy-registry-v3-schema',
+          file: `${harnessRootRel}/policy/policy-registry.json`,
+          message: `policy '${policy.id}' missing v3 field '${field}'`,
+        })
+      }
+    }
+
+    if (policy.layer && !validLayers.has(policy.layer)) {
+      violations.push({
+        rule: 'policy-registry-v3-schema',
+        file: `${harnessRootRel}/policy/policy-registry.json`,
+        message: `policy '${policy.id}' has invalid layer '${policy.layer}'`,
+      })
+    }
+
+    if (policy.status && !validStatuses.has(policy.status)) {
+      violations.push({
+        rule: 'policy-registry-v3-schema',
+        file: `${harnessRootRel}/policy/policy-registry.json`,
+        message: `policy '${policy.id}' has invalid status '${policy.status}'`,
+      })
+    }
+
+    if (policy.severity && !validSeverities.has(policy.severity)) {
+      violations.push({
+        rule: 'policy-registry-v3-schema',
+        file: `${harnessRootRel}/policy/policy-registry.json`,
+        message: `policy '${policy.id}' has invalid severity '${policy.severity}'`,
+      })
+    }
+
+    if (policy.enforcement && !validEnforcement.has(policy.enforcement)) {
+      violations.push({
+        rule: 'policy-registry-v3-schema',
+        file: `${harnessRootRel}/policy/policy-registry.json`,
+        message: `policy '${policy.id}' has invalid enforcement '${policy.enforcement}'`,
+      })
+    }
+
+    if (typeof policy.waiverAllowed !== 'boolean') {
+      violations.push({
+        rule: 'policy-registry-v3-schema',
+        file: `${harnessRootRel}/policy/policy-registry.json`,
+        message: `policy '${policy.id}' waiverAllowed must be boolean`,
+      })
+    }
+
+    if (!Array.isArray(policy.checks)) {
+      violations.push({
+        rule: 'policy-registry-v3-schema',
+        file: `${harnessRootRel}/policy/policy-registry.json`,
+        message: `policy '${policy.id}' checks must be an array`,
+      })
+    }
+  }
 
   return violations
 }
@@ -578,12 +699,14 @@ function runImpact() {
   const syncGaps = []
 
   for (const policy of registry.policies) {
-    const documentChanged = changedFiles.some((filePath) => matchesAnyGlob(filePath, policy.documents))
-    const sourceChanged = changedFiles.some((filePath) => matchesAnyGlob(filePath, policy.ownedAreas))
-    const hasOwnedFiles = trackedFiles.some((filePath) => matchesAnyGlob(filePath, policy.ownedAreas))
+    const documents = policy.documents ?? []
+    const ownedAreas = policy.ownedAreas ?? []
+    const documentChanged = changedFiles.some((filePath) => matchesAnyGlob(filePath, documents))
+    const sourceChanged = changedFiles.some((filePath) => matchesAnyGlob(filePath, ownedAreas))
+    const hasOwnedFiles = trackedFiles.some((filePath) => matchesAnyGlob(filePath, ownedAreas))
 
     if (documentChanged) {
-      const impactedFiles = trackedFiles.filter((filePath) => matchesAnyGlob(filePath, policy.ownedAreas))
+      const impactedFiles = trackedFiles.filter((filePath) => matchesAnyGlob(filePath, ownedAreas))
       policyTriggered.push({
         title: policy.title,
         files: impactedFiles,
@@ -593,7 +716,7 @@ function runImpact() {
     if (sourceChanged) {
       codeTriggered.push({
         title: policy.title,
-        documents: policy.documents,
+        documents,
       })
     }
 
@@ -602,8 +725,8 @@ function runImpact() {
         id: policy.id,
         title: policy.title,
         side: documentChanged ? 'document-only' : 'source-only',
-        documents: policy.documents,
-        ownedAreas: policy.ownedAreas,
+        documents,
+        ownedAreas,
       })
     }
   }
