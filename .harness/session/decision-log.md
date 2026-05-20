@@ -8,6 +8,12 @@
 - 스킬 ID는 자동화를 위해 영어로 유지하되, 소비자 프로젝트 개발자가 보는 `title`과 설명은 한국어로 둡니다.
 - 소비자 프로젝트에는 세션 시작, 스택 선택, 버그 수정, 기능 개발, 리팩토링, 직접 수정 반영, 커밋 전 검증, 인계 흐름이 우선 필요합니다.
 
+## 2026-05-20 - hooks:install 안내 강화
+- `npm run hooks:install`은 hook 파일을 새로 생성하기보다 `git config core.hooksPath .githooks`와 `commit.template`을 설정하는 명령입니다.
+- 기존 `.git/hooks/pre-commit`, `.git/hooks/pre-push` 또는 기존 `core.hooksPath`의 hook은 사용자 프로젝트 소유 검증일 수 있으므로 하네스 설치 후에도 함께 실행되어야 합니다.
+- 설치 시 기존 hook 경로를 `harness.previousHooksPath`에 저장하고, `.githooks/pre-commit`/`.githooks/pre-push`가 기존 hook을 먼저 실행한 뒤 하네스 검사를 실행합니다.
+- 설치 완료 시 활성화되는 `.githooks/pre-commit`, `.githooks/pre-push`, `.github/commit-template.txt`의 역할과 기존 hook 체인 실행 여부를 출력합니다.
+
 ## 2026-05-19 - 공통 하네스 용어와 에이전트 세션 명령 정리
 - 사용자-facing 용어는 “공통 하네스”로 통일하고, “하네스시드”는 공통 하네스 설치 저장소/패키지 이름으로 제한합니다.
 - Claude Code는 `SessionStart` hook과 slash command를 통해 `next-session-reminder.md`, `project-memory.md`, `decision-log.md`를 명시적으로 다룹니다.

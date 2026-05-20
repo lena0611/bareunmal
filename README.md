@@ -143,6 +143,8 @@ npm run hooks:install
 
 이 명령은 `.githooks/`와 함께 `.github/commit-template.txt`를 git commit template로 연결합니다. 커밋 메시지는 아래 형식을 기준으로 씁니다.
 
+`hooks:install`은 기존 `.git/hooks/*` 파일을 삭제하거나 덮어쓰지 않습니다. 기존 `.git/hooks/pre-commit`, `.git/hooks/pre-push` 또는 기존 `core.hooksPath`의 hook이 있으면 그 경로를 `harness.previousHooksPath`에 저장하고, `.githooks/pre-commit`/`.githooks/pre-push`가 기존 hook을 먼저 실행한 뒤 하네스 검사를 실행합니다.
+
 ```text
 변경 요약
 

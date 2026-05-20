@@ -29,3 +29,4 @@
 ## 변경 규칙
 - 작업 흐름이 바뀌면 README, CI, hook, `harness:check` 명령과 함께 검토합니다.
 - 임시 예외는 `waivers.json` 또는 `decision-log.md`에 범위와 만료 조건을 남깁니다.
+- `npm run hooks:install`은 `core.hooksPath`를 `.githooks`로 설정합니다. 기존 `.git/hooks/*` 또는 기존 `core.hooksPath`의 hook은 삭제하지 않고 `harness.previousHooksPath`에 저장해 `.githooks/*`에서 먼저 체인 실행합니다.

@@ -4,6 +4,11 @@
 
 `CHANGELOG.md`는 하네스 본체 변경 이력입니다. 설치된 소비자 프로젝트의 판단 기록은 `.harness/session/decision-log.md`에 남깁니다.
 
+## 0.2.39 - 2026-05-20
+
+- `hooks:install` 완료 메시지에 설치된 hook, commit template, 기존 hook 체인 실행 안내를 출력합니다.
+- 기존 `.git/hooks/*` 또는 기존 `core.hooksPath`의 hook을 `harness.previousHooksPath`로 저장하고 하네스 hook에서 먼저 실행하도록 변경했습니다.
+
 ## 0.2.38 - 2026-05-20
 
 - 요청 유형별로 읽을 문서, 실행 명령, 기록 위치를 좁히는 하네스 스킬 레지스트리를 추가했습니다.

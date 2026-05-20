@@ -271,15 +271,12 @@
       },
       "documents": [
         ".harness/project/portability-guide.md",
-        ".harness/project/config-contract.md",
-        "CHANGELOG.md"
+        ".harness/project/config-contract.md"
       ],
       "ownedAreas": [
         ".harness/bin/check-node-version.mjs",
         "scripts/init.mjs",
-        "scripts/test-init.mjs",
-        "package.json",
-        "package-lock.json"
+        "scripts/test-init.mjs"
       ],
       "checks": [
         "npm run node:check",
@@ -408,14 +405,13 @@
       },
       "documents": [
         ".harness/project/standards-layers.md",
-        ".harness/project/workflow-rules.md",
-        "CHANGELOG.md"
+        ".harness/project/workflow-rules.md"
       ],
       "ownedAreas": [
         ".githooks/**",
         ".harness/bin/install-hooks.mjs",
-        ".github/commit-template.txt",
-        "package.json"
+        ".harness/bin/run-previous-hook.mjs",
+        ".github/commit-template.txt"
       ],
       "checks": [
         "npm run hooks:install",
